@@ -20,28 +20,33 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/index.html">
+  <meta name="description" content="最简单的执行命令目标：首先明确我们的最终目的是为了执行语句Runtime.getRuntime().exec(&quot;open -a calculator&quot;);  Runtime.getRuntime：获取一个Runtime的实例 exec()：调用实例的exec函数 “open -a calculator”: 执行的参数  最简单的弹计算器： 12345public class E">
+<meta property="og:type" content="article">
+<meta property="og:title" content="java漏洞POC编写">
+<meta property="og:url" content="http://example.com/2021/12/15/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="最简单的执行命令目标：首先明确我们的最终目的是为了执行语句Runtime.getRuntime().exec(&quot;open -a calculator&quot;);  Runtime.getRuntime：获取一个Runtime的实例 exec()：调用实例的exec函数 “open -a calculator”: 执行的参数  最简单的弹计算器： 12345public class E">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-12-15T05:13:04.000Z">
+<meta property="article:modified_time" content="2021-12-15T05:13:41.531Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="java安全">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/">
+<link rel="canonical" href="http://example.com/2021/12/15/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/">
 
 
 <script id="page-configurations">
   // https://hexo.io/docs/variables.html
   CONFIG.page = {
     sidebar: "",
-    isHome : true,
-    isPost : false,
+    isHome : false,
+    isPost : true,
     lang   : 'en'
   };
 </script>
 
-  <title>Hexo</title>
+  <title>java漏洞POC编写 | Hexo</title>
   
 
 
@@ -139,9 +144,10 @@
         <div class="content-wrap">
           
 
-          <div class="content index posts-expand">
+          <div class="content post posts-expand">
             
-      
+
+    
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
@@ -157,10 +163,9 @@
       <meta itemprop="name" content="Hexo">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/15/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/" class="post-title-link" itemprop="url">java漏洞POC编写</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          java漏洞POC编写
+        </h1>
 
         <div class="post-meta">
             <span class="post-meta-item">
@@ -184,7 +189,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="最简单的执行命令"><a href="#最简单的执行命令" class="headerlink" title="最简单的执行命令"></a>最简单的执行命令</h2><p>目标：首先明确我们的最终目的是为了执行语句<code>Runtime.getRuntime().exec(&quot;open -a calculator&quot;);</code></p>
+        <h2 id="最简单的执行命令"><a href="#最简单的执行命令" class="headerlink" title="最简单的执行命令"></a>最简单的执行命令</h2><p>目标：首先明确我们的最终目的是为了执行语句<code>Runtime.getRuntime().exec(&quot;open -a calculator&quot;);</code></p>
 <ul>
 <li>Runtime.getRuntime：获取一个Runtime的实例</li>
 <li>exec()：调用实例的exec函数</li>
@@ -253,80 +258,33 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> POCDemo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"><span class="keyword">import</span> java.util.Calendar;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReflectDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;exec&quot;</span>, String.class).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>)),<span class="string">&quot;open -a calculator&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 
-      
     </div>
 
     
     
     
+
       <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
+          <div class="post-tags">
+              <a href="/tags/java%E5%AE%89%E5%85%A8/" rel="tag"># java安全</a>
+          </div>
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/13/blog/">
+        
 
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="John Doe">
-      <meta itemprop="description" content="">
-    </span>
 
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2021/12/13/blog/" class="post-title-link" itemprop="url">Untitled</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-              
-
-              <time title="Created: 2021-12-13 19:59:32 / Modified: 19:59:52" itemprop="dateCreated datePublished" datetime="2021-12-13T19:59:32+08:00">2021-12-13</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p><a target="_blank" rel="noopener" href="https://mumaxu.github.io/2018/12/09/GitHub-Hexo-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/">https://mumaxu.github.io/2018/12/09/GitHub-Hexo-%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</a></p>
-
-      
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2021/12/13/blog/" rel="prev" title="">
+      <i class="fa fa-chevron-left"></i> 
+    </a></div>
+      <div class="post-nav-item"></div>
     </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
       </footer>
+    
   </article>
   
   
-  
-
-
   
 
 
@@ -379,6 +337,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">最简单的执行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A0"><span class="nav-number">2.</span> <span class="nav-text">反射改造</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">序列化与反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A01"><span class="nav-number">4.</span> <span class="nav-text">反序列化反射改造1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A02"><span class="nav-number">5.</span> <span class="nav-text">反序列化反射改造2</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
