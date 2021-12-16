@@ -28,7 +28,7 @@
 <meta property="og:description" content="曲径通幽处    禅房花木深  java poc编写入门。 本文从最简单的使用Runtime执行命令，再通过反射执行命令，之后又在反序列场景执行命令，最后是反序列化和反射结合执行命令。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-12-15T05:13:04.000Z">
-<meta property="article:modified_time" content="2021-12-15T10:00:56.442Z">
+<meta property="article:modified_time" content="2021-12-16T01:06:01.582Z">
 <meta property="article:author" content="ShadowFlow">
 <meta property="article:tag" content="java安全">
 <meta name="twitter:card" content="summary">
@@ -179,10 +179,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2021-12-15 13:13:04 / Modified: 18:00:56" itemprop="dateCreated datePublished" datetime="2021-12-15T13:13:04+08:00">2021-12-15</time>
+              <time title="Created: 2021-12-15 13:13:04" itemprop="dateCreated datePublished" datetime="2021-12-15T13:13:04+08:00">2021-12-15</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-16 09:06:01" itemprop="dateModified" datetime="2021-12-16T09:06:01+08:00">2021-12-16</time>
+              </span>
 
           
 
@@ -204,7 +210,7 @@
 
 
 
-<h2 id="最简单的执行命令"><a href="#最简单的执行命令" class="headerlink" title="最简单的执行命令"></a>最简单的执行命令</h2><p>目标：首先明确我们的最终目的是为了执行语句<code>Runtime.getRuntime().exec(&quot;open -a calculator&quot;);</code></p>
+<h2 id="1-最简单的执行命令"><a href="#1-最简单的执行命令" class="headerlink" title="1. 最简单的执行命令"></a>1. 最简单的执行命令</h2><p>目标：首先明确我们的最终目的是为了执行语句<code>Runtime.getRuntime().exec(&quot;open -a calculator&quot;);</code></p>
 <ul>
 <li>Runtime.getRuntime：获取一个Runtime的实例</li>
 <li>exec()：调用实例的exec函数</li>
@@ -217,7 +223,7 @@
 
 
 
-<h2 id="反射改造"><a href="#反射改造" class="headerlink" title="反射改造"></a>反射改造</h2><p>因为最后是通过反射机制来进行漏洞利用的，</p>
+<h2 id="2-反射改造"><a href="#2-反射改造" class="headerlink" title="2. 反射改造"></a>2. 反射改造</h2><p>因为最后是通过反射机制来进行漏洞利用的，</p>
 <p>所以先进行反射改造</p>
 <p>最简单的反射构造应该是如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ReflectDemo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//1. 获取Runtime的Class对象</span></span><br><span class="line">        Class runtimeClass = Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//2. 通过Class对象调用exec方法</span></span><br><span class="line">        Method execMethod = runtimeClass.getMethod(<span class="string">&quot;exec&quot;</span>, String.class);</span><br><span class="line">        <span class="comment">//Runtime runtime = new Runtime(); 不可以，Runtime类是单例模式。每个 Java 应用程序都有一个 </span></span><br><span class="line">       	<span class="comment">//Runtime类实例,通过getRuntime方法获取当前Runtime运行时对象的引用。</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">//3. 创建一个Runtime对象</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">        <span class="comment">//4. 在方法对象中传入对象和参数执行方法</span></span><br><span class="line">        execMethod.invoke(runtime, <span class="string">&quot;open -a calculator&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -228,7 +234,7 @@
 
 
 
-<h2 id="序列化与反序列化"><a href="#序列化与反序列化" class="headerlink" title="序列化与反序列化"></a>序列化与反序列化</h2><p>编写一个存在漏洞的重写了readObject的类</p>
+<h2 id="3-序列化与反序列化"><a href="#3-序列化与反序列化" class="headerlink" title="3. 序列化与反序列化"></a>3. 序列化与反序列化</h2><p>编写一个存在漏洞的重写了readObject的类</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> POCDemo;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> serializable.Serialize;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.Serializable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VulnClass</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> String cmd;</span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">readObject</span><span class="params">(java.io.ObjectInputStream stream)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        stream.defaultReadObject();</span><br><span class="line">        Runtime.getRuntime().exec(cmd);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 
@@ -244,7 +250,7 @@
 
 
 
-<h2 id="反序列化反射改造1"><a href="#反序列化反射改造1" class="headerlink" title="反序列化反射改造1"></a>反序列化反射改造1</h2><ol>
+<h2 id="4-反序列化反射改造1"><a href="#4-反序列化反射改造1" class="headerlink" title="4. 反序列化反射改造1"></a>4. 反序列化反射改造1</h2><ol>
 <li><p>客户端将payload序列化，传给服务端</p>
 </li>
 <li><p>服务端将其反序列化，通过反射执行payload</p>
@@ -261,7 +267,7 @@
 
 
 
-<h2 id="反序列化反射改造2"><a href="#反序列化反射改造2" class="headerlink" title="反序列化反射改造2"></a>反序列化反射改造2</h2><p>我们要进行完全反射的话，不能在服务端创建Runtime对象，那么我们需要反射出服务端的Runtime实例对象。</p>
+<h2 id="5-反序列化反射改造2"><a href="#5-反序列化反射改造2" class="headerlink" title="5. 反序列化反射改造2"></a>5. 反序列化反射改造2</h2><p>我们要进行完全反射的话，不能在服务端创建Runtime对象，那么我们需要反射出服务端的Runtime实例对象。</p>
 <p>反射实例对象</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>))</span><br></pre></td></tr></table></figure>
 
@@ -276,7 +282,7 @@
 
 
 
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>本文从最简单的使用Runtime执行命令，再通过反射执行命令，之后又在反序列场景执行命令，最后是反序列化和反射结合执行命令。</p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a>6. 总结</h2><p>本文从最简单的使用Runtime执行命令，再通过反射执行命令，之后又在反序列场景执行命令，最后是反序列化和反射结合执行命令。</p>
 <h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://fynch3r.github.io/%E3%80%90%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E3%80%91commons-collections-1%20%E7%BB%84%E4%BB%B6/">https://fynch3r.github.io/%E3%80%90%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E3%80%91commons-collections-1%20%E7%BB%84%E4%BB%B6/</a></li>
 </ul>
@@ -360,7 +366,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">最简单的执行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A0"><span class="nav-number">2.</span> <span class="nav-text">反射改造</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-number">3.</span> <span class="nav-text">序列化与反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A01"><span class="nav-number">4.</span> <span class="nav-text">反序列化反射改造1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A02"><span class="nav-number">5.</span> <span class="nav-text">反序列化反射改造2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E6%89%A7%E8%A1%8C%E5%91%BD%E4%BB%A4"><span class="nav-text">1. 最简单的执行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A0"><span class="nav-text">2. 反射改造</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%BA%8F%E5%88%97%E5%8C%96%E4%B8%8E%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">3. 序列化与反序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A01"><span class="nav-text">4. 反序列化反射改造1</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E5%8F%8D%E5%B0%84%E6%94%B9%E9%80%A02"><span class="nav-text">5. 反序列化反射改造2</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E6%80%BB%E7%BB%93"><span class="nav-text">6. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
