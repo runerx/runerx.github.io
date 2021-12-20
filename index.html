@@ -174,10 +174,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2021-12-17 18:52:22 / Modified: 20:19:43" itemprop="dateCreated datePublished" datetime="2021-12-17T18:52:22+08:00">2021-12-17</time>
+              <time title="Created: 2021-12-17 18:52:22" itemprop="dateCreated datePublished" datetime="2021-12-17T18:52:22+08:00">2021-12-17</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-20 09:07:32" itemprop="dateModified" datetime="2021-12-20T09:07:32+08:00">2021-12-20</time>
+              </span>
 
           
 
@@ -194,19 +200,14 @@
 <p>春水碧于天    画船听雨眠</p>
 </blockquote>
 <p>Java Agent学习</p>
-<h2 id="1-概念"><a href="#1-概念" class="headerlink" title="1. 概念"></a>1. 概念</h2><p><strong>Java Agent:</strong></p>
-<p>Java Agent是一个运行在目标JVM的特定程序，它的职责是负责从目标JVM中获取数据，然后将数据传递给外部进程。加载Agent的时机可以是目标JVM启动之时，也可以是在目标JVM运行时加载。</p>
-<p><strong>JVMTI:</strong></p>
-<p>JVMTI(JVM Tool Interface)是Java虚拟机对外提供的Native编程接口，通过JVMTI，外部进程可以获取到运行时JVM的诸多信息，比如线程、GC等。</p>
-<p><strong>Instrumentation:</strong></p>
-<p><code>java.lang.instrument.Instrumentation</code></p>
-<p>在Java SE 5之前，要实现一个Agent只能通过编写Native代码来实现。</p>
-<p>从Java SE 5开始，可以使用Java的Instrumentation接口（<strong>java.lang.instrument</strong>包）来编写Agent。</p>
-<p>从而 Java SE 6 的新特性改变了这种情况，通过 Java Tool API 中的 <strong>attach</strong> 方式，我们可以很方便地在运行过程中动态地设置加载代理类，以达到Instrumentation的目的。</p>
-<p>并且从Java SE 6开始，可以向native method插桩。</p>
-<p><strong>无论是通过Native的方式还是通过Java Instrumentation接口的方式来编写Agent，它们的工作都是借助JVMTI来进行完成。</strong></p>
-<p>Instrumentation接口设计初衷是为了收集Java程序运行时的数据，用于监控运行程序状态，记录日志，分析代码用的。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/Java-Agent/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
