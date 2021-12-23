@@ -153,6 +153,75 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/htl.jpeg">
+      <meta itemprop="name" content="c哥">
+      <meta itemprop="description" content="c哥的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFlow's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/" class="post-title-link" itemprop="url">k8s环境构建</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-12-23 11:09:32 / Modified: 11:12:18" itemprop="dateCreated datePublished" datetime="2021-12-23T11:09:32+08:00">2021-12-23</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。是以圣人之治。</p>
+</blockquote>
+<p>k8s环境搭建</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/k8s%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -178,7 +247,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-12-23 10:26:19 / Modified: 11:03:16" itemprop="dateCreated datePublished" datetime="2021-12-23T10:26:19+08:00">2021-12-23</time>
+              <time title="Created: 2021-12-23 10:26:19 / Modified: 11:12:39" itemprop="dateCreated datePublished" datetime="2021-12-23T10:26:19+08:00">2021-12-23</time>
             </span>
 
           
@@ -196,23 +265,14 @@
 <p>天下皆知美之为美，斯恶已；皆知善之为善，斯不善已。</p>
 </blockquote>
 <p>掌握k8s基本概念</p>
-<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>我们都经常使用docker，docker是对容器的封装。它极大的简化了系统的的构建和维护。使得 <code>Docker</code> 技术比虚拟机技术更为轻便、快捷。从而让容器技术应用越来越广泛。</p>
-<p>当容器变多了的时候，我们需要同一管理容器的平台，Kubernetes应运而生，Kubernetes是使用最为广泛的容器编排平台。</p>
-<h2 id="2-k8s架构"><a href="#2-k8s架构" class="headerlink" title="2. k8s架构"></a>2. k8s架构</h2><p><img src="../images/pic/k8s1.png"></p>
-<p><strong>Node：</strong></p>
-<p>我们可以把每个宿主机看成一个节点，每个节点又数个pod构成，pod由有一个或多个容器构成。</p>
-<p><strong>Master节点：</strong></p>
-<p>master节点是负责管理其他节点的主节点</p>
-<p><strong>pod:</strong></p>
-<p>一个pod相当于运行的一个应用或者服务</p>
-<p><strong>API Server:</strong></p>
-<p>通过API Server接口可以对集群进行管理</p>
-<p><strong>kubelet:</strong></p>
-<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
-<p><strong>etcd：</strong></p>
-<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
-<h2 id="3-k8s设计理念"><a href="#3-k8s设计理念" class="headerlink" title="3. k8s设计理念"></a>3. k8s设计理念</h2><p>k8s集群都是通过API的方式进行通讯，这也是分布式系统的设计理念。API都是遵循Restful API接口规范。</p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/k8s%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -804,7 +864,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">9</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>

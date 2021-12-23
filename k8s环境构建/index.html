@@ -20,20 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="道可道，非常道；名可名，非常名。  Javassist学习">
+  <meta name="description" content="不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。是以圣人之治。  k8s环境搭建">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Javassist">
-<meta property="og:url" content="http://example.com/Javassist/index.html">
+<meta property="og:title" content="k8s环境构建">
+<meta property="og:url" content="http://example.com/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/index.html">
 <meta property="og:site_name" content="ShadowFlow&#39;s Blog">
-<meta property="og:description" content="道可道，非常道；名可名，非常名。  Javassist学习">
+<meta property="og:description" content="不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。是以圣人之治。  k8s环境搭建">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2021-12-22T11:01:32.000Z">
-<meta property="article:modified_time" content="2021-12-23T00:54:08.779Z">
+<meta property="article:published_time" content="2021-12-23T03:09:32.000Z">
+<meta property="article:modified_time" content="2021-12-23T03:12:18.432Z">
 <meta property="article:author" content="c哥">
-<meta property="article:tag" content="java安全">
+<meta property="article:tag" content="云原生安全">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="http://example.com/Javassist/">
+<link rel="canonical" href="http://example.com/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/">
 
 
 <script id="page-configurations">
@@ -46,7 +46,7 @@
   };
 </script>
 
-  <title>Javassist | ShadowFlow's Blog</title>
+  <title>k8s环境构建 | ShadowFlow's Blog</title>
   
 
 
@@ -157,7 +157,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/Javassist/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/htl.jpeg">
@@ -170,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Javassist
+          k8s环境构建
         </h1>
 
         <div class="post-meta">
@@ -179,16 +179,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2021-12-22 19:01:32" itemprop="dateCreated datePublished" datetime="2021-12-22T19:01:32+08:00">2021-12-22</time>
+              <time title="Created: 2021-12-23 11:09:32 / Modified: 11:12:18" itemprop="dateCreated datePublished" datetime="2021-12-23T11:09:32+08:00">2021-12-23</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-12-23 08:54:08" itemprop="dateModified" datetime="2021-12-23T08:54:08+08:00">2021-12-23</time>
-              </span>
 
           
             <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv" style="display: none;">
@@ -209,30 +203,11 @@
 
       
         <blockquote>
-<p>道可道，非常道；名可名，非常名。</p>
+<p>不尚贤，使民不争；不贵难得之货，使民不为盗；不见可欲，使民心不乱。是以圣人之治。</p>
 </blockquote>
-<p>Javassist学习</p>
+<p>k8s环境搭建</p>
 <span id="more"></span>
 
-
-
-<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>Javassist比ASM更适合人类操纵字节码，使用API可以实现例如生成类、修改类的操作。</p>
-<p>Javassist是一种字节码增加技术。我们最常用的 Java Proxy 也是一种增强技术，另外常用的还有 ASM，AspectJ，Javassist等常用的技术，其中ASM在指令层次操作字节码的，需要对JVM的指令有一定的了解，同时众多的指令也很难记住，操作比较高；AspectJ扩展了 Java，定义了一些专门的AOP语法，其中 Spring AOP 就使用了 AspectJ；Javassist 是强调源代码层次操作字节码的框架，操作起来很容易入手。</p>
-<p>提供了2各层次的API：源码级别、字节码级别。</p>
-<p>优势：</p>
-<ul>
-<li>操作简单，容易上手</li>
-<li>性能高于反射</li>
-</ul>
-<p>缺点：</p>
-<ul>
-<li>性能相比 ASM ，会低一些</li>
-<li>不支持 continue 和 break 表达式，不支持内部类和匿名类，因此在有些场景是不适合的</li>
-</ul>
-<p><a target="_blank" rel="noopener" href="http://www.javassist.org/html/index.html">API文档</a></p>
-<h2 id="2-读写字节码"><a href="#2-读写字节码" class="headerlink" title="2. 读写字节码"></a>2. 读写字节码</h2><p>Javassist是一个处理字节码的类库。Java字节码存储在一个叫做*.class的二进制文件中。每个class文件包含一个Java类或者接口。</p>
-<p><code>javassist.CtClass</code> 代表一个class文件的抽象类表示形式。一个<code>CtClass</code>(compile-time class编译时的类)是一个处理class文件的句柄，以下是一个简单的程序：</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903957223981063">https://juejin.cn/post/6844903957223981063</a></p>
 
     </div>
 
@@ -242,7 +217,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/java%E5%AE%89%E5%85%A8/" rel="tag"># java安全</a>
+              <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%AE%89%E5%85%A8/" rel="tag"># 云原生安全</a>
           </div>
 
         
@@ -251,13 +226,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/linux%E4%B8%8B%E5%8F%8D%E5%BC%B9shell/" rel="prev" title="linux下反弹shell">
-      <i class="fa fa-chevron-left"></i> linux下反弹shell
+    <a href="/k8s%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/" rel="prev" title="k8s基本概念">
+      <i class="fa fa-chevron-left"></i> k8s基本概念
     </a></div>
-      <div class="post-nav-item">
-    <a href="/xstream%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="next" title="xstream漏洞分析">
-      xstream漏洞分析 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -316,7 +288,6 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1. 概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E8%AF%BB%E5%86%99%E5%AD%97%E8%8A%82%E7%A0%81"><span class="nav-text">2. 读写字节码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
