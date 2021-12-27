@@ -153,6 +153,210 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/ASM%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/htl.jpeg">
+      <meta itemprop="name" content="c哥">
+      <meta itemprop="description" content="c哥的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFlow's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/ASM%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">ASM学习</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-12-24 15:52:51 / Modified: 17:19:50" itemprop="dateCreated datePublished" datetime="2021-12-24T15:52:51+08:00">2021-12-24</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>天地不仁，以万物为刍狗；圣人不仁，以百姓为刍狗。</p>
+</blockquote>
+<p>ASM学习</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ASM官网：<a target="_blank" rel="noopener" href="https://asm.ow2.io/">https://asm.ow2.io/</a></p>
+<p>ASM是一个通用java字节码操作和分析框架。它可以被用来修改已经存在的class文件，或者直接从二进制文件动态生成class文件。</p>
+<p>ASM提供了一些通用的字节码翻译和分析算法，从而可以自己定制。ASM提供了跟其他java字节码相似的功能，但是性能更好。它设计的时候更加侧重于性能。它非常适用于动态系统（当然也可以用于静态系统中，例如编译器）。</p>
+<p>ASM被用于许多项目中：</p>
+<ul>
+<li>OpenJDK，被用于生成 <a target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8/jdk8/jdk/file/687fd7c7986d/src/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java">lambda call sites</a>, 和<a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine)">Nashorn</a> <a target="_blank" rel="noopener" href="http://hg.openjdk.java.net/jdk8/jdk8/nashorn/file/096dc407d310/src/jdk/nashorn/internal/codegen/ClassEmitter.java">compiler</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.groovy-lang.org/"><strong>Groovy</strong></a>和 <a target="_blank" rel="noopener" href="https://kotlinlang.org/"><strong>Kotlin</strong></a> 的编译器</li>
+<li><a target="_blank" rel="noopener" href="http://cobertura.github.io/cobertura/"><strong>Cobertura</strong></a>， <a target="_blank" rel="noopener" href="http://www.eclemma.org/jacoco/"><strong>Jacoco</strong></a>。被用于代码覆盖率测量</li>
+<li><a target="_blank" rel="noopener" href="https://github.com/cglib/cglib"><strong>CGLIB</strong></a>，动态生成代理类</li>
+<li><a target="_blank" rel="noopener" href="https://gradle.org/"><strong>Gradle</strong></a>，实时生成类</li>
+</ul>
+<p>ASM可以从 <a target="_blank" rel="noopener" href="https://repository.ow2.org/">OW2 Maven repository</a>下载，或者从Maven中央仓库下载。</p>
+<p>简单的说，ASM可以读取解析<code>class</code>文件内容，并提供接口让你可以对<code>class</code>文件字节码内容进行CRUD操作。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/Javassist%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/htl.jpeg">
+      <meta itemprop="name" content="c哥">
+      <meta itemprop="description" content="c哥的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFlow's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/Javassist%E5%AD%A6%E4%B9%A0/" class="post-title-link" itemprop="url">Javassist学习</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-12-24 15:50:59 / Modified: 15:54:17" itemprop="dateCreated datePublished" datetime="2021-12-24T15:50:59+08:00">2021-12-24</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+</blockquote>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/java%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81%E7%BC%96%E8%BE%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/htl.jpeg">
+      <meta itemprop="name" content="c哥">
+      <meta itemprop="description" content="c哥的博客">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFlow's Blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/java%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81%E7%BC%96%E8%BE%91/" class="post-title-link" itemprop="url">java类字节码编辑</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+              
+
+              <time title="Created: 2021-12-24 09:01:36 / Modified: 15:44:46" itemprop="dateCreated datePublished" datetime="2021-12-24T09:01:36+08:00">2021-12-24</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <blockquote>
+<p>道可道，非常道；名可名，非常名。</p>
+</blockquote>
+<p>Javassist学习</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/java%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81%E7%BC%96%E8%BE%91/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
     <link itemprop="mainEntityOfPage" href="http://example.com/k8s%E7%8E%AF%E5%A2%83%E6%9E%84%E5%BB%BA/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -176,10 +380,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2021-12-23 11:09:32 / Modified: 11:12:18" itemprop="dateCreated datePublished" datetime="2021-12-23T11:09:32+08:00">2021-12-23</time>
+              <time title="Created: 2021-12-23 11:09:32" itemprop="dateCreated datePublished" datetime="2021-12-23T11:09:32+08:00">2021-12-23</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2021-12-27 15:18:30" itemprop="dateModified" datetime="2021-12-27T15:18:30+08:00">2021-12-27</time>
+              </span>
 
           
 
@@ -314,73 +524,15 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2021-12-22 19:31:44 / Modified: 19:37:48" itemprop="dateCreated datePublished" datetime="2021-12-22T19:31:44+08:00">2021-12-22</time>
-            </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/Javassist/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/htl.jpeg">
-      <meta itemprop="name" content="c哥">
-      <meta itemprop="description" content="c哥的博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ShadowFlow's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/Javassist/" class="post-title-link" itemprop="url">Javassist</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2021-12-22 19:01:32" itemprop="dateCreated datePublished" datetime="2021-12-22T19:01:32+08:00">2021-12-22</time>
+              <time title="Created: 2021-12-22 19:31:44" itemprop="dateCreated datePublished" datetime="2021-12-22T19:31:44+08:00">2021-12-22</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-12-23 08:54:08" itemprop="dateModified" datetime="2021-12-23T08:54:08+08:00">2021-12-23</time>
+                <time title="Modified: 2021-12-24 08:47:46" itemprop="dateModified" datetime="2021-12-24T08:47:46+08:00">2021-12-24</time>
               </span>
 
           
@@ -395,17 +547,9 @@
 
       
           <blockquote>
-<p>道可道，非常道；名可名，非常名。</p>
+<p>道冲而用之或不盈，渊兮似万物之宗</p>
 </blockquote>
-<p>Javassist学习</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/Javassist/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
+
       
     </div>
 
@@ -720,84 +864,11 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/htl.jpeg">
-      <meta itemprop="name" content="c哥">
-      <meta itemprop="description" content="c哥的博客">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="ShadowFlow's Blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/" class="post-title-link" itemprop="url">java漏洞POC编写</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">Posted on</span>
-
-              <time title="Created: 2021-12-15 13:13:04" itemprop="dateCreated datePublished" datetime="2021-12-15T13:13:04+08:00">2021-12-15</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-12-22 19:46:14" itemprop="dateModified" datetime="2021-12-22T19:46:14+08:00">2021-12-22</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <blockquote>
-<p>曲径通幽处，禅房花木深。</p>
-</blockquote>
-<p>java poc编写入门。</p>
-<p>本文从最简单的使用Runtime执行命令，再通过反射执行命令，之后又在反序列场景执行命令，最后是反序列化和反射结合执行命令。</p>
-          <!--noindex-->
-            <div class="post-button">
-              <a class="btn" href="/java%E6%BC%8F%E6%B4%9EPOC%E7%BC%96%E5%86%99/#more" rel="contents">
-                Read more &raquo;
-              </a>
-            </div>
-          <!--/noindex-->
-        
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
+  <nav class="pagination">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/"><i class="fa fa-angle-right" aria-label="Next page"></i></a>
+  </nav>
 
 
 
@@ -864,7 +935,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">9</span>
+          <span class="site-state-item-count">11</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
