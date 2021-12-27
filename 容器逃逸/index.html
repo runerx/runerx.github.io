@@ -28,7 +28,7 @@
 <meta property="og:description" content="谷神不死，是谓玄牝，玄牝之门，是谓天地根。  容器逃逸相关手法总结">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2021-12-27T07:27:12.000Z">
-<meta property="article:modified_time" content="2021-12-27T07:30:46.471Z">
+<meta property="article:modified_time" content="2021-12-27T08:37:03.123Z">
 <meta property="article:author" content="c哥">
 <meta property="article:tag" content="云原生安全">
 <meta name="twitter:card" content="summary">
@@ -181,7 +181,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-12-27 15:27:12 / Modified: 15:30:46" itemprop="dateCreated datePublished" datetime="2021-12-27T15:27:12+08:00">2021-12-27</time>
+              <time title="Created: 2021-12-27 15:27:12 / Modified: 16:37:03" itemprop="dateCreated datePublished" datetime="2021-12-27T15:27:12+08:00">2021-12-27</time>
             </span>
 
           
@@ -208,7 +208,80 @@
 <p>容器逃逸相关手法总结</p>
 <span id="more"></span>
 
-<h2 id="1-容器环境识别"><a href="#1-容器环境识别" class="headerlink" title="1. 容器环境识别"></a>1. 容器环境识别</h2>
+
+
+<h2 id="1-信息收集"><a href="#1-信息收集" class="headerlink" title="1. 信息收集"></a>1. 信息收集</h2><h3 id="1-1-容器识别"><a href="#1-1-容器识别" class="headerlink" title="1.1 容器识别"></a>1.1 容器识别</h3><blockquote>
+<p>从 CGroup 信息中，不仅可以判断我们是否在容器内，也能很方便判断出当前的容器是否在 Kubernetes 的编排环境中。</p>
+</blockquote>
+<ul>
+<li><p>命令：cat /proc/1/cgroup</p>
+</li>
+<li><p>结果：</p>
+<p>在k8s环境下:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@nginx-demo:/<span class="comment"># cat /proc/1/cgroup</span></span><br><span class="line">11:cpuset:/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7722e1f5_ce02_4c58_8337_7cabc99ad70f.slice/docker-72ad237185cc7bac0114e0ef58bbbd5f288ef638b58bb7ec5b16516d145a37df.scope</span><br><span class="line">10:cpuacct,cpu:/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7722e1f5_ce02_4c58_8337_7cabc99ad70f.slice/docker-72ad237185cc7bac0114e0ef58bbbd5f288ef638b58bb7ec5b16516d145a37df.scope</span><br><span class="line">9:devices:/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7722e1f5_ce02_4c58_8337_7cabc99ad70f.slice/docker-72ad237185cc7bac0114e0ef58bbbd5f288ef638b58bb7ec5b16516d145a37df.scope</span><br><span class="line">8:blkio:/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod7722e1f5_ce02_4c58_8337_7cabc99ad70f.slice/docker-72ad237185cc7bac0114e0ef58bbbd5f288ef638b58bb7ec5b16516d145a37df.scope</span><br></pre></td></tr></table></figure>
+
+
+
+<p>容器环境:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">root@250c9269ab90:/<span class="comment"># cat /proc/1/cgroup</span></span><br><span class="line">11:rdma:/</span><br><span class="line">10:perf_event:/docker/250c9269ab90f7b9d49913d841aa1f5dd91d317f336b773af151b476301dc48c</span><br><span class="line">9:devices:/docker/250c9269ab90f7b9d49913d841aa1f5dd91d317f336b773af151b476301dc48c</span><br><span class="line">8:blkio:/docker/250c9269ab90f7b9d49913d841aa1f5dd91d317f336b773af151b476301dc48c</span><br><span class="line">7:freezer:/docker/250c9269ab90f7b9d49913d841aa1f5dd91d317f336b773af151b476301dc48c</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>用到的pod</li>
+</ul>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-demo</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx-deomo</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">nginx</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="1-2-特权容器识别"><a href="#1-2-特权容器识别" class="headerlink" title="1.2 特权容器识别"></a>1.2 特权容器识别</h3><blockquote>
+<p>开启特权模式（privileged）的容器允许容器访问所有宿主机设备。</p>
+</blockquote>
+<ul>
+<li><p>命令：fdisk -l （特权容器会看到磁盘挂载，无特权容器看不到任何信息）</p>
+</li>
+<li><p>结果：</p>
+<p>正常容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root@250c9269ab90:/<span class="comment"># fdisk -l</span></span><br><span class="line">root@250c9269ab90:/<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>特权容器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">root@bda49fc3063c:/<span class="comment"># fdisk -l</span></span><br><span class="line">Disk /dev/sda: 41 GiB, 44023414784 bytes, 85983232 sectors</span><br><span class="line">Disk model: VMware Virtual S</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line">Sector size (logical/physical): 512 bytes / 512 bytes</span><br><span class="line">I/O size (minimum/optimal): 512 bytes / 512 bytes</span><br><span class="line">Disklabel <span class="built_in">type</span>: dos</span><br><span class="line">Disk identifier: 0x15ec275c</span><br><span class="line"></span><br><span class="line">Device     Boot    Start      End  Sectors  Size Id Type</span><br><span class="line">/dev/sda1  *        2048 83982335 83980288   40G 83 Linux</span><br><span class="line">/dev/sda2       83984382 85981183  1996802  975M  5 Extended</span><br><span class="line">/dev/sda5       83984384 85981183  1996800  975M 82 Linux swap / Solaris</span><br></pre></td></tr></table></figure>
+
+<p>正常pod:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment"># fdisk -l</span></span><br><span class="line">/ <span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>特权pod:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">/ <span class="comment"># fdisk -l</span></span><br><span class="line">Disk /dev/sda: 20 GB, 21474836480 bytes, 41943040 sectors</span><br><span class="line">2610 cylinders, 255 heads, 63 sectors/track</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line"></span><br><span class="line">Device  Boot StartCHS    EndCHS        StartLBA     EndLBA    Sectors  Size Id Type</span><br><span class="line">/dev/sda1 *  0,32,33     130,170,40        2048    2099199    2097152 1024M 83 Linux</span><br><span class="line">/dev/sda2    130,170,41  1023,254,63    2099200   41943039   39843840 18.9G 8e Linux LVM</span><br><span class="line">Disk /dev/dm-0: 17 GB, 18249416704 bytes, 35643392 sectors</span><br><span class="line">2218 cylinders, 255 heads, 63 sectors/track</span><br><span class="line">Units: sectors of 1 * 512 = 512 bytes</span><br><span class="line"></span><br><span class="line">Disk /dev/dm-0 doesn<span class="string">&#x27;t contain a valid partition table</span></span><br><span class="line"><span class="string">Disk /dev/dm-1: 2048 MB, 2147483648 bytes, 4194304 sectors</span></span><br><span class="line"><span class="string">261 cylinders, 255 heads, 63 sectors/track</span></span><br><span class="line"><span class="string">Units: sectors of 1 * 512 = 512 bytes</span></span><br></pre></td></tr></table></figure></li>
+<li><p>使用到的pod</p>
+<p>正常：kubectl exec -it alpine-test /bin/sh</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">alpine-test</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">alpine-test</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">&quot;alpine&quot;</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;tail -f /dev/null&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+<p>特权：kubectl exec -it alpine-privileged /bin/sh</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Pod</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">alpine-privileged</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">containers:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">alpine-privileged</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">&quot;alpine&quot;</span></span><br><span class="line">    <span class="attr">securityContext:</span></span><br><span class="line">      <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">command:</span> [<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;tail -f /dev/null&quot;</span>]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-3-收集挂载信息"><a href="#1-3-收集挂载信息" class="headerlink" title="1.3 收集挂载信息"></a>1.3 收集挂载信息</h3></li>
+</ul>
+<blockquote>
+<p>挂载危险目录可能导致容器逃逸</p>
+</blockquote>
+<ul>
+<li><p>命令：cat /proc/self/mounts</p>
+</li>
+<li><p>结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">root@94c7b539e243:/<span class="comment"># cat /proc/self/mounts</span></span><br><span class="line">overlay / overlay rw,relatime,lowerdir=/var/lib/docker/overlay2/l/ZLTGXOQUKDQSUUEYOU4LEPOTDT:/var/lib/docker/overlay2/l/ACBJV6BUBICY2UWKF6RUSJL2CK:/var/lib/docker/overlay2/l/PEHRSEOSUK5N4LS3TWGFN5AMPF:/var/lib/docker/overlay2/l/WJJQ32N4WYNZPOBCJU6RYNJSZW:/var/lib/docker/overlay2/l/L2WLPD3OB5VQ4BMALKIS7YQZYS:/var/lib/docker/overlay2/l/FKNSIMUASM2XH4VM7NPQTA7LVH:/var/lib/docker/overlay2/l/JLNADHKMD3V6INRNN6XSWIJJTU:/var/lib/docker/overlay2/l/MNMWFARRFGRRJIB2BPJZKKIPL2:/var/lib/docker/overlay2/l/FQT3GCMVXV66A4XDYNO5ZTIPWZ:/var/lib/docker/overlay2/l/NW7UV3VUTVI4HAZMYJYLFNR7DX:/var/lib/docker/overlay2/l/GQBU5K7FNQ6WKYQ4UZKVE34YDF:/var/lib/docker/overlay2/l/NLQIT2NYYWUOKV6X3HU6V2HM4T:/var/lib/docker/overlay2/l/LQUSKZUHCPUZYHYUNJDK2VYSFC,upperdir=/var/lib/docker/overlay2/516dcfd41ed86e852677c6a0a3c58ba7f3b9e7b5898542f4daba5eafe91d34d0/diff,workdir=/var/lib/docker/overlay2/516dcfd41ed86e852677c6a0a3c58ba7f3b9e7b5898542f4daba5eafe91d34d0/work 0 0</span><br><span class="line">proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0</span><br><span class="line">tmpfs /dev tmpfs rw,nosuid,size=65536k,mode=755 0 0</span><br><span class="line">devpts /dev/pts devpts rw,nosuid,noexec,relatime,gid=5,mode=620,ptmxmode=666 0 0</span><br><span class="line">sysfs /sys sysfs rw,nosuid,nodev,noexec,relatime 0 0</span><br><span class="line">tmpfs /sys/fs/cgroup tmpfs rw,nosuid,nodev,noexec,relatime,mode=755 0 0</span><br><span class="line">cgroup /sys/fs/cgroup/systemd cgroup rw,nosuid,nodev,noexec,relatime,xattr,name=systemd 0 0</span><br><span class="line">cgroup /sys/fs/cgroup/net_cls,net_prio cgroup rw,nosuid,nodev,noe</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h3 id="1-4-收集特权信息"><a href="#1-4-收集特权信息" class="headerlink" title="1.4 收集特权信息"></a>1.4 收集特权信息</h3><blockquote>
+<p>有的特权可导致容器逃逸</p>
+</blockquote>
+<ul>
+<li><p>命令：</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">cat <span class="regexp">/proc/</span>self/status</span><br><span class="line">或者</span><br><span class="line">capsh --<span class="keyword">print</span></span><br><span class="line"></span><br><span class="line">如果没有capsh命令可以</span><br><span class="line">先：cat <span class="regexp">/proc/</span><span class="number">1</span>/status | <span class="keyword">grep</span> Cap</span><br><span class="line">获取结果</span><br><span class="line">然后在自己的机器上进行：capsh --decode=<span class="number">00000000</span>a80425fb</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master testpod]<span class="comment"># capsh --print</span></span><br><span class="line">Current: = cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,35,36+ep</span><br><span class="line">Bounding <span class="built_in">set</span> =cap_chown,cap_dac_override,cap_dac_read_search,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_linux_immutable,cap_net_bind_service,cap_net_broadcast,cap_net_admin,cap_net_raw,cap_ipc_lock,cap_ipc_owner,cap_sys_module,cap_sys_rawio,cap_sys_chroot,cap_sys_ptrace,cap_sys_pacct,cap_sys_admin,cap_sys_boot,cap_sys_nice,cap_sys_resource,cap_sys_time,cap_sys_tty_config,cap_mknod,cap_lease,cap_audit_write,cap_audit_control,cap_setfcap,cap_mac_override,cap_mac_admin,cap_syslog,35,36</span><br><span class="line">Securebits: 00/0x0/1<span class="string">&#x27;b0</span></span><br><span class="line"><span class="string"> secure-noroot: no (unlocked</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="2-特殊路径挂载导致的容器逃逸"><a href="#2-特殊路径挂载导致的容器逃逸" class="headerlink" title="2. 特殊路径挂载导致的容器逃逸"></a>2. 特殊路径挂载导致的容器逃逸</h2><p>这类的挂载很好理解，当例如宿主机的内的 /, /etc/, /root/.ssh 等目录的写权限被挂载进容器时，在容器内部可以修改宿主机内的 /etc/crontab、/root/.ssh/、/root/.bashrc 等文件执行任意命令，就可以导致容器逃逸。</p>
+
     </div>
 
     
@@ -288,7 +361,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%AE%B9%E5%99%A8%E7%8E%AF%E5%A2%83%E8%AF%86%E5%88%AB"><span class="nav-text">1. 容器环境识别</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="nav-text">1. 信息收集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.1 容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E7%89%B9%E6%9D%83%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.2 特权容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E6%94%B6%E9%9B%86%E6%8C%82%E8%BD%BD%E4%BF%A1%E6%81%AF"><span class="nav-text">1.3 收集挂载信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E6%94%B6%E9%9B%86%E7%89%B9%E6%9D%83%E4%BF%A1%E6%81%AF"><span class="nav-text">1.4 收集特权信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%89%B9%E6%AE%8A%E8%B7%AF%E5%BE%84%E6%8C%82%E8%BD%BD%E5%AF%BC%E8%87%B4%E7%9A%84%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">2. 特殊路径挂载导致的容器逃逸</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
