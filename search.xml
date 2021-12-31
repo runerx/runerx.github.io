@@ -1526,22 +1526,6 @@ Any-Header: burpcollaborator.net</pre>
       </tags>
   </entry>
   <entry>
-    <title>云原生攻击面讨论</title>
-    <url>/%E4%BA%91%E5%8E%9F%E7%94%9F%E6%94%BB%E5%87%BB%E9%9D%A2%E6%8E%A2%E8%AE%A8/</url>
-    <content><![CDATA[<blockquote>
-<p>生而不有，为而不恃，长而不宰，是谓玄德。</p>
-</blockquote>
-<span id="more"></span>
-
-]]></content>
-      <categories>
-        <category>云原生安全</category>
-      </categories>
-      <tags>
-        <tag>云原生安全</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>容器编排平台-Kubernetes安全</title>
     <url>/%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92%E5%B9%B3%E5%8F%B0-Kubernetes%E5%AE%89%E5%85%A8/</url>
     <content><![CDATA[<blockquote>
