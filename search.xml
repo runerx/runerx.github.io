@@ -22,6 +22,7 @@
 </ul>
 <p>ASM可以从 <a href="https://repository.ow2.org/">OW2 Maven repository</a>下载，或者从Maven中央仓库下载。</p>
 <p>简单的说，ASM可以读取解析<code>class</code>文件内容，并提供接口让你可以对<code>class</code>文件字节码内容进行CRUD操作。</p>
+<p>未完待续……</p>
 ]]></content>
       <categories>
         <category>java安全</category>
@@ -207,7 +208,8 @@
   <entry>
     <title>Javassist学习</title>
     <url>/Javassist%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[]]></content>
+    <content><![CDATA[<p>未完待续……</p>
+]]></content>
       <categories>
         <category>java安全</category>
       </categories>
@@ -663,7 +665,8 @@
 <td>当前类，<code>java.lang.Class</code>类型</td>
 </tr>
 </tbody></table>
-<h2 id="3-Javassist读取类信息"><a href="#3-Javassist读取类信息" class="headerlink" title="3. Javassist读取类信息"></a>3. Javassist读取类信息</h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925">https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925</a></p>
+<h2 id="3-Javassist读取类信息"><a href="#3-Javassist读取类信息" class="headerlink" title="3. Javassist读取类信息"></a>3. Javassist读取类信息</h2><p>未完待续……</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925">https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925</a></p>
 <p><a href="https://fynch3r.github.io/Javassist%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">https://fynch3r.github.io/Javassist%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a></p>
 ]]></content>
       <categories>
@@ -1517,6 +1520,7 @@ Any-Header: burpcollaborator.net</pre>
     <content><![CDATA[<blockquote>
 <p>道冲而用之或不盈，渊兮似万物之宗</p>
 </blockquote>
+<p>未完待续……</p>
 ]]></content>
       <categories>
         <category>java安全</category>
@@ -1531,6 +1535,8 @@ Any-Header: burpcollaborator.net</pre>
     <content><![CDATA[<blockquote>
 <p>有之以为利，无之以为用。</p>
 </blockquote>
+<span id="more"></span>
+
 <h2 id="1-信息收集"><a href="#1-信息收集" class="headerlink" title="1. 信息收集"></a>1. 信息收集</h2><h3 id="1-1-pod内获K8s-Server-Token"><a href="#1-1-pod内获K8s-Server-Token" class="headerlink" title="1.1 pod内获K8s Server Token"></a>1.1 pod内获K8s Server Token</h3><blockquote>
 <p>在Pod内收集token用于横向移动</p>
 </blockquote>
@@ -1560,7 +1566,8 @@ Any-Header: burpcollaborator.net</pre>
 <li><p>命令：<code>cat /proc/1/mountinfo</code></p>
 </li>
 </ul>
-<h2 id="2-Kubernetes的入侵点"><a href="#2-Kubernetes的入侵点" class="headerlink" title="2. Kubernetes的入侵点"></a>2. Kubernetes的入侵点</h2><h3 id="2-1-API-Server未授权访问"><a href="#2-1-API-Server未授权访问" class="headerlink" title="2.1 API Server未授权访问"></a>2.1 API Server未授权访问</h3>]]></content>
+<h2 id="2-Kubernetes的入侵点"><a href="#2-Kubernetes的入侵点" class="headerlink" title="2. Kubernetes的入侵点"></a>2. Kubernetes的入侵点</h2><h3 id="2-1-API-Server未授权访问"><a href="#2-1-API-Server未授权访问" class="headerlink" title="2.1 API Server未授权访问"></a>2.1 API Server未授权访问</h3><p>未完待续……</p>
+]]></content>
       <categories>
         <category>云原生安全</category>
       </categories>
