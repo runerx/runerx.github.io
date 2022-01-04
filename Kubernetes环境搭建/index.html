@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/pic/k8s4.jpg">
 <meta property="og:image" content="http://example.com/images/pic/k8s5.jpg">
 <meta property="article:published_time" content="2021-12-23T03:09:32.000Z">
-<meta property="article:modified_time" content="2021-12-31T07:21:14.673Z">
+<meta property="article:modified_time" content="2022-01-04T03:17:03.626Z">
 <meta property="article:author" content="c哥">
 <meta property="article:tag" content="Kubernetes">
 <meta name="twitter:card" content="summary">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-12-31 15:21:14" itemprop="dateModified" datetime="2021-12-31T15:21:14+08:00">2021-12-31</time>
+                <time title="修改时间：2022-01-04 11:17:03" itemprop="dateModified" datetime="2022-01-04T11:17:03+08:00">2022-01-04</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -442,8 +442,11 @@
 <p>查看映射端口</p>
 <figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">kubectl</span> <span class="meta">get</span> <span class="keyword">svc</span> -n kubernetes-dashboard</span><br></pre></td></tr></table></figure>
 
+<p>查看ip地址：</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">kubectl describe pod kubernetes-dashboard-xxxxx -n kubernetes-dashboard</span></span><br></pre></td></tr></table></figure>
 
-
+<p>通过ip和端口确定访问的地址：<a target="_blank" rel="noopener" href="https://172.16.42.102:30000/">https://172.16.42.102:30000/</a></p>
+<p>填入token访问</p>
 <p>访问chrome可能有问题，用火狐。</p>
 <h2 id="14-用kubeadm重置集群"><a href="#14-用kubeadm重置集群" class="headerlink" title="14. 用kubeadm重置集群"></a>14. 用kubeadm重置集群</h2><p>如果出错我们可以重置，从新安装</p>
 <p>master节点</p>
@@ -627,7 +630,7 @@
 <div class="copyright">
   
   &copy; 
-  <span itemprop="copyrightYear">2021</span>
+  <span itemprop="copyrightYear">2022</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
