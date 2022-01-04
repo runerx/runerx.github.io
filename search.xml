@@ -1838,6 +1838,7 @@ Any-Header: burpcollaborator.net</pre>
 </blockquote>
 <span id="more"></span>
 
+<p>Kubernetes是容器编排平台的事实标准，具有较高的复杂性，自然也会产生安全问题。</p>
 <h2 id="1-信息收集"><a href="#1-信息收集" class="headerlink" title="1. 信息收集"></a>1. 信息收集</h2><h3 id="1-1-pod内获K8s-Server-Token"><a href="#1-1-pod内获K8s-Server-Token" class="headerlink" title="1.1 pod内获K8s Server Token"></a>1.1 pod内获K8s Server Token</h3><blockquote>
 <p>在Pod内收集token用于横向移动</p>
 </blockquote>
