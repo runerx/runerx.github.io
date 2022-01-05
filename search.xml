@@ -2064,7 +2064,8 @@ Any-Header: burpcollaborator.net</pre>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># kubectl exec -it alpine-test /bin/sh</span></span><br><span class="line">kubectl <span class="built_in">exec</span> [POD] [COMMAND] is DEPRECATED and will be removed <span class="keyword">in</span> a future version. Use kubectl <span class="built_in">exec</span> [POD] -- [COMMAND] instead.</span><br><span class="line">/ <span class="comment"># cat /var/run/secrets/kubernetes.io/serviceaccount/token</span></span><br><span class="line">eyJhbGciOiJSUzI1NiIsImtpZCI6IjVlYkx2aWRndzBVbm42VHYzQmNXaXdjdkl4cGZyWDFFd3l0aFBJY3pxNEkifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjLmNsdXN0ZXIubG9jYWwiXSwiZXhwIjoxNjcyMjgzODA2LCJpYXQiOjE2NDA3NDc4MDYsImlzcyI6Imh0dHBzOi8va3ViZXJuZXRlcy5kZWZhdWx0LnN2Yy5jbHVzdGVyLmxvY2FsIiwia3ViZXJuZXRlcy5pbyI6eyJuYW1lc3BhY2UiOiJkZWZhdWx0IiwicG9kIjp7Im5hbWUiOiJhbHBpbmUtdGVzdCIsInVpZCI6IjNmZmY0NGUxLTEzNzUtNGViYi04MzBlLTA3Yjk3MTFlOTE0MyJ9LCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoiZGVmYXVsdCIsInVpZCI6IjcyMDA5NmMzLWMwZWEtNGYwMy04ODljLTZkNDUwYWI2MmQyYyJ9LCJ3YXJuYWZ0ZXIiOjE2NDA3NTE0MTN9LCJuYmYiOjE2NDA3NDc4MDYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.ncqAGaslig7ut0aSxBpzg6QldCvAOt5E8i-2rB_zf8cq_Yku6n8C0nFvtiR9KzTu9OxWOjjyn7sKr8Q1xAN-S9xHwOxLG_hb-Z8gmz9VfxtM1hRE6h2JeLAZJgfRYjydrQns2JJ-3uZwKN15KNn95emZzTXMbpdhuFZyuiaOV-6q0jHsI9LhOzYczfJQhMUMXDppQzs3WuI8VckIzgjx9BZM0vgwHaNf065ak4FYGKDVNOoYhbl-b6jwaPNz0SFq0r1SUCLKa6Kn5rpcXzdOG2H_r_lTJlfTJyyFKHEmHtiYE2W9dkAk0AgyaNlZmnlr8D0bTwRahnYJ9k2N0hb9ag/ <span class="comment">#</span></span><br><span class="line">/ <span class="comment">#</span></span><br></pre></td></tr></table></figure>
 
 <p>成功获取到了token</p>
-</li>
+<p>通过token进行访问API Server。</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[root@master manifests]<span class="comment"># curl -k --header &quot;Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjVlYkx2aWRndzBVbm42VHYzQmNXaXdjdkl4cGZyWDFFd3l0aFBJY3pxNEkifQ.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImRlZmF1bHQtdG9rZW4tN3h0czQiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiZGVmYXVsdCIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjcyMDA5NmMzLWMwZWEtNGYwMy04ODljLTZkNDUwYWI2MmQyYyIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmRlZmF1bHQifQ.sSEmxeJ2XIwb95t50ehRGvTUEOOQjjdTK5ula6AtgPV4z7m7YzpPKDSeQSauLWul272j9SLYyuiWR6rnoC4NvAgxgsAbapraJcyDjv0DadWUfbTcjLUSNGGaSQMuOyrYPA_ahK6UuFS_kAOiXL71gPLjE6xUcm8T4-aAgszUSG78OrMDmDao9ZoS2iD0TOVWNsxfUFw712meB4t2C5cj5DhfrDKdGLlJ4HRs3E0EYyPkX8NizaeSjifT-_AxFL7_KrL6GM4nMM8AEWoSn3v1N4CyQkvU5Bb2xu4hyZGX6OAWkcFNoMC4jEfeIgWbj6MC0elhuGYVznyr65GKtcjG6w&quot; https://172.16.42.100:6443/api</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;kind&quot;</span>: <span class="string">&quot;APIVersions&quot;</span>,</span><br><span class="line">  <span class="string">&quot;versions&quot;</span>: [</span><br><span class="line">    <span class="string">&quot;v1&quot;</span></span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;serverAddressByClientCIDRs&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;clientCIDR&quot;</span>: <span class="string">&quot;0.0.0.0/0&quot;</span>,</span><br><span class="line">      <span class="string">&quot;serverAddress&quot;</span>: <span class="string">&quot;172.16.42.100:6443&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]</span><br></pre></td></tr></table></figure></li>
 </ul>
 <h3 id="1-2-kubectl-获取-Api-server-token"><a href="#1-2-kubectl-获取-Api-server-token" class="headerlink" title="1.2 kubectl 获取 Api server token"></a>1.2 kubectl 获取 Api server token</h3><ul>
 <li><p>命令：kubectl config view</p>
@@ -2167,7 +2168,7 @@ Any-Header: burpcollaborator.net</pre>
 </ul>
 <p><strong>4. Kubernetes网络中间人攻击</strong></p>
 <p>通过修改kube-dns服务的地址，可以在Kubernetes网络中完成中间人攻击。</p>
-<h2 id="6-参考"><a href="#6-参考" class="headerlink" title="6. 参考"></a>6. 参考</h2><p>&lt;&lt;云原生安全攻防实践与体系构建》</p>
+<h2 id="6-参考"><a href="#6-参考" class="headerlink" title="6. 参考"></a>6. 参考</h2><p>《云原生安全攻防实践与体系构建》</p>
 ]]></content>
       <categories>
         <category>云原生安全</category>
@@ -2631,6 +2632,40 @@ Any-Header: burpcollaborator.net</pre>
       </categories>
       <tags>
         <tag>打靶</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>使用ebpf保障容器云运行时安全</title>
+    <url>/%E4%BD%BF%E7%94%A8eBPF%E4%BF%9D%E9%9A%9C%E5%AE%B9%E5%99%A8%E4%BA%91%E8%BF%90%E8%A1%8C%E6%97%B6%E5%AE%89%E5%85%A8/</url>
+    <content><![CDATA[<blockquote>
+<p>人法地，地法天，天法道，道法自然。</p>
+</blockquote>
+<span id="more"></span>
+
+<p>Linux一直没有好用的内核态的动态追踪工具，直到EBPF的出现。EBPF可以动态追踪linux事件，获取运行信息。通过分析这些信息可以用来确定是否存在攻击行为。</p>
+<h2 id="1-eBPF"><a href="#1-eBPF" class="headerlink" title="1. eBPF"></a>1. eBPF</h2><p>BPF（Berkeley Packet Filter）是一种包过滤器，是很早就有的内核特性，最早可以追溯到1992年。由于其优良的特性，所有UNIX系统都将BPF作为网络过滤的首选技术，比如我们熟悉的Tcpdump，其底层就是依赖BPF实现的包过滤。</p>
+<p>2014年，Alexei Starovoitov对BPF进行了彻底的改造，并增加了新的功能，改善了性能，新版本被命名为eBPF(extended BPF)。</p>
+<p>在eBPF中，开发者可以在用户空间编写eBPF程序，并将其加载到内核空间执行，不用重新编译内核。</p>
+<h3 id="1-1-eBPF原理"><a href="#1-1-eBPF原理" class="headerlink" title="1.1 eBPF原理"></a>1.1 eBPF原理</h3><p>Linux内核是一个事件驱动的系统设计，这意味着所有操作都是基于事件来描述和执行的。打开文件、CPU执行指令、接收网络数据包都是事件。eBPF可以在内核中检查这些事件的信息源，并且编写eBPF程序来处理触发该事件的代码。</p>
+<p>开发者可以使用C语言或者Python等其他高级语言编写自己的eBPF程序，然后通过LLVM或者GNU、Clang等编译器，将其编译成eBPF字节码。Linux提供了一个bpf()系统调用，通过bpf()系统调用，将这段编译好的字节码传入内核空间。</p>
+<p><img src="../images/pic/k8s14.jpg"> </p>
+<p>传入内核后，先用Verifier组件进行安全测试，测试之后通过JIT编译为机器码。这样就可以在eBPF指定的附着点上执行操作逻辑了。</p>
+<p>eBPF通过MAP数据结构进行数据存储和管理，eBPF将产生的数据通过指定的MAP数据类型进行存储，用户空间的应用程序作为消费者通过bpf()系统调用，从MAP数据结构中读取数据并进行存储和处理。这就是一个完整的eBPF程序的流程。</p>
+<h2 id="1-2-eBPF程序类型"><a href="#1-2-eBPF程序类型" class="headerlink" title="1.2 eBPF程序类型"></a>1.2 eBPF程序类型</h2><p>我们可以简单地将eBPF程序的类型分为两个方面：追踪（Tracing）和网络（Networking）。</p>
+<p><strong>1. 追踪</strong></p>
+<p>未完待续……</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><p><a href="https://cloudnative.to/blog/bpf-intro">https://cloudnative.to/blog/bpf-intro</a></p>
+</li>
+<li><p>《云原生安全攻防实践与体系构建》</p>
+</li>
+</ul>
+]]></content>
+      <categories>
+        <category>云原生安全</category>
+      </categories>
+      <tags>
+        <tag>云原生安全</tag>
       </tags>
   </entry>
 </search>
