@@ -2640,9 +2640,11 @@ Any-Header: burpcollaborator.net</pre>
     <content><![CDATA[<blockquote>
 <p>人法地，地法天，天法道，道法自然。</p>
 </blockquote>
+<p>Linux一直没有好用的内核态的动态追踪工具，直到eBPF的出现。eBPF可以动态追踪linux事件，获取运行信息。通过分析这些信息可以用来确定是否存在攻击行为。</p>
 <span id="more"></span>
 
-<p>Linux一直没有好用的内核态的动态追踪工具，直到EBPF的出现。EBPF可以动态追踪linux事件，获取运行信息。通过分析这些信息可以用来确定是否存在攻击行为。</p>
+
+
 <h2 id="1-eBPF"><a href="#1-eBPF" class="headerlink" title="1. eBPF"></a>1. eBPF</h2><p>BPF（Berkeley Packet Filter）是一种包过滤器，是很早就有的内核特性，最早可以追溯到1992年。由于其优良的特性，所有UNIX系统都将BPF作为网络过滤的首选技术，比如我们熟悉的Tcpdump，其底层就是依赖BPF实现的包过滤。</p>
 <p>2014年，Alexei Starovoitov对BPF进行了彻底的改造，并增加了新的功能，改善了性能，新版本被命名为eBPF(extended BPF)。</p>
 <p>在eBPF中，开发者可以在用户空间编写eBPF程序，并将其加载到内核空间执行，不用重新编译内核。</p>
