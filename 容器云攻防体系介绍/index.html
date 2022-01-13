@@ -33,7 +33,7 @@
 <meta property="og:image" content="http://example.com/images/pic/k8s18.jpg">
 <meta property="og:image" content="http://example.com/images/pic/k8s0.jpg">
 <meta property="article:published_time" content="2022-01-06T06:47:17.000Z">
-<meta property="article:modified_time" content="2022-01-07T11:53:48.716Z">
+<meta property="article:modified_time" content="2022-01-07T11:55:54.960Z">
 <meta property="article:author" content="c哥">
 <meta property="article:tag" content="容器云">
 <meta name="twitter:card" content="summary">
@@ -226,7 +226,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-01-07 19:53:48" itemprop="dateModified" datetime="2022-01-07T19:53:48+08:00">2022-01-07</time>
+                <time title="修改时间：2022-01-07 19:55:54" itemprop="dateModified" datetime="2022-01-07T19:55:54+08:00">2022-01-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -262,7 +262,7 @@
 <p>容器云可以看成是云原生应用的基础设施，包括容器和容器编排平台，容器编排平台目前一般使用的都是Kubernetes。本文主要分析容器和Kubernetes的攻击面以及如何防御。</p>
 <span id="more"></span>
 
-<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关机技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
+<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关键技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
 <h2 id="2-Kubernetes"><a href="#2-Kubernetes" class="headerlink" title="2. Kubernetes"></a>2. Kubernetes</h2><p>常见的Kubernetes集群结构图如下，Master节点是集群的控制节点，Node节点则是集群的工作节点。</p>
 <p><img src="../images/pic/k8s.png"></p>
 <p><img src="../images/pic/k8s18.jpg"> </p>
@@ -336,7 +336,10 @@
     <a href="/eBPF%E5%85%A5%E9%97%A8%E5%AD%A6%E4%B9%A0/" rel="prev" title="eBPF入门学习">
       <i class="fa fa-chevron-left"></i> eBPF入门学习
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/java%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%8F%8D%E5%B0%84/" rel="next" title="java类加载">
+      java类加载 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -411,7 +414,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-count">19</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>

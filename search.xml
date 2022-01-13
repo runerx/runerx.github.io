@@ -1,37 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ASM学习</title>
-    <url>/ASM%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<blockquote>
-<p>天地不仁，以万物为刍狗；圣人不仁，以百姓为刍狗。</p>
-</blockquote>
-<p>ASM学习</p>
-<span id="more"></span>
-
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ASM官网：<a href="https://asm.ow2.io/">https://asm.ow2.io/</a></p>
-<p>ASM是一个通用java字节码操作和分析框架。它可以被用来修改已经存在的class文件，或者直接从二进制文件动态生成class文件。</p>
-<p>ASM提供了一些通用的字节码翻译和分析算法，从而可以自己定制。ASM提供了跟其他java字节码相似的功能，但是性能更好。它设计的时候更加侧重于性能。它非常适用于动态系统（当然也可以用于静态系统中，例如编译器）。</p>
-<p>ASM被用于许多项目中：</p>
-<ul>
-<li>OpenJDK，被用于生成 <a href="http://hg.openjdk.java.net/jdk8/jdk8/jdk/file/687fd7c7986d/src/share/classes/java/lang/invoke/InnerClassLambdaMetafactory.java">lambda call sites</a>, 和<a href="https://en.wikipedia.org/wiki/Nashorn_(JavaScript_engine)">Nashorn</a> <a href="http://hg.openjdk.java.net/jdk8/jdk8/nashorn/file/096dc407d310/src/jdk/nashorn/internal/codegen/ClassEmitter.java">compiler</a></li>
-<li><a href="http://www.groovy-lang.org/"><strong>Groovy</strong></a>和 <a href="https://kotlinlang.org/"><strong>Kotlin</strong></a> 的编译器</li>
-<li><a href="http://cobertura.github.io/cobertura/"><strong>Cobertura</strong></a>， <a href="http://www.eclemma.org/jacoco/"><strong>Jacoco</strong></a>。被用于代码覆盖率测量</li>
-<li><a href="https://github.com/cglib/cglib"><strong>CGLIB</strong></a>，动态生成代理类</li>
-<li><a href="https://gradle.org/"><strong>Gradle</strong></a>，实时生成类</li>
-</ul>
-<p>ASM可以从 <a href="https://repository.ow2.org/">OW2 Maven repository</a>下载，或者从Maven中央仓库下载。</p>
-<p>简单的说，ASM可以读取解析<code>class</code>文件内容，并提供接口让你可以对<code>class</code>文件字节码内容进行CRUD操作。</p>
-<p>未完待续……</p>
-]]></content>
-      <categories>
-        <category>java安全</category>
-      </categories>
-      <tags>
-        <tag>java基础</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Commons-Collections-1</title>
     <url>/Commons-Collections-1/</url>
     <content><![CDATA[<blockquote>
@@ -495,18 +464,6 @@
 <li><a href="https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925">https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925</a></li>
 <li><a href="https://su18.org/post/irP0RsYK1/">https://su18.org/post/irP0RsYK1/</a></li>
 </ul>
-]]></content>
-      <categories>
-        <category>java安全</category>
-      </categories>
-      <tags>
-        <tag>java基础</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Javassist学习</title>
-    <url>/Javassist%E5%AD%A6%E4%B9%A0/</url>
-    <content><![CDATA[<p>未完待续……</p>
 ]]></content>
       <categories>
         <category>java安全</category>
@@ -2287,7 +2244,7 @@ Any-Header: burpcollaborator.net</pre>
 <p>容器云可以看成是云原生应用的基础设施，包括容器和容器编排平台，容器编排平台目前一般使用的都是Kubernetes。本文主要分析容器和Kubernetes的攻击面以及如何防御。</p>
 <span id="more"></span>
 
-<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关机技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
+<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关键技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
 <h2 id="2-Kubernetes"><a href="#2-Kubernetes" class="headerlink" title="2. Kubernetes"></a>2. Kubernetes</h2><p>常见的Kubernetes集群结构图如下，Master节点是集群的控制节点，Node节点则是集群的工作节点。</p>
 <p><img src="../images/pic/k8s.png"></p>
 <p><img src="../images/pic/k8s18.jpg"> </p>
@@ -3046,6 +3003,536 @@ Any-Header: burpcollaborator.net</pre>
       </categories>
       <tags>
         <tag>打靶</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>java类加载</title>
+    <url>/java%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%8F%8D%E5%B0%84/</url>
+    <content><![CDATA[<blockquote>
+<p>莫道不销魂，帘卷西风，人比黄花瘦。</p>
+</blockquote>
+<p>Java类的加载、连接、初始化和反射。</p>
+<span id="more"></span>
+
+<h2 id="1-类的加载、连接和初始化"><a href="#1-类的加载、连接和初始化" class="headerlink" title="1. 类的加载、连接和初始化"></a>1. 类的加载、连接和初始化</h2><p>系统可能在第一次使用某个类时加载该类，也可能采用预加载机制来加载某个类。</p>
+<h3 id="1-1-JVM和类"><a href="#1-1-JVM和类" class="headerlink" title="1.1 JVM和类"></a>1.1 JVM和类</h3><p>当调用java命令运行某个Java程序时，该命令将会启动一个Java虚拟机进程，不管该Java程序有多么复杂，该程序启动了多少个线程，它们都处于该Java虚拟机进程里。同一个JVM的所有线程、所有变量都处于同一个进程里，它们都使用该JVM进程的内存区。当系统出现以下几种情况时，JVM进程将被终止。</p>
+<ul>
+<li>程序运行到最后正常结束</li>
+<li>程序运行到使用System.exit()或Runtime.getRuntime().exit()代码处程序结束。</li>
+<li>程序执行过程中遇到未捕获的异常或错误而结束。</li>
+<li>程序所在平台强制结束了JVM进程。</li>
+</ul>
+<p>当Java程序运行结束时，JVM进程结束，该进程在内存中的状态将会丢失。</p>
+<p>我们编写测试Demo来证明java程序与JVM的关系。</p>
+<p><strong>测试程序: A.java</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">A</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 定义该类的类变量</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> a = <span class="number">6</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><em>类变量：独立于方法之外的变量，用 static 修饰。</em></p>
+<p><strong>程序1：ATest1</strong></p>
+<p>接下来定义一个类用来创建A类的实例，并访问A对象的类变量a。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ATest1</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建A类的实例</span></span><br><span class="line">        A a = <span class="keyword">new</span> A();</span><br><span class="line">        <span class="comment">// 让a实例的类变量a的值自加</span></span><br><span class="line">        a.a ++;</span><br><span class="line">        System.out.println(a.a);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">7</span><br></pre></td></tr></table></figure>
+
+<p><strong>程序2：ATest2</strong></p>
+<p>新创建一个A类的实例，并访问A的类变量</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ATest2</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 创建A类的实例</span></span><br><span class="line">        A b = <span class="keyword">new</span> A();</span><br><span class="line">        <span class="comment">// 输出b实例的类变量a的值</span></span><br><span class="line">        System.out.println(b.a);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line">6</span><br></pre></td></tr></table></figure>
+
+<p>结果为6的原因就是创建的两个类是不同的JVM，程序1修改的值并不适用于程序2，程序1运行结束后在内存中的状态就消失了，与程序2新启的JVM没有任何关系</p>
+<h3 id="1-2-类的加载"><a href="#1-2-类的加载" class="headerlink" title="1.2 类的加载"></a>1.2 类的加载</h3><p>当程序主动使用某个类时，如果该类还未被加载到内存中，则系统会通过<u>加载、连接、初始化</u>三个步骤来对该类进行初始化。如果没有意外，JVM将会连续完成这三个步骤，所以<u>有时也把这三个步骤统称为类加载或类初始化</u>。</p>
+<p><u>类加载指的是将类的class文件读入内存，并为之创建一个java.lang.Class对象</u>。也就是说，当程序中使用任何类时，系统都会为之创建一个java.lang.Class对象。这里可以看出类也是一种对象，就像《金刚经》里讲：凡所有相皆是虚妄。要用佛学来破除这些相，如果太专注于佛学本身也着相了，因为佛学本身也是相。</p>
+<p>类的加载由类加载器完成，类加载器通常由JVM提供，这些类加载器也是所有程序运行的基础，<u>JVM提供的这些类加载器通常被称为系统类加载器</u>。除此之外，<u>开发者可以通过继承ClassLoader基类来创建自己的类加载器</u>。</p>
+<p>通过使用不同的类加载器，可以从不同来源加载</p>
+<ul>
+<li>从本地文件系统加载class文件</li>
+<li>从JAR包加载class文件，JVM可以从JAR文件中直接加载该class文件。</li>
+<li>通过网络加载class文件</li>
+<li>把一个java源文件动态编译，并执行加载。</li>
+</ul>
+<p>类加载器通常无须等到“首次使用”该类时才加载该类，java虚拟机规范允许系统预先加载某些类。</p>
+<h3 id="1-3-类的连接"><a href="#1-3-类的连接" class="headerlink" title="1.3 类的连接"></a>1.3 类的连接</h3><p>当类被加载之后，系统为之生成一个对应的Class对象，接着将会进入连接阶段，连接阶段负责把类的二进制数据合并到JRE中。类连接又可分为如下三阶段。</p>
+<p>1）验证：验证阶段用于检测被加载的类是否有正确的内部结构，并和其他类协调一致。</p>
+<p>2）准备：类准备阶段则负责为类的类变量分配内存，并设置默认初始值。</p>
+<p>3）解析：将类的二进制数据中的符号引用替换成直接引用</p>
+<h3 id="1-4-类的初始化"><a href="#1-4-类的初始化" class="headerlink" title="1.4 类的初始化"></a>1.4 类的初始化</h3><p>在类的初始化阶段，<u>虚拟机负责对类进行初始化，主要就是对类变量进行初始化</u>。在Java类中对类变量指定初始化值有两种方式：</p>
+<ol>
+<li>声明类变量时指定初始值</li>
+<li>使用静态初始化块为类变量指定初始化值。</li>
+</ol>
+<p>代码片段</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">//声明变量a时指定初始值</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> a = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> b; </span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c; <span class="comment">//未指定，默认初始值为0</span></span><br><span class="line">    <span class="keyword">static</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//使用静态初始化块为变量b指定初始值</span></span><br><span class="line">        b = <span class="number">6</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>声明变量时指定初始值，静态初始化块都将被当成类的初始化语句，JVM会按这些语句在程序中的排列顺序依次执行它们，例如下面的类。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Tes</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">//使用静态初始化块为变量b指定初始值</span></span><br><span class="line">        b = <span class="number">6</span>;</span><br><span class="line">        System.out.println(<span class="string">&quot;-------------&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//声明变量a时指定初始化值</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> a = <span class="number">5</span>;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> b = <span class="number">9</span>; <span class="comment">//*1</span></span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> c;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        System.out.println(Tes.b); <span class="comment">//9</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面的代码先在静态初始化块中为b变量赋值，此时类变量的值为6；接着程序向下执行，执行到*1处这行代码也属于该类的初始化语句，所以程序再次为类变量赋值，也就是说，当类初始化结束后，该类变量b的值为9.</p>
+<p>JVM初始化一个类包含如下几个步骤。</p>
+<ol>
+<li>假如这个类还没有被加载和连接，则程序先加载并连接该类。</li>
+<li>假如该类的直接父类还没有被初始化，则先初始化其直接父类。</li>
+<li>假如类中有初始化语句，则系统依次执行这些初始化语句。</li>
+</ol>
+<p>当执行第二个步骤时，系统对直接父类的初始化步骤也遵循此步骤1~3；如果该直接父类又没有直接父类，则系统再次重复…依次类推。所以JVM最先初始化的总是java.lang.Object类。当程序主动使用任何一个类时，系统会保证该类以及所有父类（包括直接父类和间接父类）都会被初始化。</p>
+<h3 id="1-5-类的初始化时机"><a href="#1-5-类的初始化时机" class="headerlink" title="1.5 类的初始化时机"></a>1.5 类的初始化时机</h3><p>当java程序首次通过下面6种方式来使用某个类或者接口时，系统就会初始化该类或者接口。</p>
+<ul>
+<li>创建类的实例。为某个类创建实例的方式包括：使用new操作符来创建实例，通过反射来创建实例，通过反序列化的方式创建实例</li>
+<li>调用某个类的类方法（静态方法）。</li>
+<li>访问某个类或接口的类变量，或为该类变量赋值。</li>
+<li>使用反射方式强制创建某个类或接口对应的java.lang.Class对象。例如代码Class.forName(“Person”)，如果系统还未初始化Person类，则这行代码将会导致该Person类被初始化，并返回Person类对应的java.lang.Class对象。</li>
+<li>初始化某个类的子类，当初始化某个类的子类时，该子类所有父类都会被初始化。</li>
+<li>直接使用java命令来运行某个主类。当运行某个主类时，程序会先初始化该主类。</li>
+</ul>
+<p>除此之外的特殊情况：</p>
+<p>对于一个final型的变量，如果该类变量的值在编译时就可以确定下来，那么这个类变量相当于“宏变量”。java编译器会在编译时直接把这个类变量出现的地方替换成它的值，因此即使程序使用静态类变量，也不会导致该类的初始化。如果在编译时不能确定的final型变量该类还是会被初始化</p>
+<h2 id="2-类加载器"><a href="#2-类加载器" class="headerlink" title="2. 类加载器"></a>2. 类加载器</h2><p>类加载器负责将.class文件（可能在磁盘上，也可能在网络上）加载到内存中，并为之生成对应的java.lang.Class对象。</p>
+<h3 id="2-1-类加载机制"><a href="#2-1-类加载机制" class="headerlink" title="2.1 类加载机制"></a>2.1 类加载机制</h3><p>类加载器负责加载所有的类，系统为所有被载入内存中的类生成一个java.lang.Class实例。一旦一个类被载入JVM中，同一个类就不会被载入了。怎样才算是”同一个类”？在java中，<u>一个类用其全限定类名和其类加载器作为唯一标识</u>。例如在pg的包中有一个名为Person的类，被类加载器ClassLoader的实例kl负责加载。则该Person类对应的Class对象在JVM中表示为（Person、pg、kl）。</p>
+<p>当JVM启动时，会形成由三个类加载器组成的初始类加载器层次结构。</p>
+<ul>
+<li>Bootstrap ClassLoader: 根类加载器</li>
+<li>Extension ClassLoader: 扩展类加载器</li>
+<li>System ClassLoader: 系统类加载器</li>
+</ul>
+<p>Bootstrap ClassLoader被称为引导（也称为原始或根）类加载器，它负责加载Java的核心类。在Sum的JVM中，当执行java命令时，使用-Xbootclasspath或-D选项指定sun.boot.class.path系统属性值可以指定加载附加的类。</p>
+<p>JVM的类加载机制主要有如下三种:</p>
+<ul>
+<li>全盘负责。所谓全盘负责，就是当一个类加载器负责加载某个Class时，该Class所依赖的和引用的其他Class也将由该类加载器负责载入，除非显式使用另外一个类加载器来载入。</li>
+<li>父类委托。所谓父类委托，则是先让parent类加载器试图加载该Class,只有在父类加载器无法加载该类时才尝试从自己的类路径中加载该类。</li>
+<li>缓存机制。缓存机制将会保证所有加载过的Class都会被缓存，当程序中需要使用某个Class时，类加载器先从缓存中搜寻该Class，只有当缓存区中不存在该Class对象时，系统才会读取该类对应的二进制数据，并将其转换成Class对象，存入缓存中。这就是为什么修改了Class后，必须重启JVM，程序所做的修改才会生效的原因。</li>
+</ul>
+<p><u>类加载器之间的父子关系并不是类继承上的父子关系，这里的父子关系是类加载器实例之间的关系</u></p>
+<p>除了可以使用Java提供的类加载器之外，开发者也可以实现自己的类加载器，自定义的类加载器通过继承ClassLoader来实现，JVM中这4种类加载器的层次结构如下所示。</p>
+<figure class="highlight brainfuck"><table><tr><td class="code"><pre><span class="line"><span class="comment">根类加载器</span>&lt;--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">扩展类加载器</span>&lt;--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">系统类加载器</span>&lt;--<span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="literal">-</span><span class="comment">用户类加载器</span></span><br></pre></td></tr></table></figure>
+
+<p>测试Demo</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.util.Enumeration;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassLoaderPropTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="comment">//获取系统类加载器</span></span><br><span class="line">        ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();</span><br><span class="line">        System.out.println(<span class="string">&quot;系统类加载器：&quot;</span> + systemClassLoader);</span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">        获取系统类加载器的加载路径——通常通常由CLASSPATH环境变量指定，如果操作系统没有指定CLASSPATH环境变量，则默认以当前路径作为系统类</span></span><br><span class="line"><span class="comment">        加载加载器的加载路径。</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        Enumeration&lt;URL&gt; eml = systemClassLoader.getResources(<span class="string">&quot;&quot;</span>);</span><br><span class="line">        <span class="keyword">while</span>(eml.hasMoreElements()) &#123;</span><br><span class="line">            System.out.println(eml.nextElement());</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//获取系统类加载器的父亲加载器，得到扩展类加载器</span></span><br><span class="line">        ClassLoader extensionLoader = systemClassLoader.getParent();</span><br><span class="line">        System.out.println(<span class="string">&quot;扩展类加载器：&quot;</span> + extensionLoader);</span><br><span class="line">        System.out.println(<span class="string">&quot;扩展类加载器的加载路径: &quot;</span> + System.getProperty(<span class="string">&quot;java.ext.dirs&quot;</span>));</span><br><span class="line">        System.out.println(<span class="string">&quot;扩展类加载器的parent: &quot;</span> + extensionLoader.getParent());</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/bin/</span>java -javaagent:<span class="regexp">/Applications/</span>IntelliJ IDEA.app<span class="regexp">/Contents/</span>lib<span class="regexp">/idea_rt.jar=54220:/</span>Applications<span class="regexp">/IntelliJ IDEA.app/</span>Contents<span class="regexp">/bin -Dfile.encoding=UTF-8 -classpath /</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>charsets.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/deploy.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/cldrdata.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/dnsns.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/jaccess.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/jfxrt.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/localedata.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/nashorn.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunec.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunjce_provider.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunpkcs11.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/zipfs.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>javaws.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/jce.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>jfr.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/jfxswt.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>jsse.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/management-agent.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>plugin.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/resources.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>rt.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>ant-javafx.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>dt.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>javafx-mx.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>jconsole.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>packager.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>sa-jdi.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>tools.jar:<span class="regexp">/Users/</span>shadowflow<span class="regexp">/code/</span>java<span class="regexp">/test/</span>target<span class="regexp">/classes:/</span>Users<span class="regexp">/shadowflow/</span>.m2<span class="regexp">/repository/</span>javassist<span class="regexp">/javassist/</span><span class="number">3.12</span>.<span class="number">1</span>.GA/javassist-<span class="number">3.12</span>.<span class="number">1</span>.GA.jar reflect.ClassLoaderPropTest</span><br><span class="line">系统类加载器：sun.misc.Launcher<span class="variable">$AppClassLoader</span>@<span class="number">18</span>b4aac2</span><br><span class="line">file:<span class="regexp">/Users/</span>shadowflow<span class="regexp">/code/</span>java<span class="regexp">/test/</span>target<span class="regexp">/classes/</span></span><br><span class="line">扩展类加载器：sun.misc.Launcher<span class="variable">$ExtClassLoader</span>@<span class="number">610455</span>d6</span><br><span class="line">扩展类加载器的加载路径: <span class="regexp">/Users/</span>shadowflow<span class="regexp">/Library/</span>Java<span class="regexp">/Extensions:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext:<span class="regexp">/Library/</span>Java<span class="regexp">/Extensions:/</span>Network<span class="regexp">/Library/</span>Java<span class="regexp">/Extensions:/</span>System<span class="regexp">/Library/</span>Java<span class="regexp">/Extensions:/u</span>sr<span class="regexp">/lib/</span>java</span><br><span class="line">扩展类加载器的parent: null</span><br><span class="line"> </span><br><span class="line">Process finished with <span class="keyword">exit</span> code <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>从运行结果可以看出，系统类加载器的加载路径是程序运行的当前路径，扩展类加载器在jdk的/lib目录。扩展类的父类也就是根类加载器是null。这是因为根类加载器并没有继承ClassLoader抽象类，所有扩展类加载器的<code>getParent()</code>方法返回null。但实际上，扩展类加载器的父类加载器是根类加载器，只是根类加载器并不是Java实现的。</p>
+<p>类加载器加载Class大致要经过如下8个步骤。</p>
+<ol>
+<li>检测此Class是否载入过（即在缓冲区中是否有此Class），如果有则直接进入第8步，否则接着执行第2步</li>
+<li>如果父类加载器不存在（如果没有父类加载器，则要么parent一定是根类加载器，要么本身就是根类加载器），则跳到第4步执行；如果父类加载器存在，则接着第三步。</li>
+<li>请求使用父类加载器去载入目标类，如果成功载入则跳到第8步，否则接着执行第5步。</li>
+<li>请求使用根类加载器来载入目标类，如果成功载入则跳到第8步，否则跳到7步。</li>
+<li>当前类加载器尝试寻找Class文件（从与此ClassLoader相关的类路径寻找），如果找到则执行第6步，如果找不到则跳到第7步。</li>
+<li>从文件中载入Class，成功载入后跳到第8步</li>
+<li>抛出ClassNotFoundException异常</li>
+<li>返回对应的java.lang.Class对象。</li>
+</ol>
+<p>其中5、6步允许重写ClassLoader的<code>findClass()</code>方法类实现自己的载入策略，甚至重写<code>loadClass()</code>方法类实现自己的载入过程。</p>
+<h3 id="2-2-创建并使用自定义的类加载器"><a href="#2-2-创建并使用自定义的类加载器" class="headerlink" title="2.2 创建并使用自定义的类加载器"></a>2.2 创建并使用自定义的类加载器</h3><p>JVM中除根类加载器之外的所有类加载器都是ClassLoader子类的实例，开发者可以通过扩展ClassLoader的子类。并重写该ClassLoader所包含的方法来实现自定义类加载器。ClassLoader中包含大量的protected方法——这些方法都可以被子类重写。</p>
+<p>ClassLoader类有如下两个关键方法：</p>
+<ol>
+<li><p><code>loadClass(String name, boolean resolve)</code>：该方法为ClassLoader的入口点，根据指定名称来加载类，系统就是调用ClassLoader的该方法来获取指定类对应的Class对象。</p>
+</li>
+<li><p>findClass(String name)`: 根据指定名称来查找类。</p>
+</li>
+</ol>
+<p>如果需要实现自定义的ClassLoader，则可以通过重写以上两个方法来实现，==通常推荐重写<code>findClass()</code>方法==而不是<code>loadClass()</code>方法。<code>loadClass()</code>方法的执行步骤如下。</p>
+<ol>
+<li>用<code>findLoadedClass(String)</code>来检查是否已经加载类，如果已经加载则直接返回</li>
+<li>在父类加载器上调用<code>loadClass()</code>方法。如果父类加载器为null，则使用根类加载器来加载。</li>
+<li>调用<code>findClass(String)</code>方法查找类。</li>
+</ol>
+<p>从上面的步骤可以看出，重写<code>findClass()</code>方法可以避免覆盖默认类加载器的父类委托、缓冲机制两种策略；如果重写<code>loadClass()</code>方法则实现逻辑更为复杂。</p>
+<p>在ClassLoader里还有一个核心方法：Class defineClass(String name, byte[]b，int off, intlen)，该方法负责将指定类的字节码文件读入字节数组byte[] b内，并把它转化为Class对象，该字节码文件可以来源于文件、网络等。</p>
+<p><code>defineClass()</code>方法管理JVM的许多复杂的实现，它负责将字节码分析成运行时数据结构，并校验有效性等。但是不用重写该方法，实际上该方法是final的，没办法重写。</p>
+<p>ClassLoader还有一些普通方法。</p>
+<ul>
+<li><code>findSystemClass(String name)</code>: 从本地文件系统装入文件。它在本地文件系统中寻找类文件，如果存在，就使用<code>defineClass()</code>方法将原始字节转换为Class对象，以将该文件转换成类。</li>
+<li><code>static getSystemClassLoader()</code>: 这是一个静态方法，用于返回系统类加载器</li>
+<li><code>getParent()</code>: 获取类加载器的父类加载器。</li>
+<li>resolveClass(Class&lt;?&gt; c): 链接指定的类。类加载器可以使用此方法来链接类c。</li>
+<li><code>findLoadedClass(String name)</code>: 如果此Java虚拟机已经加载了名为name的类，则直接返回该类对应的Class实例，否则返回Null。该方法是Java类加载缓存机制的体现。</li>
+</ul>
+<p>下面的程序开发了一个自定义的ClassLoader，该ClassLoader通过重写<code>findClass()</code>来实现自定义的类加载机制。这个ClassLoader可以在加载类之前先编译该类源文件，从而实现运行Java之前先编译程序的目标，这样即可通过该ClassLoader直接运行Java源文件。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect.loader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompileClassLoader</span> <span class="keyword">extends</span> <span class="title">ClassLoader</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 读取一个文件的内容</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">byte</span>[] getBytes(String filename)</span><br><span class="line">            <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        File file = <span class="keyword">new</span> File(filename);</span><br><span class="line">        <span class="keyword">long</span> len = file.length();</span><br><span class="line">        <span class="keyword">byte</span>[] raw = <span class="keyword">new</span> <span class="keyword">byte</span>[(<span class="keyword">int</span>) len];</span><br><span class="line">        <span class="keyword">try</span> (</span><br><span class="line">                FileInputStream fin = <span class="keyword">new</span> FileInputStream(file)) &#123;</span><br><span class="line">            <span class="comment">// 一次读取Class文件的全部二进制数据</span></span><br><span class="line">            <span class="keyword">int</span> r = fin.read(raw);</span><br><span class="line">            <span class="keyword">if</span> (r != len)</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IOException(<span class="string">&quot;无法读取全部文件：&quot;</span></span><br><span class="line">                        + r + <span class="string">&quot; != &quot;</span> + len);</span><br><span class="line">            <span class="keyword">return</span> raw;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义编译指定Java文件的方法</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">compile</span><span class="params">(String javaFile)</span></span></span><br><span class="line"><span class="function">            <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;CompileClassLoader:正在编译 &quot;</span></span><br><span class="line">                + javaFile + <span class="string">&quot;...&quot;</span>);</span><br><span class="line">        <span class="comment">// 调用系统的javac命令</span></span><br><span class="line">        Process p = Runtime.getRuntime().exec(<span class="string">&quot;javac &quot;</span> + javaFile);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 其他线程都等待这个线程完成</span></span><br><span class="line">            p.waitFor();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException ie) &#123;</span><br><span class="line">            System.out.println(ie);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 获取javac线程的退出值</span></span><br><span class="line">        <span class="keyword">int</span> ret = p.exitValue();</span><br><span class="line">        <span class="comment">// 返回编译是否成功</span></span><br><span class="line">        <span class="keyword">return</span> ret == <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 重写ClassLoader的findClass方法</span></span><br><span class="line">    <span class="keyword">protected</span> Class&lt;?&gt; findClass(String name)</span><br><span class="line">            <span class="keyword">throws</span> ClassNotFoundException &#123;</span><br><span class="line">        Class clazz = <span class="keyword">null</span>;</span><br><span class="line">        <span class="comment">// 将包路径中的点（.）替换成斜线（/）</span></span><br><span class="line">        String fileStub = name.replace(<span class="string">&quot;.&quot;</span>, <span class="string">&quot;/&quot;</span>);</span><br><span class="line">        String javaFilename = fileStub + <span class="string">&quot;.java&quot;</span>;</span><br><span class="line">        String classFilename = fileStub + <span class="string">&quot;.class&quot;</span>;</span><br><span class="line">        File javaFile = <span class="keyword">new</span> File(javaFilename);</span><br><span class="line">        File classFile = <span class="keyword">new</span> File(classFilename);</span><br><span class="line">        <span class="comment">// 当指定Java源文件存在，且Class文件不存在，或者Java源文件</span></span><br><span class="line">        <span class="comment">// 的修改时间比Class文件的修改时间更晚时，重新编译</span></span><br><span class="line">        <span class="keyword">if</span> (javaFile.exists() &amp;&amp; (!classFile.exists()</span><br><span class="line">                || javaFile.lastModified() &gt; classFile.lastModified())) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 如果编译失败，或者该Class文件不存在</span></span><br><span class="line">                <span class="keyword">if</span> (!compile(javaFilename) || !classFile.exists()) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(</span><br><span class="line">                            <span class="string">&quot;ClassNotFoundExcetpion:&quot;</span> + javaFilename);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException ex) &#123;</span><br><span class="line">                ex.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果Class文件存在，系统负责将该文件转换成Class对象</span></span><br><span class="line">        <span class="keyword">if</span> (classFile.exists()) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 将Class文件的二进制数据读入数组</span></span><br><span class="line">                <span class="keyword">byte</span>[] raw = getBytes(classFilename);</span><br><span class="line">                <span class="comment">// 调用ClassLoader的defineClass方法将二进制数据转换成Class对象</span></span><br><span class="line">                clazz = defineClass(name, raw, <span class="number">0</span>, raw.length);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException ie) &#123;</span><br><span class="line">                ie.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 如果clazz为null，表明加载失败，则抛出异常</span></span><br><span class="line">        <span class="keyword">if</span> (clazz == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> ClassNotFoundException(name);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> clazz;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个主方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 如果运行该程序时没有参数，即没有目标类</span></span><br><span class="line">        <span class="keyword">if</span> (args.length &lt; <span class="number">1</span>) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;缺少目标类，请按如下格式运行Java源文件：&quot;</span>);</span><br><span class="line">            System.out.println(<span class="string">&quot;java CompileClassLoader ClassName&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 第一个参数是需要运行的类</span></span><br><span class="line">        String progClass = args[<span class="number">0</span>];</span><br><span class="line">        System.out.println(progClass); <span class="comment">//reflect.loader.Hello</span></span><br><span class="line">        <span class="comment">// 剩下的参数将作为运行目标类时的参数</span></span><br><span class="line">        <span class="comment">// 将这些参数复制到一个新数组中</span></span><br><span class="line">        String[] progArgs = <span class="keyword">new</span> String[args.length - <span class="number">1</span>];</span><br><span class="line">        System.arraycopy(args, <span class="number">1</span>, progArgs</span><br><span class="line">                , <span class="number">0</span>, progArgs.length);</span><br><span class="line">        CompileClassLoader ccl = <span class="keyword">new</span> CompileClassLoader();</span><br><span class="line">        <span class="comment">// 加载需要运行的类</span></span><br><span class="line">        Class&lt;?&gt; clazz = ccl.loadClass(progClass);</span><br><span class="line">        <span class="comment">// 获取需要运行的类的主方法</span></span><br><span class="line">        Method main = clazz.getMethod(<span class="string">&quot;main&quot;</span>, (<span class="keyword">new</span> String[<span class="number">0</span>]).getClass());</span><br><span class="line">        Object argsArray[] = &#123;progArgs&#125;;</span><br><span class="line">        main.invoke(<span class="keyword">null</span>, argsArray);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面的程序重写了<code>findClass()</code>方法，通过重写该方法就可以实现自定义的类加载机制。<code>findClass()</code>方法中先检查需要加载的Class文件是否存在。如果不存在则先编译文件，在调用ClassLoader的<code>defineClass()</code>方法来加载这个Class文件，并生成相应的Class对象。</p>
+<p>接下来可以随意提供一个简单的主类，该类无须编译就可以使用上面的CompileClasss Loader来运行它。</p>
+<p>编写如下测试类：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect.loader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Hello</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (String arg : args) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;参数：&quot;</span> + arg);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>首先对CompileClassLoader进行编译：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[shadowflow@ShadowOS java]% javac reflect/loader/CompileClassLoader.java </span><br></pre></td></tr></table></figure>
+
+<p>然后不编译Hello直接运行Hello</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[shadowflow@ShadowOS java]% java reflect.loader.CompileClassLoader reflect.loader.Hello shadotest</span><br><span class="line">reflect.loader.Hello</span><br><span class="line">CompileClassLoader:正在编译 reflect/loader/Hello.java...</span><br><span class="line">参数：shadotest</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>本示例程序提供的类加载功能比较简单，仅仅提供了在运行之前先编译Java源文件的功能，实际上，使用自定义的类加载器，可以实现如下常见功能：</p>
+<ul>
+<li>执行代码前自动验证数字签名</li>
+<li>根据用户提供的密码解密代码，从而可以实现代码混淆器来避免反编译*.class文件。</li>
+<li>根据用户需求来动态的加载类。</li>
+<li>根据应用需求来把其他数据以字节码的形式加载到应用中</li>
+</ul>
+<h3 id="2-3-URL-ClassLoader类"><a href="#2-3-URL-ClassLoader类" class="headerlink" title="2.3 URL ClassLoader类"></a>2.3 URL ClassLoader类</h3><p>Java为ClassLoader提供了一个URLClassLoader实现类，该类也是系统类加载器和扩展类加载器的父类（此处的父类，就是指类与类之间的继承关系）。URLClassLoader功能比较强大，它既可以从本地文件系统获取二进制文件来加载类，也可以从远程主机获取二进制文件来加载类。</p>
+<p>在应用程序中可以直接使用URLClassLoader加载类，URLClassLoader类提供了如下两个构造器。</p>
+<ul>
+<li><code>URLClassLoader(URL[] urls)</code>: 使用默认的父类加载器创建一个ClassLoader对象，该对象将从urls所指定的系列路径来查询并加载类。</li>
+<li><code>URLClassLoader(URL[] urls, ClassLoader parent)</code>: 使用指定的父类加载器创建一个ClassLoader对象，其他功能与前一个构造器相同。</li>
+</ul>
+<p>一旦得到了URLCLassLoader对象之后，就可以调用该对象的<code>loadClass()</code>方法来加载指定类。下面程序示范了如何从文件系统中加载MySQL驱动，并使用该驱动来获取数据库连接。通过这种方式来获取数据库连接，可以无须将MySQL驱动添加到CLASSPATH环境变量中。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect.loader;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.MalformedURLException;</span><br><span class="line"><span class="keyword">import</span> java.net.URL;</span><br><span class="line"><span class="keyword">import</span> java.net.URLClassLoader;</span><br><span class="line"><span class="keyword">import</span> java.sql.Connection;</span><br><span class="line"><span class="keyword">import</span> java.sql.Driver;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">URLClassLoaderTest</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Connection conn;</span><br><span class="line">    <span class="comment">//定义一个获取数据库连接的方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Connection <span class="title">getConn</span><span class="params">(String url, String user, String pass)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (conn == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="comment">//1）创建一个URL数组</span></span><br><span class="line">            URL[] urls = &#123;<span class="keyword">new</span> URL(<span class="string">&quot;file:mysql-connector-java-5.1.30-bin.jar&quot;</span>)&#125;;</span><br><span class="line">            <span class="comment">//2）以默认的ClassLoader作为父ClassLoader，创建URLClassLoader</span></span><br><span class="line">            URLClassLoader myClassLoader = <span class="keyword">new</span> URLClassLoader(urls);</span><br><span class="line">            <span class="comment">//3）加载MySQL的JDBC驱动，并创建默认实例</span></span><br><span class="line">            Driver driver = (Driver) myClassLoader.loadClass(<span class="string">&quot;com.mysql.jdbc.Dreive&quot;</span>).getConstructor().newInstance();</span><br><span class="line">            <span class="comment">//创建一个设置JDBC连接属性的Properties对象</span></span><br><span class="line">            Properties props = <span class="keyword">new</span> Properties();</span><br><span class="line">            <span class="comment">//至少需要为该对象传入user和password两个属性</span></span><br><span class="line">            props.setProperty(<span class="string">&quot;user&quot;</span>, user);</span><br><span class="line">            props.setProperty(<span class="string">&quot;password&quot;</span>, pass);</span><br><span class="line">            <span class="comment">//调用Driver对象的connect方法来获取数据库连接</span></span><br><span class="line">            conn = driver.connect(url, props);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> conn;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        System.out.println(getConn(<span class="string">&quot;jdbc:mysql://localhost:3306/mysql&quot;</span>, <span class="string">&quot;root&quot;</span>, <span class="string">&quot;root&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面的代码创建了一个URLClassLoader对象，该对象使用默认的父类加载器，该类加载器的类加载路径是当前路径下的mysql-connector-java-5.1.30-bin.jar文件，将MySQL驱动复制到该路径下，这样保证该ClassLoader可以正常加载到com.mysql.jdbc.Driver类。第3）行代码使用使用ClassLoader的loadClass()加载指定类，并调用Class对象的<code>newInstance()</code>方法创建了一个该类的默认实例——也就得到了<code>com.mysql.jdbc.Driver</code>类的对象，当然该对象的实现类实现了java.sql.Driver接口，所以程序将其强制类型转换为Driver。这里通过Driver而不是DriverManager来获取数据库连接。</p>
+<p>正如前面看到的，创建URLClassLoader时传入的一个URL数组参数，该ClassLoader就可以从这系列URL指定的资源中加载指定类，这里的URL可以以file:为前缀，表明从本地文件系统加载；可以以http:为前缀，表明从互联网通过HTTP访问来加载；也可以是ftp:为前缀，表明从互联网通过FTP访问来加载……功能非常强的。</p>
+<h2 id="3-通过反射查看类信息"><a href="#3-通过反射查看类信息" class="headerlink" title="3. 通过反射查看类信息"></a>3. 通过反射查看类信息</h2><p>Java程序中的许多对象在运行时都会出现两种类型：编译时类型和运行时类型，例如代码：<code>Person p = new Student()</code>;这行代码将会生成一个p变量，该变量的编译时类型为Person，运行时类型为Student。除此之外还有更极端的情形，程序在运行时接收到外部传入的一个对象，该对象的编译时类型时Object，但程序又需要调用该对象运行时类型的方法。</p>
+<p>为了解决这些问题，程序需要在运行时发现对象和类的真实信息。解决该问题有以下两种方法。</p>
+<ul>
+<li>第一种做法是假设在编译时和运行时都完全知道类型的具体信息，在这种情况下，可以先使用instanceof运算符进行判断，再利用强制类型转换将其转换成其运行时类型的变量即可。</li>
+<li>第二种做法是编译时根本无法预知该对象和类可能属于哪些类，程序只依靠运行时信息来发现该对象和类的真实信息，这就必须使用反射。</li>
+</ul>
+<h3 id="3-1-获得Class对象"><a href="#3-1-获得Class对象" class="headerlink" title="3.1 获得Class对象"></a>3.1 获得Class对象</h3><p>前面已经介绍过了，每个类被加载之后，系统就会为该类生成一个对应的Class对象，通过该Class对象就可以就可以访问到JVM中的这个类。在Java程序中获得Class对象通常有如下三种方式：</p>
+<ol>
+<li><p>使用Class类的<code>forName(String clzzName)</code>静态方法。该方法需要传入字符串参数，该字符串参数的值是某个类的全限定类名（必须添加完整包名）。</p>
+</li>
+<li><p>调用某个类的class属性来获取该类对应的Class对象。例如，Person.class将会返回Person类对应的Class对象。</p>
+</li>
+<li><p>调用某个对象的<code>getClass()</code>方法。该方法是java.lang.Object类中的一个方法，所以所有的Java对象都可以调用该方法，该方法将会返回该对象所属类对应的Class对象。</p>
+</li>
+</ol>
+<p>对于第一种方式和第二种方式都是直接根据类来取得该类的Class对象，相比之下，第二种方式有如下两种优势：</p>
+<ol>
+<li>代码更安全。程序在编译阶段就可以检查需要访问的Class对象是否存在。</li>
+<li>程序性能更好。因为这种方式无须调用方法，所以性能更好</li>
+</ol>
+<p>也就是说，大部分时候都应该使用第二种方式来获取指定类的Class对象。但如果程序只能获得一个字符串，例如”java.lang.String”，若需要获取该字符串对应的Class对象                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ，则只能使用第一种方式，使用Class的<code>forName(String clazzName)</code>。</p>
+<p>一旦获得某个类对应的Class对象之后，程序就可以调用Class对象的方法来获得该对象和该类的真实信息。</p>
+<h3 id="3-2-从Class中获取信息"><a href="#3-2-从Class中获取信息" class="headerlink" title="3.2 从Class中获取信息"></a>3.2 从Class中获取信息</h3><p>Class类提供了大量的实例方法来获取该Class对象所对应类的详细信息，Class类大致包含如下方法，下面每个方法都可能包括多个重载的版本，可以查阅API文档来获取。</p>
+<p><strong>获取构造器：</strong></p>
+<p>下面四个方法用于获取Class对应类所包含的构造器</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Constructor&lt;T&gt; getConstructor(Class&lt;?&gt;...parameter Types)</code></td>
+<td>返回此<code>Class</code>对象对应类的、带指定形参列表的<code>public</code>构造器。</td>
+</tr>
+<tr>
+<td><code>Constructor&lt;?&gt;[] getConstructors()</code></td>
+<td>返回此 <code>Class</code>对象对应类的所有<code>public</code>构造器。</td>
+</tr>
+<tr>
+<td><code>Constructor&lt;T&gt; getDeclaredConstructor( Class&lt;?&gt;...parameterTypes)</code></td>
+<td>返回此 <code>Class</code>对象对应类的带指定形参列表的构造器,与构造器的访问权限无关。</td>
+</tr>
+<tr>
+<td><code>Constructor&lt;?&gt;[] getDeclaredConstructors()</code></td>
+<td>返回此 <code>Class</code>对象对应类的所有构造器,与构造器的访问权限无关。</td>
+</tr>
+</tbody></table>
+<p><strong>获取方法：</strong></p>
+<p>下面4个方法用于获取<code>Class</code>对应类所包含的方法。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Method getMethod(String name, Classs&lt;?&gt; ... parameterTypes)</code></td>
+<td align="left">返回此<code>Class</code>对象对应类的、带指定形参列表的 <code>public</code>方法。</td>
+</tr>
+<tr>
+<td align="left"><code>Method[] getMethods()</code></td>
+<td align="left">返回此<code>Class</code>对象所表示的类的所有 <code>public</code>方法。</td>
+</tr>
+<tr>
+<td align="left"><code>Method getDeclaredMethod(String name, Class&lt;?&gt; ... parameter Types)</code></td>
+<td align="left">返回此 <code>Class</code>对象对应类的、带指定形参列表的方法,与方法的访问权限无关。</td>
+</tr>
+<tr>
+<td align="left"><code>Method[] getDeclaredMethods()</code></td>
+<td align="left">返回此<code>Class</code>对象对应类的全部方法,与方法的访问权限无关</td>
+</tr>
+</tbody></table>
+<p><strong>获取成员变量：</strong></p>
+<p>如下4个方法用于访问<code>Class</code>对应类所包含的成员变量。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Field getField(String name)</code></td>
+<td align="left">返回此 <code>Class</code>对象对应类的、指定名称的 <code>public</code>成员变量。</td>
+</tr>
+<tr>
+<td align="left"><code>Field[] getFields()</code></td>
+<td align="left">返回此<code>Class</code>对象对应类的所有 <code>public</code>成员变量。</td>
+</tr>
+<tr>
+<td align="left"><code>Field getDeclaredField(String name)</code></td>
+<td align="left">返回此 <code>Class</code>对象对应类的、指定名称的成员变量,与成员变量的访问权限无关。</td>
+</tr>
+<tr>
+<td align="left"><code>Field[] getDeclaredFields()</code></td>
+<td align="left">返回此 <code>Class</code>对象对应类的全部成员变量,与成员变量的访问权限无关</td>
+</tr>
+</tbody></table>
+<p><strong>获取Annotation：</strong></p>
+<p>如下几个方法用于访问<code>Class</code>对应类上所包含的<code>Annotation</code></p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>&lt;A extends Annotation&gt; A getAnnotation(Class&lt;A&gt; annotationClass</code></td>
+<td align="left">尝试获取该 <code>Class</code>象对应类上存在的、指定类型的 <code>Annotation</code>;如果该类型的注解不存在,则返回<code>null</code>。</td>
+</tr>
+<tr>
+<td align="left"><code>Annotation[] getAnnotations()</code></td>
+<td align="left">返回修饰该 <code>Class</code>对象对应类上存在的所有 <code>Annotation</code></td>
+</tr>
+<tr>
+<td align="left"><code>&lt;A extends annotation&gt; A getDeclaredAnnotation(Class&lt;A&gt; annotationClass)</code></td>
+<td align="left">这是<code>Java 8</code>新增的方法,该方法尝试获取直接修饰该<code>Class</code>对象对应类的、指定类型的<code>Annotation</code>;如果该类型的注解不存在,则返回<code>null</code>。</td>
+</tr>
+<tr>
+<td align="left"><code>Annotation[] getDeclaredAnnotations()</code></td>
+<td align="left">返回直接修饰该<code>Class</code>对应类的所有 <code>Annotation</code></td>
+</tr>
+<tr>
+<td align="left"><code>&lt;A extends Annotation&gt; A getAnnotationsByType(Class&lt;A&gt; annotationClass)</code></td>
+<td align="left">该方法的功能与前面介绍的<code>getAnnotation()</code>方法基本相似。但由于<code>Java 8</code>增加了重复注解功能,因此需要使用该方法获取修饰该类的、指定类型的多个<code>Annotation</code></td>
+</tr>
+</tbody></table>
+<p><strong>获取包含的内部类：</strong></p>
+<p>如下方法用于访问该<code>Class</code>对象对应类包含的内部类。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Class&lt;?&gt; getClasses()</code></td>
+<td align="left">返回该<code>Class</code>对象对应类里包含的全部内部类。</td>
+</tr>
+</tbody></table>
+<p> <strong>获取所在的外部类</strong></p>
+<p>如下方法用于访问该<code>Class</code>对象对应类所在的外部类。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Class&lt;?&gt; getDeclaringClass()</code></td>
+<td align="left">返回该<code>Class</code>对象对应类所在的外部类</td>
+</tr>
+</tbody></table>
+<p><strong>访问该Class对象对应类所实现的接口</strong></p>
+<p>如下方法用于访问该<code>Class</code>对象对应类所实现的接口</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Classs&lt;?&gt;[] getInterfaces()</code></td>
+<td align="left">返回该<code>Class</code>对象对应类所实现的全部接口。</td>
+</tr>
+</tbody></table>
+<p><strong>获取所继承的父类</strong></p>
+<p>如下几个方法用于访问该<code>Class</code>对象对应类所继承的父类。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>Class&lt;? super T&gt; getSuperClass()</code></td>
+<td align="left">返回该<code>Class</code>对象对应类的超类的<code>Class</code>对象。</td>
+</tr>
+</tbody></table>
+<p><strong>获取修饰符 所在包 类名等基本信息</strong></p>
+<p>如下方法用于获取<code>Class</code>对象对应类的修饰符、所在包、类名等基本信息。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>int getModifiers()</code></td>
+<td align="left">返回此类或接口的所有修饰符。修饰符由 <code>public</code>、 <code>protected</code>、 <code>private</code>、<code>final</code>、<code>static</code>、 <code>abstract</code>等对应的常量组成,返回的整数应使用 <code>Modifier</code>工具类的方法来解码,才可以获取真实的修饰符。</td>
+</tr>
+<tr>
+<td align="left"><code>Package getPackage()</code></td>
+<td align="left">获取此类的包。</td>
+</tr>
+<tr>
+<td align="left"><code>String getName()</code></td>
+<td align="left">以字符串形式返回此<code>Class</code>象所表示的类的名称。</td>
+</tr>
+<tr>
+<td align="left"><code>String getSimpleName()</code></td>
+<td align="left">以字符串形式返回此<code>Class</code>对象所表示的类的简称。</td>
+</tr>
+</tbody></table>
+<p><strong>判断该类是否为接口 枚举 注解类型</strong></p>
+<p>除此之外, <code>Class</code>对象还可调用如下几个判断方法来判断该类是否为接口、枚举、注解类型等。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>boolean isAnnotation()</code></td>
+<td align="left">返回此<code>Class</code>对象是否表示一个注解类型(由<code>@interface</code>定义)</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isAnnotationPresent(Class&lt;? extends Annotation&gt; annotationClass)</code></td>
+<td align="left">判断此<code>Class</code>对象是否使用了<code>Annotation</code>修饰</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isAnonymousClass()</code></td>
+<td align="left">返回此<code>Class</code>对象是否是一个匿名类。</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isArray()</code></td>
+<td align="left">返回此<code>Class</code>对象是否表示一个数组类。</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isEnum()</code></td>
+<td align="left">返回此<code>Class</code>象是否表示一个枚举(由<code>enum</code>关键字定义)。</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isInterface()</code></td>
+<td align="left">返回此 <code>Class</code>对象是否表示一个接口(使用 <code>interface</code>定义)。</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isInstance(Object object)</code></td>
+<td align="left">判断<code>object</code>是否是此<code>Class</code>对象的实例,该方法可以完全代替<code>instanceof</code>操作符。</td>
+</tr>
+</tbody></table>
+<p>上面的多个<code>getMethod()</code>方法和<code>getConstructor()</code>方法中，都需要传入多个类型为Class&lt;?&gt;的参数，用于获取指定的方法或指定的构造器。关于这个参数的作用，假设某个类包含如下三个info方法签名。</p>
+<ul>
+<li><code>public void info()</code></li>
+<li><code>public void info(String str)</code></li>
+<li><code>public void info(String str, Integer num)</code></li>
+</ul>
+<p>这三个同名方法属于重载，它们的方法名相同，但参数列表不同。在Java语言中要确定一个方法光有方法名是不行的，如果仅仅只是指定Info方法——实际上可以是上面三个方法中的任意一个！如果需要确定一个方法，则应该由方法名和形参列表来确定，但形参没有任何实际意义，所以只能由形参类型来确定。例如想指定第二个info方法，则必须指定方法名为info，形参类别为String.class——因此在程序中获取该方法使用如下代码：</p>
+<figure class="highlight dart"><table><tr><td class="code"><pre><span class="line"><span class="comment">//前一个参数指定方法名，后面的个数可变的Class参数指定形参类型列表。</span></span><br><span class="line">clazz.getMethod(<span class="string">&quot;info&quot;</span>, <span class="built_in">String</span>.<span class="keyword">class</span>)</span><br></pre></td></tr></table></figure>
+
+<p>如果需要获取第三个info方法，则使用如下代码：</p>
+<figure class="highlight php"><table><tr><td class="code"><pre><span class="line"><span class="comment">//前一个参数指定方法名，后面的个数可变的Class参数指定形参类型列表</span></span><br><span class="line">clazz.getMethod(<span class="string">&quot;info&quot;</span>, <span class="keyword">String</span>.<span class="keyword">class</span>, <span class="keyword">Integer</span>.<span class="keyword">class</span>)</span><br></pre></td></tr></table></figure>
+
+<p>获取构造器时无须传入构造器名——同一个类的所有构造器的名字都是相同的，所以要确定一个构造器只要指定形参列表即可。</p>
+<p>下面程序示范了如何通过该Class对象来获取对应类的详细信息。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.annotation.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定义可重复注解</span></span><br><span class="line"><span class="meta">@Repeatable(Annos.class)</span></span><br><span class="line"><span class="meta">@interface</span> Anno &#123;&#125;</span><br><span class="line"><span class="meta">@Retention(value=RetentionPolicy.RUNTIME)</span></span><br><span class="line"><span class="meta">@interface</span> Annos &#123;</span><br><span class="line">    Anno[] value();</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 使用4个注解修饰该类</span></span><br><span class="line"><span class="meta">@SuppressWarnings(value=&quot;unchecked&quot;)</span></span><br><span class="line"><span class="meta">@Deprecated</span></span><br><span class="line"><span class="comment">// 使用重复注解修饰该类</span></span><br><span class="line"><span class="meta">@Anno</span></span><br><span class="line"><span class="meta">@Anno</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ClassTest</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="comment">// 为该类定义一个私有的构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">ClassTest</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个有参数的构造器</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ClassTest</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;执行有参数的构造器&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个无参数的info方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">info</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;执行无参数的info方法&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个有参数的info方法</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">info</span><span class="params">(String str)</span> </span>&#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;执行有参数的info方法&quot;</span></span><br><span class="line">                + <span class="string">&quot;，其str参数值：&quot;</span> + str);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 定义一个测试用的内部类</span></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Inner</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">// 下面代码可以获取ClassTest对应的Class</span></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的全部构造器</span></span><br><span class="line">        Class&lt;ClassTest&gt; clazz = ClassTest.class;</span><br><span class="line">        Constructor[] ctors = clazz.getDeclaredConstructors();</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的全部构造器如下：&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Constructor c : ctors) &#123;</span><br><span class="line">            System.out.println(c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的全部public构造器</span></span><br><span class="line">        Constructor[] publicCtors = clazz.getConstructors();</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的全部public构造器如下：&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Constructor c : publicCtors) &#123;</span><br><span class="line">            System.out.println(c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的全部public方法</span></span><br><span class="line">        Method[] mtds = clazz.getMethods();</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的全部public方法如下：&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Method md : mtds) &#123;</span><br><span class="line">            System.out.println(md);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的指定方法</span></span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest里带一个字符串参数的info()方法为：&quot;</span> + clazz.getMethod(<span class="string">&quot;info&quot;</span> , String.class));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的上的全部注解</span></span><br><span class="line">        Annotation[] anns = clazz.getAnnotations();</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的全部Annotation如下：&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Annotation an : anns) &#123;</span><br><span class="line">            System.out.println(an);</span><br><span class="line">        &#125;</span><br><span class="line">        System.out.println(<span class="string">&quot;该Class元素上的@SuppressWarnings注解为：&quot;</span> + Arrays.toString(clazz.getAnnotationsByType(SuppressWarnings.class)));</span><br><span class="line">        System.out.println(<span class="string">&quot;该Class元素上的@Anno注解为：&quot;</span> + Arrays.toString(clazz.getAnnotationsByType(Anno.class)));</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取该Class对象所对应类的全部内部类</span></span><br><span class="line">        Class&lt;?&gt;[] inners = clazz.getDeclaredClasses();</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的全部内部类如下：&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (Class c : inners) &#123;</span><br><span class="line">            System.out.println(c);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 使用Class.forName方法加载ClassTest的Inner内部类</span></span><br><span class="line">        <span class="comment">// 通过getDeclaringClass()访问该类所在的外部类</span></span><br><span class="line">        Class inClazz = Class.forName(<span class="string">&quot;reflect.ClassTest$Inner&quot;</span>);</span><br><span class="line">        System.out.println(<span class="string">&quot;inClazz对应类的外部类为：&quot;</span> + inClazz.getDeclaringClass());</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的包为：&quot;</span> + clazz.getPackage());</span><br><span class="line">        System.out.println(<span class="string">&quot;ClassTest的父类为：&quot;</span> + clazz.getSuperclass());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行结果</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/bin/java -javaagent:/Applications/IntelliJ IDEA.app/Contents/lib/idea_rt.jar=<span class="number">62107</span>:/Applications/IntelliJ IDEA.app/Contents/bin -Dfile.encoding=UTF-<span class="number">8</span> -classpath /Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/charsets.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/deploy.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/cldrdata.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/dnsns.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/jaccess.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/jfxrt.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/localedata.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/nashorn.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/sunec.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/sunjce_provider.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/sunpkcs11.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/ext/zipfs.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/javaws.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/jce.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/jfr.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/jfxswt.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/jsse.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/management-agent.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/plugin.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/resources.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/jre/lib/rt.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/ant-javafx.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/dt.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/javafx-mx.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/jconsole.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/packager.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/sa-jdi.jar:/Library/Java/JavaVirtualMachines/jdk1<span class="number">.8</span><span class="number">.0_301</span>.jdk/Contents/Home/lib/tools.jar:/Users/shadowflow/code/java/test/target/classes:/Users/shadowflow/.m2/repository/javassist/javassist/<span class="number">3.12</span><span class="number">.1</span>.GA/javassist-<span class="number">3.12</span><span class="number">.1</span>.GA.jar reflect.ClassTest</span><br><span class="line">ClassTest的全部构造器如下：</span><br><span class="line"><span class="keyword">private</span> reflect.ClassTest()</span><br><span class="line"><span class="keyword">public</span> reflect.ClassTest(java.lang.String)</span><br><span class="line">ClassTest的全部<span class="keyword">public</span>构造器如下：</span><br><span class="line"><span class="keyword">public</span> reflect.ClassTest(java.lang.String)</span><br><span class="line">ClassTest的全部<span class="keyword">public</span>方法如下：</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> reflect.ClassTest.info()</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> reflect.ClassTest.info(java.lang.String)</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> reflect.ClassTest.main(java.lang.String[]) <span class="keyword">throws</span> java.lang.Exception</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> java.lang.Object.wait(<span class="keyword">long</span>,<span class="keyword">int</span>) <span class="keyword">throws</span> java.lang.InterruptedException</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">void</span> java.lang.Object.wait(<span class="keyword">long</span>) <span class="keyword">throws</span> java.lang.InterruptedException</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">void</span> java.lang.Object.wait() <span class="keyword">throws</span> java.lang.InterruptedException</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">boolean</span> java.lang.Object.equals(java.lang.Object)</span><br><span class="line"><span class="keyword">public</span> java.lang.String java.lang.Object.toString()</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">native</span> <span class="keyword">int</span> java.lang.Object.hashCode()</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> java.lang.Class java.lang.Object.getClass()</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">void</span> java.lang.Object.notify()</span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">native</span> <span class="keyword">void</span> java.lang.Object.notifyAll()</span><br><span class="line">ClassTest里带一个字符串参数的info()方法为：<span class="keyword">public</span> <span class="keyword">void</span> reflect.ClassTest.info(java.lang.String)</span><br><span class="line">ClassTest的全部Annotation如下：</span><br><span class="line"><span class="meta">@java</span>.lang.Deprecated()</span><br><span class="line"><span class="meta">@reflect</span>.Annos(value=[<span class="meta">@reflect</span>.Anno(), <span class="meta">@reflect</span>.Anno()])</span><br><span class="line">该Class元素上的<span class="meta">@SuppressWarnings</span>注解为：[]</span><br><span class="line">该Class元素上的<span class="meta">@Anno</span>注解为：[<span class="meta">@reflect</span>.Anno(), <span class="meta">@reflect</span>.Anno()]</span><br><span class="line">ClassTest的全部内部类如下：</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">reflect</span>.<span class="title">ClassTest</span>$<span class="title">Inner</span></span></span><br><span class="line"><span class="class"><span class="title">inClazz</span>对应类的外部类为：<span class="title">class</span> <span class="title">reflect</span>.<span class="title">ClassTest</span></span></span><br><span class="line"><span class="class"><span class="title">ClassTest</span>的包为：<span class="title">package</span> <span class="title">reflect</span></span></span><br><span class="line"><span class="class"><span class="title">ClassTest</span>的父类为：<span class="title">class</span> <span class="title">java</span>.<span class="title">lang</span>.<span class="title">Object</span></span></span><br><span class="line"><span class="class"></span></span><br><span class="line"><span class="class"><span class="title">Process</span> <span class="title">finished</span> <span class="title">with</span> <span class="title">exit</span> <span class="title">code</span> 0</span></span><br><span class="line"><span class="class"></span></span><br></pre></td></tr></table></figure>
+
+<p>由此可见Class提供的功能非常丰富，值得指出的是，虽然定义ClassTest类时使用了@SuppressWarning注解，但程序运行时无法分析出该类里包含的该注解，这是因为@SuppressWarnings使用了@Retention(value=SOURCE)修饰，这表明@SuppressWarnings只能保存在源码级别上，而通过ClassTest.class获取该类运行时Class对象，所以程序无法访问到@SuppressWarnings注解。</p>
+<p>通过Class对象可以得到大量的Method、Constructor、Field等对象，这些对象分别代表该类所包括的方法、构造器和成员变量等，程序还可以通过这些对象来执行实际的功能，例如调用方法、创建实例。</p>
+<h3 id="3-3-Java-8-新增的方法参数反射"><a href="#3-3-Java-8-新增的方法参数反射" class="headerlink" title="3.3 Java 8 新增的方法参数反射"></a>3.3 Java 8 新增的方法参数反射</h3><p>Java 8 在java.lang.reflect包下新增了一个Executable抽象基类，该对象代表可执行的类成员，该类派生了Constructor、Method两个子类。</p>
+<p>Executable基类提供了大量方法来获取修饰该方法或构造器的注解信息；还提供了<code>isVarArgs()</code>方法用于判断该方法或构造器是否包含数量可变的形参，以及通过<code>getModifiers</code>()`方法来获取该方法或构造器的修饰符。除此之外，Executable提供了如下两个方法来<strong>获取该方法或参数的形参个数及形参名</strong>。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>int getParameterCount()</code></td>
+<td align="left">获取该构造器或方法的形参个数</td>
+</tr>
+<tr>
+<td align="left"><code>Parameter[] getParameters()</code></td>
+<td align="left">获取该构造器或方法的所有形参。</td>
+</tr>
+</tbody></table>
+<p><strong>获取参数信息：</strong></p>
+<p>上面第二个方法返回了一个<code>Parameter</code>数组, <code>Parameter</code>也是<code>Java 8</code>新增的<code>API</code>,每个<code>Parameter</code>对象代表方法或构造器的一个参数。 <code>Parameter</code>也提供了大量方法来获取声明该参数的泛型信息,还提供了如下常用方法来获取参数信息。</p>
+<table>
+<thead>
+<tr>
+<th align="left">方法</th>
+<th align="left">描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>getModifiers()</code></td>
+<td align="left">获取修饰该形参的修饰符。</td>
+</tr>
+<tr>
+<td align="left"><code>String getName()</code></td>
+<td align="left">获取形参名</td>
+</tr>
+<tr>
+<td align="left"><code>Type getParameterizedType()</code></td>
+<td align="left">获取带泛型的形参类型。</td>
+</tr>
+<tr>
+<td align="left"><code>Cass&lt;?&gt; getType()</code></td>
+<td align="left">获取形参类型</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isNamePresent()</code></td>
+<td align="left">该方法返回该类的<code>class</code>文件中是否包含了方法的形参名信息。</td>
+</tr>
+<tr>
+<td align="left"><code>boolean isVarArgs()</code></td>
+<td align="left">该方法用于判断该参数是否为个数可变的形参。</td>
+</tr>
+</tbody></table>
+<p>需要指出的是，使用javac命令编译源文件时，默认生成的class文件并不包含方法的形参名信息，因此调用<code>isNamePresent()</code>方法将会返回false，调用<code>getName()</code>方法也不能得到该参数的形参名。如果希望javac命令编译Java源文件时可以保留形参信息，则需要为该命令指定<code>-parameters</code>选项</p>
+<p>下面程序示范Java8的方法参数反射功能。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect.loader;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Parameter;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">replace</span><span class="params">(String str, List&lt;String&gt; list)</span></span>&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MethodParameterTest</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> NoSuchMethodException </span>&#123;</span><br><span class="line">        <span class="comment">//获取Test的calss对象</span></span><br><span class="line">        Class&lt;Test&gt; clazz = Test.class;</span><br><span class="line">        <span class="comment">//获取Test类的带两个参数的replace()方法</span></span><br><span class="line">        Method replace = clazz.getMethod(<span class="string">&quot;replace&quot;</span>, String.class, List.class);</span><br><span class="line">        <span class="comment">//获取指定方法的参数个数</span></span><br><span class="line">        System.out.println(<span class="string">&quot;replace方法参数个数：&quot;</span> + replace.getParameterCount());</span><br><span class="line">        <span class="comment">//获取replace的所有参数信息</span></span><br><span class="line">        Parameter[] parameters = replace.getParameters();</span><br><span class="line">        <span class="keyword">int</span> index = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">for</span> (Parameter p : parameters) &#123;</span><br><span class="line">            <span class="keyword">if</span> (p.isNamePresent()) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;---第&quot;</span> + index++ + <span class="string">&quot;个参数信息---&quot;</span>);</span><br><span class="line">                System.out.println(<span class="string">&quot;参数名：&quot;</span> + p.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;形参类型：&quot;</span> + p.getType());</span><br><span class="line">                System.out.println(<span class="string">&quot;泛型类型：&quot;</span> + p.getParameterizedType());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上面的程序定义了一个包含简单的Test类，该类中包含一个<code>replace(String str, List&lt;String&gt;list)</code>方法，程序中获取了该方法，接下来分别打印该方法的形参名，形参类型和泛型信息。</p>
+<p>直接运行的结果为：</p>
+<figure class="highlight gradle"><table><tr><td class="code"><pre><span class="line"><span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/bin/</span>java -javaagent:<span class="regexp">/Applications/I</span>ntelliJ IDEA.app<span class="regexp">/Contents/</span>lib<span class="regexp">/idea_rt.jar=63973:/</span>Applications<span class="regexp">/IntelliJ IDEA.app/</span>Contents<span class="regexp">/bin -Dfile.encoding=UTF-8 -classpath /</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>charsets.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/deploy.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/cldrdata.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/dnsns.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/jaccess.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/jfxrt.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/localedata.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/nashorn.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunec.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunjce_provider.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/sunpkcs11.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>ext<span class="regexp">/zipfs.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>javaws.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/jce.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>jfr.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/jfxswt.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>jsse.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/management-agent.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>plugin.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/jre/</span>lib<span class="regexp">/resources.jar:/</span>Library<span class="regexp">/Java/</span>JavaVirtualMachines<span class="regexp">/jdk1.8.0_301.jdk/</span>Contents<span class="regexp">/Home/</span>jre<span class="regexp">/lib/</span>rt.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span><span class="keyword">ant</span>-javafx.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>dt.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>javafx-mx.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>jconsole.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>packager.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>sa-jdi.jar:<span class="regexp">/Library/</span>Java<span class="regexp">/JavaVirtualMachines/</span>jdk1.<span class="number">8.0</span>_301.jdk<span class="regexp">/Contents/</span>Home<span class="regexp">/lib/</span>tools.jar:<span class="regexp">/Users/</span>shadowflow<span class="regexp">/code/</span>java<span class="regexp">/test/</span>target<span class="regexp">/classes:/U</span>sers<span class="regexp">/shadowflow/</span>.m2<span class="regexp">/repository/</span>javassist<span class="regexp">/javassist/</span><span class="number">3.12</span>.<span class="number">1</span>.GA/javassist-<span class="number">3.12</span>.<span class="number">1</span>.GA.jar reflect.loader.MethodParameterTest</span><br><span class="line">replace方法参数个数：<span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>原因是打印的值位于<code>p.isNamePresent()</code>条件为true的执行体内，也就是只有当该类的class文件中包含形参名信息时，程序才会执行条件体内的打印代码。因此需要使用如下命令来编译该程序：</p>
+<figure class="highlight prolog"><table><tr><td class="code"><pre><span class="line">[shadowflow@<span class="symbol">ShadowOS</span> loader]<span class="comment">% javac -parameters -d . ./MethodParameterTest.java</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的-parameters选项用于控制javac命令保留方法形参名信息。</p>
+<p>运行：</p>
+<figure class="highlight mipsasm"><table><tr><td class="code"><pre><span class="line">[<span class="keyword">shadowflow@ShadowOS </span>loader]% <span class="keyword">java </span>reflect.loader.MethodParameterTest                              </span><br><span class="line">replace方法参数个数：<span class="number">2</span></span><br><span class="line">---第<span class="number">1</span>个参数信息---</span><br><span class="line">参数名：str</span><br><span class="line">形参类型：class <span class="keyword">java.lang.String</span></span><br><span class="line"><span class="keyword"></span>泛型类型：class <span class="keyword">java.lang.String</span></span><br><span class="line"><span class="keyword"></span>---第<span class="number">2</span>个参数信息---</span><br><span class="line">参数名：list</span><br><span class="line">形参类型：interface <span class="keyword">java.util.List</span></span><br><span class="line"><span class="keyword"></span>泛型类型：<span class="keyword">java.util.List&lt;java.lang.String&gt;</span></span><br><span class="line"><span class="keyword"></span>[<span class="keyword">shadowflow@ShadowOS </span>loader]% </span><br></pre></td></tr></table></figure>
+
+<h1 id="4-使用反射生成并操作对象"><a href="#4-使用反射生成并操作对象" class="headerlink" title="4. 使用反射生成并操作对象"></a>4. 使用反射生成并操作对象</h1><p>Class对象可以获得该类里的方法（由Method对象表示）、构造器（由Constructor对象表示）、成员变量（由Field对象表示），这三个类都位于java.lang.reflect包下，并实现了java.lang.reflect.Member接口。程序可以通过Method对象来执行对应的方法，通过Constructor对象来调用对应的构造器创建实例，通过Field对象直接访问并修改对象的成员变量值。</p>
+<h3 id="4-1-创建对象"><a href="#4-1-创建对象" class="headerlink" title="4.1 创建对象"></a>4.1 创建对象</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="https://lanlan2017.github.io/JavaReadingNotes/712f16a6/">https://lanlan2017.github.io/JavaReadingNotes/712f16a6/</a></li>
+<li>《疯狂Java讲义》</li>
+</ul>
+]]></content>
+      <categories>
+        <category>java安全</category>
+      </categories>
+      <tags>
+        <tag>java基础</tag>
       </tags>
   </entry>
 </search>
