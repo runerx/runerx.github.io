@@ -331,31 +331,6 @@
     
     
     <entry>
-      <title>java类字节码编辑</title>
-      <link href="/java%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81%E7%BC%96%E8%BE%91/"/>
-      <url>/java%E7%B1%BB%E5%AD%97%E8%8A%82%E7%A0%81%E7%BC%96%E8%BE%91/</url>
-      
-        <content type="html"><![CDATA[<blockquote><p>道可道，非常道；名可名，非常名。</p></blockquote><p>Javassist学习</p><span id="more"></span><h2 id="1-Javassist"><a href="#1-Javassist" class="headerlink" title="1. Javassist"></a>1. Javassist</h2><p>Javassist比ASM更适合人类操纵字节码，使用API可以实现例如生成类、修改类的操作。</p><p>Javassist是一种字节码增加技术。我们最常用的 Java Proxy 也是一种增强技术，另外常用的还有 ASM，AspectJ，Javassist等常用的技术，其中ASM在指令层次操作字节码的，需要对JVM的指令有一定的了解，同时众多的指令也很难记住，操作比较高；AspectJ扩展了 Java，定义了一些专门的AOP语法，其中 Spring AOP 就使用了 AspectJ；Javassist 是强调源代码层次操作字节码的框架，操作起来很容易入手。</p><p>提供了2各层次的API：源码级别、字节码级别。</p><p>优势：</p><ul><li>操作简单，容易上手</li><li>性能高于反射</li></ul><p>缺点：</p><ul><li>性能相比 ASM ，会低一些</li><li>不支持 continue 和 break 表达式，不支持内部类和匿名类，因此在有些场景是不适合的</li></ul><p><a href="http://www.javassist.org/html/index.html">API文档</a></p><h2 id="2-Javassist-API和标识符"><a href="#2-Javassist-API和标识符" class="headerlink" title="2. Javassist API和标识符"></a>2. Javassist API和标识符</h2><p><code>Javassist</code>为我们提供了类似于Java反射机制的API，如：<a href="http://www.javassist.org/html/javassist/CtClass.html">CtClass</a>，<a href="http://www.javassist.org/html/javassist/CtConstructor.html">CtConstructor</a>、<a href="http://www.javassist.org/html/javassist/CtMethod.html">CtMethod</a>、<a href="http://www.javassist.org/html/javassist/CtField.html">CtField</a>与Java反射的<code>Class</code>、<code>Constructor</code>、<code>Method</code>、<code>Field</code>非常的类似。</p><table><thead><tr><th>类</th><th>描述</th></tr></thead><tbody><tr><td>ClassPool</td><td>ClassPool是一个存储CtClass的容器，如果调用<code>get</code>方法会搜索并创建一个表示该类的CtClass对象</td></tr><tr><td>CtClass</td><td>CtClass表示的是从ClassPool获取的类对象，可对该类就行读写编辑等操作</td></tr><tr><td>CtMethod</td><td>可读写的类方法对象</td></tr><tr><td>CtConstructor</td><td>可读写的类构造方法对象</td></tr><tr><td>CtField</td><td>可读写的类成员变量对象</td></tr></tbody></table><p><code>Javassist</code>使用了内置的标识符来表示一些特定的含义，如：<code>$_</code>表示返回值。我们可以在动态插入类代码的时候使用这些特殊的标识符来表示对应的对象。</p><table><thead><tr><th>表达式</th><th>描述</th></tr></thead><tbody><tr><td><code>$0, $1, $2, ...</code></td><td><code>this</code>和方法参数</td></tr><tr><td><code>$args</code></td><td><code>Object[]</code>类型的参数数组</td></tr><tr><td><code>$$</code></td><td>所有的参数，如<code>m($$)</code>等价于<code>m($1,$2,...)</code></td></tr><tr><td><code>$cflow(...)</code></td><td>cflow变量</td></tr><tr><td><code>$r</code></td><td>返回类型，用于类型转换</td></tr><tr><td><code>$w</code></td><td>包装类型，用于类型转换</td></tr><tr><td><code>$_</code></td><td>方法返回值</td></tr><tr><td><code>$sig</code></td><td>方法签名，返回<code>java.lang.Class[]</code>数组类型</td></tr><tr><td><code>$type</code></td><td>返回值类型，<code>java.lang.Class</code>类型</td></tr><tr><td><code>$class</code></td><td>当前类，<code>java.lang.Class</code>类型</td></tr></tbody></table><h2 id="3-Javassist读取类信息"><a href="#3-Javassist读取类信息" class="headerlink" title="3. Javassist读取类信息"></a>3. Javassist读取类信息</h2><p>未完待续……</p><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925">https://zhishihezi.net/b/5d644b6f81cbc9e40460fe7eea3c7925</a></p><p><a href="https://fynch3r.github.io/Javassist%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">https://fynch3r.github.io/Javassist%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</a></p>]]></content>
-      
-      
-      <categories>
-          
-          <category> java安全 </category>
-          
-      </categories>
-      
-      
-        <tags>
-            
-            <tag> java基础 </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
       <title>k8s环境构建</title>
       <link href="/Kubernetes%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/"/>
       <url>/Kubernetes%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
@@ -447,9 +422,9 @@
       
         <tags>
             
-            <tag> linux安全 </tag>
-            
             <tag> 反弹shell </tag>
+            
+            <tag> linux安全 </tag>
             
         </tags>
       
