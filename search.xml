@@ -1548,7 +1548,7 @@
 <li><p>findClass(String name)`: 根据指定名称来查找类。</p>
 </li>
 </ol>
-<p>如果需要实现自定义的ClassLoader，则可以通过重写以上两个方法来实现，<font color="Green">通常推荐重写<code>findClass()</code>方法</font>而不是<code>loadClass()</code>方法。<code>loadClass()</code>方法的执行步骤如下。</p>
+<p>如果需要实现自定义的ClassLoader，则可以通过重写以上两个方法来实现，<font color="Red">通常推荐重写<code>findClass()</code>方法</font>而不是<code>loadClass()</code>方法。<code>loadClass()</code>方法的执行步骤如下。</p>
 <ol>
 <li>用<code>findLoadedClass(String)</code>来检查是否已经加载类，如果已经加载则直接返回</li>
 <li>在父类加载器上调用<code>loadClass()</code>方法。如果父类加载器为null，则使用根类加载器来加载。</li>
@@ -2058,7 +2058,7 @@
 <li>使用反射以target作为调用者执行<code>info()</code>方法</li>
 <li>执行DogUtil实例的<code>method2()</code>方法</li>
 </ol>
-<p>看到上面的执行过程，读者应该已经发现：当使用动态代理对象来代替target对象时，代理对象的方法就实现了前面的要求——程序执行<code>info()</code>、<code>run()</code>、方法时自动”插入“<code>method1()</code>、<code>method2()</code>方法。<font color="Green">如果有一百个地方在调用<code>info()</code>、<code>run()</code>方法时都需要调用<code>method1()</code>和<code>method2()</code>方法，我们就不用重复写调用方法的代码了，我们写了动态代理，那么就会在自动添加method方法，实现了功能的增强。其实这里我们可以发现，动态代理跟装饰器是有点类似的，装饰器的定义是：在不改变原有对象的基础上，给原始对象添加增强功能。都是功能增强，它们还是有区别的，装饰器是对之前的功能进行扩展，而动态代理添加的可能是完全无关的一个模块。</font></p>
+<p>看到上面的执行过程，读者应该已经发现：当使用动态代理对象来代替target对象时，代理对象的方法就实现了前面的要求——程序执行<code>info()</code>、<code>run()</code>、方法时自动”插入“<code>method1()</code>、<code>method2()</code>方法。<font color="red">如果有一百个地方在调用<code>info()</code>、<code>run()</code>方法时都需要调用<code>method1()</code>和<code>method2()</code>方法，我们就不用重复写调用方法的代码了，我们写了动态代理，那么就会在自动添加method方法，实现了功能的增强。其实这里我们可以发现，动态代理跟装饰器是有点类似的，装饰器的定义是：在不改变原有对象的基础上，给原始对象添加增强功能。都是功能增强，它们还是有区别的，装饰器是对之前的功能进行扩展，而动态代理添加的可能是完全无关的一个模块。</font></p>
 <p>下面提供一个主程序来测试中动态代理的效果。</p>
 <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> reflect;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//创建一个原始的GunDog对象，作为target</span></span><br><span class="line">        Dog target = <span class="keyword">new</span> GunDog();</span><br><span class="line">        <span class="comment">//以指定的target来创建动态代理对象</span></span><br><span class="line">        Dog dog = (Dog)MyProxyFactory.getProxy(target);</span><br><span class="line">        dog.info();</span><br><span class="line">        dog.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
