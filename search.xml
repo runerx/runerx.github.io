@@ -356,8 +356,8 @@
   <entry>
     <title>Java ASM</title>
     <url>/Java-ASM/</url>
-    <content><![CDATA[<p><font style="color:#9e9e9e; float:left">若菩萨有我相、人相、众生相、寿者相，即非菩萨</font>。<br></p>
-<p><font style="color:#9e9e9e; float:right">——《金刚般若波罗蜜经》</font></p>
+    <content><![CDATA[<p><font style="color:Gray; float:left">若菩萨有我相、人相、众生相、寿者相，即非菩萨。</font><br></p>
+<p><font style="color:Gray; float:right">——《金刚般若波罗蜜经》</font></p>
 <br>
 
 <p>ASM入门</p>
