@@ -22,18 +22,18 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="若菩萨有我相、人相、众生相、寿者相，即非菩萨 ——《金刚般若波罗蜜经》   ASM入门">
+  <meta name="description" content="若菩萨有我相、人相、众生相、寿者相，即非菩萨。 ——《金刚般若波罗蜜经》   ASM入门">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java ASM">
 <meta property="og:url" content="http://example.com/Java-ASM/index.html">
 <meta property="og:site_name" content="ShadowFl0w&#39;s Blog">
-<meta property="og:description" content="若菩萨有我相、人相、众生相、寿者相，即非菩萨 ——《金刚般若波罗蜜经》   ASM入门">
+<meta property="og:description" content="若菩萨有我相、人相、众生相、寿者相，即非菩萨。 ——《金刚般若波罗蜜经》   ASM入门">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-01-27T01:14:46.000Z">
-<meta property="article:modified_time" content="2022-01-27T01:17:37.792Z">
+<meta property="article:modified_time" content="2022-01-27T06:23:45.205Z">
 <meta property="article:author" content="c哥">
 <meta property="article:tag" content="java安全">
-<meta property="article:tag" content="ASM">
+<meta property="article:tag" content="java字节码">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/Java-ASM/">
@@ -217,7 +217,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2022-01-27 09:14:46 / 修改时间：09:17:37" itemprop="dateCreated datePublished" datetime="2022-01-27T09:14:46+08:00">2022-01-27</time>
+              <time title="创建时间：2022-01-27 09:14:46 / 修改时间：14:23:45" itemprop="dateCreated datePublished" datetime="2022-01-27T09:14:46+08:00">2022-01-27</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -247,7 +247,7 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p><font style="color:#9e9e9e; float:left">若菩萨有我相、人相、众生相、寿者相，即非菩萨</font><br></p>
+        <p><font style="color:#9e9e9e; float:left">若菩萨有我相、人相、众生相、寿者相，即非菩萨</font>。<br></p>
 <p><font style="color:#9e9e9e; float:right">——《金刚般若波罗蜜经》</font></p>
 <br>
 
@@ -326,7 +326,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//</span></span><br><span class="line"><span class="comment">// Source code recreated from a .class file by IntelliJ IDEA</span></span><br><span class="line"><span class="comment">// (powered by FernFlower decompiler)</span></span><br><span class="line"><span class="comment">//</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">package</span> ASM;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Run</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Test.test();</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">run</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Test.test();</span><br><span class="line">        System.out.println(<span class="string">&quot;程序运行起来了&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
 <p>成功通过<code>visitMethodInsn(INVOKESTATIC, &quot;ASM/Test&quot;, &quot;test&quot;, &quot;()V&quot;, false);</code>指令将<code>test()</code>插入了run的类并生成了字节码。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>参考文档，我们实现了通过ASM文件class文件读取，修改与生成。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>参考文档，我们通过ASM框架对class文件进行了读取、修改与生成。</p>
 
     </div>
 
@@ -337,7 +337,7 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/java%E5%AE%89%E5%85%A8/" rel="tag"># java安全</a>
-              <a href="/tags/ASM/" rel="tag"># ASM</a>
+              <a href="/tags/java%E5%AD%97%E8%8A%82%E7%A0%81/" rel="tag"># java字节码</a>
           </div>
 
         
