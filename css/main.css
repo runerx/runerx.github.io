@@ -921,11 +921,11 @@ pre .javascript .function {
 }
 .main-inner {
   margin: 0 auto;
-  width: 800px;
+  width: calc(100% - 20px);
 }
 @media (min-width: 1200px) {
   .main-inner {
-    width: 1100px;
+    width: 1160px;
   }
 }
 @media (min-width: 1600px) {
@@ -943,11 +943,11 @@ pre .javascript .function {
 }
 .header-inner {
   margin: 0 auto;
-  width: 800px;
+  width: calc(100% - 20px);
 }
 @media (min-width: 1200px) {
   .header-inner {
-    width: 1100px;
+    width: 1160px;
   }
 }
 @media (min-width: 1600px) {
@@ -1169,7 +1169,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #42885b;
+  background: #fff96b;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
@@ -1383,11 +1383,11 @@ pre .javascript .function {
   box-sizing: border-box;
   margin: 0 auto;
   text-align: center;
-  width: 800px;
+  width: calc(100% - 20px);
 }
 @media (min-width: 1200px) {
   .footer-inner {
-    width: 1100px;
+    width: 1160px;
   }
 }
 @media (min-width: 1600px) {
@@ -2245,11 +2245,11 @@ ul.breadcrumb li + li:last-child {
 .header {
   margin: 0 auto;
   position: relative;
-  width: 800px;
+  width: calc(100% - 20px);
 }
 @media (min-width: 1200px) {
   .header {
-    width: 1100px;
+    width: 1160px;
   }
 }
 @media (min-width: 1600px) {
