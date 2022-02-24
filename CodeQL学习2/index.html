@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://codeql.github.com/docs/_images/query-metadata.png">
 <meta property="article:published_time" content="2022-02-22T07:17:31.000Z">
-<meta property="article:modified_time" content="2022-02-23T08:02:30.760Z">
+<meta property="article:modified_time" content="2022-02-24T12:34:20.541Z">
 <meta property="article:author" content="ShadowFl0w">
 <meta property="article:tag" content="CodeQL">
 <meta property="article:tag" content="代码安全">
@@ -230,7 +230,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-02-23 16:02:30" itemprop="dateModified" datetime="2022-02-23T16:02:30+08:00">2022-02-23</time>
+                <time title="修改时间：2022-02-24 20:34:20" itemprop="dateModified" datetime="2022-02-24T20:34:20+08:00">2022-02-24</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -407,13 +407,13 @@
 <td align="left"><code>example</code></td>
 <td align="left">None</td>
 <td align="left">Any block element</td>
-<td align="left">Demonstrate an example of code that violates the rule implemented by the query with guidance on how to fix it. Default heading.</td>
+<td align="left">编写一个用例，并且给出修复方案。默认</td>
 </tr>
 <tr>
 <td align="left"><code>fragment</code></td>
 <td align="left">None</td>
 <td align="left">Any block element</td>
-<td align="left">See “<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a>” below. No heading.</td>
+<td align="left">参考 “<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a>” below.</td>
 </tr>
 <tr>
 <td align="left"><code>hr</code></td>
@@ -425,40 +425,230 @@
 <td align="left"><code>include</code></td>
 <td align="left"><code>src</code> The query help file to include.</td>
 <td align="left">None</td>
-<td align="left">Include a query help file at the location of this element. See “<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a>” below. No heading.</td>
+<td align="left">Include a query help file at the location of this element. See “<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a>” below.</td>
 </tr>
 <tr>
 <td align="left"><code>overview</code></td>
 <td align="left">None</td>
 <td align="left">Any block element</td>
-<td align="left">Overview of the purpose of the query. Typically this is the first section in a query document. No heading.</td>
+<td align="left">查询目的概述。通常这是查询文档的第一部分。</td>
 </tr>
 <tr>
 <td align="left"><code>recommendation</code></td>
 <td align="left">None</td>
 <td align="left">Any block element</td>
-<td align="left">Recommend how to address any alerts that this query identifies. Default heading.</td>
+<td align="left">建议如何处理此查询识别的告警。默认标签.</td>
 </tr>
 <tr>
 <td align="left"><code>references</code></td>
 <td align="left">None</td>
 <td align="left"><code>li</code> elements</td>
-<td align="left">Reference list. Typically this is the last section in a query document. Default heading.</td>
+<td align="left">参考列表，一般在文档最后。默认标签</td>
 </tr>
 <tr>
 <td align="left"><code>section</code></td>
 <td align="left"><code>title</code> Title of the section</td>
 <td align="left">Any block element</td>
-<td align="left">General-purpose section with a heading defined by the <code>title</code> attribute.</td>
+<td align="left">General-purpose section with a heading defined by the <code>title</code> attribute。</td>
 </tr>
 <tr>
 <td align="left"><code>semmleNotes</code></td>
 <td align="left">None</td>
 <td align="left">Any block element</td>
-<td align="left">Implementation notes about the query. This section is used only for queries that implement a rule defined by a third party. Default heading.</td>
+<td align="left">Implementation notes about the query. This section is used only for queries that implement a rule defined by a third party. Default heading.关于查询的实现说明</td>
 </tr>
 </tbody></table>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<h3 id="3-4-块元素"><a href="#3-4-块元素" class="headerlink" title="3.4 块元素"></a>3.4 块元素</h3><p>下面的元素是 <code>section</code>, <code>example</code>, <code>fragment</code>, <code>recommendation</code>, <code>overview</code>, and <code>semmleNotes</code> 的子元素</p>
+<table>
+<thead>
+<tr>
+<th align="left">Element</th>
+<th align="left">Attributes</th>
+<th align="left">Children</th>
+<th align="left">Purpose of block</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>blockquote</code></td>
+<td align="left">None</td>
+<td align="left">Any block element</td>
+<td align="left">显示引用的段落</td>
+</tr>
+<tr>
+<td align="left"><code>img</code></td>
+<td align="left"><code>src</code> The image file to include.<code>alt</code> Text for the image’s alt text.<code>height</code> Optional, height of the image.<code>width</code> Optional, the width of the image.</td>
+<td align="left">None</td>
+<td align="left">显示图像。图像的内容位于单独的图像文件中。</td>
+</tr>
+<tr>
+<td align="left"><code>include</code></td>
+<td align="left"><code>src</code> The query help file to include.</td>
+<td align="left">None</td>
+<td align="left">Include a query help file at the location of this element. See <a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a> below for more information.</td>
+</tr>
+<tr>
+<td align="left"><code>ol</code></td>
+<td align="left">None</td>
+<td align="left"><code>li</code></td>
+<td align="left">显示有序列表。请参见下面的列表元素。</td>
+</tr>
+<tr>
+<td align="left"><code>p</code></td>
+<td align="left">None</td>
+<td align="left">Any inline content</td>
+<td align="left">显示段落，如在HTML文件中使用。</td>
+</tr>
+<tr>
+<td align="left"><code>pre</code></td>
+<td align="left">None</td>
+<td align="left">Text</td>
+<td align="left">等距字体显示文本</td>
+</tr>
+<tr>
+<td align="left"><code>sample</code></td>
+<td align="left"><code>language</code> The language of the in-line code sample.<code>src</code> Optional, the file containing the sample code.</td>
+<td align="left">Text</td>
+<td align="left">当指定了src文件，则根据文件扩展名推断语言，如果没有src文件，必须用sample标签声明</td>
+</tr>
+<tr>
+<td align="left"><code>table</code></td>
+<td align="left">None</td>
+<td align="left"><code>tbody</code></td>
+<td align="left">显示列表</td>
+</tr>
+<tr>
+<td align="left"><code>ul</code></td>
+<td align="left">None</td>
+<td align="left"><code>li</code></td>
+<td align="left">显示无序列表</td>
+</tr>
+<tr>
+<td align="left"><code>warning</code></td>
+<td align="left">None</td>
+<td align="left">Text</td>
+<td align="left">显示明显的告警，用于在较低准确度的查询，这样的查询一般默认禁用</td>
+</tr>
+</tbody></table>
+<h3 id="3-5-List-元素"><a href="#3-5-List-元素" class="headerlink" title="3.5 List 元素"></a>3.5 List 元素</h3><p>查询帮助文件支持两种列表元素：: <code>ul</code> 和 <code>ol</code>。两个块元素都只支持<code>li</code>的子元素。每个<code>li</code>元素包含内联元素和块元素。</p>
+<h3 id="3-6-表元素"><a href="#3-6-表元素" class="headerlink" title="3.6 表元素"></a>3.6 表元素</h3><p> <code>table</code> 用于在查询帮助文件中生成一个表。</p>
+<table>
+<thead>
+<tr>
+<th align="left">Element</th>
+<th align="left">Attributes</th>
+<th align="left">Children</th>
+<th align="left">Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>tbody</code></td>
+<td align="left">None</td>
+<td align="left"><code>tr</code></td>
+<td align="left">Defines the top-level element of a table.</td>
+</tr>
+<tr>
+<td align="left"><code>tr</code></td>
+<td align="left">None</td>
+<td align="left"><code>th``td</code></td>
+<td align="left">Defines one row of a table.</td>
+</tr>
+<tr>
+<td align="left"><code>td</code></td>
+<td align="left">None</td>
+<td align="left">Any inline content</td>
+<td align="left">Defines one cell of a table row.</td>
+</tr>
+<tr>
+<td align="left"><code>th</code></td>
+<td align="left">None</td>
+<td align="left">Any inline content</td>
+<td align="left">Defines one header cell of a table row.</td>
+</tr>
+</tbody></table>
+<h3 id="3-7-内联内容"><a href="#3-7-内联内容" class="headerlink" title="3.7 内联内容"></a>3.7 内联内容</h3><table>
+<thead>
+<tr>
+<th align="left">Element</th>
+<th align="left">Attributes</th>
+<th align="left">Children</th>
+<th align="left">Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>a</code></td>
+<td align="left"><code>href</code> The URL of the link.</td>
+<td align="left">text</td>
+<td align="left">Defines hyperlink. When a user selects the child text, they will be redirected to the given URL.</td>
+</tr>
+<tr>
+<td align="left"><code>b</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be displayed as bold face.</td>
+</tr>
+<tr>
+<td align="left"><code>code</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content representing code. It is typically shown in a monospace font.</td>
+</tr>
+<tr>
+<td align="left"><code>em</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be emphasized, typically by italicizing it.</td>
+</tr>
+<tr>
+<td align="left"><code>i</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be displayed as italics.</td>
+</tr>
+<tr>
+<td align="left"><code>img</code></td>
+<td align="left"><code>src``alt``height``width</code></td>
+<td align="left">None</td>
+<td align="left">Display an image. See the description above in Block elements.</td>
+</tr>
+<tr>
+<td align="left"><code>strong</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be rendered more strongly, typically using bold face.</td>
+</tr>
+<tr>
+<td align="left"><code>sub</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be rendered as subscript.</td>
+</tr>
+<tr>
+<td align="left"><code>sup</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be rendered as superscript.</td>
+</tr>
+<tr>
+<td align="left"><code>tt</code></td>
+<td align="left">None</td>
+<td align="left">Inline content</td>
+<td align="left">Defines content that should be displayed with a monospace font.</td>
+</tr>
+</tbody></table>
+<h3 id="3-8-包含"><a href="#3-8-包含" class="headerlink" title="3.8 包含"></a>3.8 包含</h3><p>为了在不同的帮助主题中使用重复的内容，可以将都用的内容存在查询帮助文件，其他文件帮助文件就可以使用<code>include</code>标签来引用。共享内容可以放在同一个目录或者放在 <code>SEMMLE_DIST/docs/include</code>。如果一个查询帮助文件只是被引用但不属于其他文件，需要使用<code>.inc.qhelp</code>后缀</p>
+<p> <code>include</code> 元素可以被用于Section-level 元素或者块元素。</p>
+<p><strong>Section-level 包含元素</strong></p>
+<p>Section-level 的<code>include</code>元素可以在<code>qhelp</code>中，例如</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">qhelp</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">src</span>=<span class="string">&quot;XSS.qhelp&quot;</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">qhelp</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Block-level 包含元素</strong></p>
+<p>Block-level <code>include</code> 元素可以在section-level 元素里使用。例如，在<code>overview</code>中</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">qhelp&gt;</span><br><span class="line">    <span class="tag">&lt;<span class="name">overview</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">src</span>=<span class="string">&quot;ThreadUnsafeICryptoTransformOverview.inc.qhelp&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">overview</span>&gt;</span></span><br><span class="line">    ...</span><br><span class="line"><span class="tag">&lt;/<span class="name">qhelp</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-控制查询结果"><a href="#4-控制查询结果" class="headerlink" title="4. 控制查询结果"></a>4. 控制查询结果</h2><p>可以通过select语句控制显示结果</p>
+<h3 id="4-1-关于查询结果"><a href="#4-1-关于查询结果" class="headerlink" title="4.1 关于查询结果"></a>4.1 关于查询结果</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-overview/">https://codeql.github.com/docs/codeql-overview/</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/github/codeql/tree/main/docs">https://github.com/github/codeql/tree/main/docs</a></li>
 </ul>
@@ -543,7 +733,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8ECodeQL%E6%9F%A5%E8%AF%A2"><span class="nav-text">1. 关于CodeQL查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%9F%BA%E6%9C%AC%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%84"><span class="nav-text">1.2 基本查询结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Metadata"><span class="nav-text">2. Metadata</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">2.1 关于查询元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Metadata%E5%B1%9E%E6%80%A7"><span class="nav-text">2.2 Metadata属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-filter%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="nav-text">2.3 filter查询的其他属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%94%A8%E4%BE%8B"><span class="nav-text">2.4 用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">3. 查询帮助文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%A6%82%E8%A7%88"><span class="nav-text">3.1 概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Section-level-elements"><span class="nav-text">3.3 Section-level elements</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8ECodeQL%E6%9F%A5%E8%AF%A2"><span class="nav-text">1. 关于CodeQL查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%9F%BA%E6%9C%AC%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%84"><span class="nav-text">1.2 基本查询结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Metadata"><span class="nav-text">2. Metadata</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">2.1 关于查询元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Metadata%E5%B1%9E%E6%80%A7"><span class="nav-text">2.2 Metadata属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-filter%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="nav-text">2.3 filter查询的其他属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%94%A8%E4%BE%8B"><span class="nav-text">2.4 用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">3. 查询帮助文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%A6%82%E8%A7%88"><span class="nav-text">3.1 概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Section-level-elements"><span class="nav-text">3.3 Section-level elements</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%9D%97%E5%85%83%E7%B4%A0"><span class="nav-text">3.4 块元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-List-%E5%85%83%E7%B4%A0"><span class="nav-text">3.5 List 元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E8%A1%A8%E5%85%83%E7%B4%A0"><span class="nav-text">3.6 表元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-%E5%86%85%E8%81%94%E5%86%85%E5%AE%B9"><span class="nav-text">3.7 内联内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-%E5%8C%85%E5%90%AB"><span class="nav-text">3.8 包含</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%8E%A7%E5%88%B6%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4. 控制查询结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4.1 关于查询结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
