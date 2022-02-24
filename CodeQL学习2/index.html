@@ -22,23 +22,16 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
   </script>
 
-  <meta name="description" content="南有乔木，不可休思；汉有游女，不可求思。 ——《诗经.汉广》   编写CodeQL查询语句（翻译混乱，仅供自己参考）">
+  <meta name="description" content="南有乔木，不可休思；汉有游女，不可求思。 ——《诗经.汉广》   编写CodeQL查询语句，参考官网文档进行翻译。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="CodeQL学习2">
 <meta property="og:url" content="http://example.com/CodeQL%E5%AD%A6%E4%B9%A02/index.html">
 <meta property="og:site_name" content="ShadowFl0w&#39;s Blog">
-<meta property="og:description" content="南有乔木，不可休思；汉有游女，不可求思。 ——《诗经.汉广》   编写CodeQL查询语句（翻译混乱，仅供自己参考）">
+<meta property="og:description" content="南有乔木，不可休思；汉有游女，不可求思。 ——《诗经.汉广》   编写CodeQL查询语句，参考官网文档进行翻译。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://codeql.github.com/docs/_images/query-metadata.png">
-<meta property="og:image" content="http://example.com/images/pics/codeql/1.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/2.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/3.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/4.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/5.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/6.jpg">
-<meta property="og:image" content="http://example.com/images/pics/codeql/7.jpg">
 <meta property="article:published_time" content="2022-02-22T07:17:31.000Z">
-<meta property="article:modified_time" content="2022-02-22T09:24:11.893Z">
+<meta property="article:modified_time" content="2022-02-23T08:02:30.760Z">
 <meta property="article:author" content="ShadowFl0w">
 <meta property="article:tag" content="CodeQL">
 <meta property="article:tag" content="代码安全">
@@ -229,10 +222,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2022-02-22 15:17:31 / 修改时间：17:24:11" itemprop="dateCreated datePublished" datetime="2022-02-22T15:17:31+08:00">2022-02-22</time>
+              <time title="创建时间：2022-02-22 15:17:31" itemprop="dateCreated datePublished" datetime="2022-02-22T15:17:31+08:00">2022-02-22</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-02-23 16:02:30" itemprop="dateModified" datetime="2022-02-23T16:02:30+08:00">2022-02-23</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="far fa-folder"></i>
@@ -265,32 +264,48 @@
 <p><font style="color:Gray; float:right">——《诗经.汉广》</font></p>
 <br>
 
-<p>编写CodeQL查询语句（翻译混乱，仅供自己参考）</p>
+<p>编写CodeQL查询语句，参考官网文档进行翻译。</p>
 <span id="more"></span>
 
-<p>CodeQL查询用于分析与安全性、正确性、可维护性和可读性相关的代码问题。</p>
-<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>CodeQL已经包含了很多有用的查询语句，我们还可以编写自己的查询语句。重要的查询类型有:</p>
-<ul>
-<li><p><strong>告警查询</strong>: 查询代码特定位置的问题</p>
-</li>
-<li><p><strong>路径查询</strong>: 查询sink和source的问题</p>
-</li>
-</ul>
-<p><strong>基础查询结构</strong></p>
-<p>CodeQL查询语句文件后缀为.ql，包含一个select语句。一般结构如下</p>
-<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> *</span><br><span class="line"> * Query metadata</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line">import <span class="regexp">/* ... CodeQL libraries or modules ... */</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">/* ... Optional, define CodeQL classes and predicates ... */</span></span><br><span class="line"></span><br><span class="line">from <span class="regexp">/* ... variable declarations ... */</span></span><br><span class="line">where <span class="regexp">/* ... logical formula ... */</span></span><br><span class="line">select <span class="regexp">/* ... expressions ... */</span></span><br></pre></td></tr></table></figure>
 
-<p><strong>查询元数据</strong></p>
-<p>将查询添加到开源仓库、添加到LGTM、使用CodeQL CLI，元数据需要加上@kind。@kind指示如何显示和解释查询结果。</p>
+
+
+
+<h2 id="1-关于CodeQL查询"><a href="#1-关于CodeQL查询" class="headerlink" title="1. 关于CodeQL查询"></a>1. 关于CodeQL查询</h2><p>CodeQL查询用于分析与安全性、正确性、可维护性和可读性相关的代码问题。</p>
+<h3 id="1-1-概述"><a href="#1-1-概述" class="headerlink" title="1.1 概述"></a>1.1 概述</h3><p>CodeQL自带的查询语句已经包含了用于查询支持的语言的最重要最有趣的问题。但是，你还是可以自己编写查询语句用来查询自己项目中你关心的问题。CodeQL的查询语句类型如下：</p>
 <ul>
-<li>告警查询需要添加<code>@kind problem</code>将结果展示为简单告警。</li>
-<li>路径查询需要添加 <code>@kind path-problem</code>才能将结果展示为一些列告警组成的序列</li>
-<li>诊断查询 需要添加@kind diagnostic, 将结果确定为有关提取过程的故障排除数据</li>
-<li>摘要查询需要添加@kind metric<code>and</code>@tags summary,将结果确定为CodeQL数据库的摘要指标</li>
+<li><code>Alert queries</code>: 查询你代码中明显的代码问题。</li>
+<li><code>Path queries</code>:  用于查询source和sink点之前的数据流信息。</li>
 </ul>
-<p><strong>导入语句</strong></p>
-<p>每一个查询包含一个或者更多<code>import</code>语句，用来定义库和模块。</p>
-<p>当编写一个你自己的告警语句，你应该导入对应语言的标准库</p>
+<p>可以将自己编写的CodeQL查询添加到<code>QL packs</code>，然后使用<a target="_blank" rel="noopener" href="https://docs.github.com/en/code-security/secure-coding/automatically-scanning-your-code-for-vulnerabilities-and-errors/about-code-scanning">Code scanning</a>扫描，或者CodeQL CLI扫描或者添加到CodeQL查询的开源github仓库。</p>
+<p>这一节主要是基础知识，更多CodeQL查询相关的内容需要与编程语言结合，官方文档在<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-language-guides/#codeql-language-guides">CodeQL language guides</a>。关于QL语言的更详细的介绍在<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/ql-language-reference/#ql-language-reference">QL language reference</a>。如果想将自己编写的查询语句贡献给CodeQL查询github仓库，需要遵循一定的规范，相关内容在 <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/ql-style-guide.md">CodeQL style guide</a>。</p>
+<h3 id="1-2-基本查询结构"><a href="#1-2-基本查询结构" class="headerlink" title="1.2 基本查询结构"></a>1.2 基本查询结构</h3><p>CodeQL查询文件的扩展名是.ql，查询代码需要包含select语句。</p>
+<p>现有的查询代码都有如下结构</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">/**</span><br><span class="line"> *</span><br><span class="line"> * Query metadata </span><br><span class="line"> * 查询元数据</span><br><span class="line"> *</span><br><span class="line"> */</span><br><span class="line"></span><br><span class="line">import <span class="regexp">/* ... CodeQL libraries or modules CodeQL的库或者模块... */</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">/* ... Optional, define CodeQL classes and predicates 可选内容, 定义CodeQL类和谓词 ... */</span></span><br><span class="line"></span><br><span class="line">from <span class="regexp">/* ... variable declarations 变量声明 ... */</span></span><br><span class="line">where <span class="regexp">/* ... logical formula 逻辑公司... */</span></span><br><span class="line">select <span class="regexp">/* ... expressions 表达式... */</span></span><br></pre></td></tr></table></figure>
+
+<p>接下来的几个部分以<code>Alert queries</code>为例，讲一讲上述结构的具体内容。<code>Path queries</code>的内容会在后门介绍。</p>
+<p><strong>Query metadata</strong></p>
+<p>Query metadata（查询元数据）。</p>
+<p>当自己编写的查询文件添加到github仓库或者用于自己分析的时候，需要<code>Query metadata</code>来确认相关信息。<code>Query metadata</code>包含查询的目的，以及包含如何解释和显示查询结果。</p>
+<p>元数据内容取决于你怎样运行你的查询。</p>
+<ul>
+<li>如果是贡献给GitHub仓库，阅读 <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/query-metadata-style-guide.md">query metadata style guide</a></li>
+<li>如果是添加到LGTM 的查询包里面，阅读<a target="_blank" rel="noopener" href="https://lgtm.com/help/lgtm/writing-custom-queries">Writing custom queries to include in LGTM analysis</a></li>
+<li>如果使用CodeQL CLI，元数据必须包含 <code>@kind</code>字段</li>
+<li>如果在LGTM的console或者VS Code扩展运行，metadata是不强制编写的。然而，如果想你的查询结果是<code>Alert queries</code>或者<code>Path queries</code>类型，必须要有 <code>@kind</code>字段。更多信息，LGTM.com参考 <a target="_blank" rel="noopener" href="https://lgtm.com/help/lgtm/using-query-console">Using the query console</a> ，使用VS Code扩展参考<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-for-visual-studio-code/analyzing-your-projects/#analyzing-your-projects">Analyzing your projects</a>。</li>
+</ul>
+<blockquote>
+<p>不管是将查询代码添加到开源仓库，或者添加到LGTM的pack里面，还是使用CodeQL CLi都必须有@kind字段，@kind指明怎样解释和显示查询结果</p>
+<ul>
+<li>Alert query metadat 必须包含 <code>@kind problem</code>来确保结果是 simple alert</li>
+<li>Path query metadata 必须包含 <code>@kind path-problem</code> 来确保结果是代码传播过程</li>
+<li>Diagnostic query metadata 必须包含  <code>@kind diagnostic</code> 来确保结果是故障排除</li>
+<li>Summary query metadata 必须包含  <code>@kind metric</code>和 <code>@tags summary</code> 来确保结果是CodeQL数据库的概览指标</li>
+</ul>
+</blockquote>
+<p><strong>Import 语句</strong></p>
+<p>每一个查询代码通常会包含一个或者更多<code>import</code>语句，用来定义导入什么库或者模块。库和模块将一组相关的<code>type</code>、<code>predicates</code>已经其他模块组织在一起。然后查询就可以访问每一个导入的库和模块。 <a target="_blank" rel="noopener" href="https://github.com/github/codeql">open source repository on GitHub</a>包含了支持的每一种语言的标准库。</p>
+<p>当编写<code>alert queries</code>的时候，通常会导入项目使用的编程语言的标准库。<code>import</code>后跟如下语言</p>
 <ul>
 <li>C/C++: <code>cpp</code></li>
 <li>C#: <code>csharp</code></li>
@@ -299,33 +314,26 @@
 <li>JavaScript/TypeScript: <code>javascript</code></li>
 <li>Python: <code>python</code></li>
 </ul>
-<p>有一些库包含一些常用的谓词，类型，和其他模块。包括数据流、控制流、和污点追踪。为了计算代码路径，路径查询需要导入数据流库，可以在 <a target="_blank" rel="noopener" href="https://codeql.github.com/codeql-standard-libraries/">CodeQL library reference documentation</a> 或者 <a target="_blank" rel="noopener" href="https://github.com/github/codeql">GitHub repository</a>.浏览标准库内容。</p>
-<p><strong>可选的类和谓词</strong></p>
-<p>通过在查询中定义自己的谓词和类，可以自定义分析。</p>
-<p><strong>from 子句</strong></p>
-<p>from子句声明查询中使用的变量。每个声明按此格式： <code>&lt;type&gt; &lt;variable name&gt;</code>。</p>
-<p><strong>Where 子句</strong></p>
-<p>where字句定义了逻辑条件，该字句使用聚合、谓词、和逻辑公式将结果限制在复合规定条件的较小的范围内。CodeQL将特定语言或者框架的谓词分组。如上所述，您还可以在查询文件体或自定义模块中定义自己的谓词。</p>
-<p><strong>Select 字句</strong></p>
-<p>select字句用来显示复合where条件的结果，select子句的有效结构由元数据的的@kind指定。</p>
-<p>select子句的告警查询由两个字段组成：</p>
+<p>还有一些库包含常用的<code>predicates</code>,<code>types</code>,和其他与分析相关的模块，包括<code>data flow</code>, <code>control flow</code>,和 <code>taint-tracking</code></p>
+<p><strong>可选的CodeQL class和predicates</strong></p>
+<p>可以在查询中编写自己的class和predicates，更多详细类容 <a target="_blank" rel="noopener" href="https://codeql.github.com/docs/ql-language-reference/predicates/#defining-a-predicate">Defining a predicate</a> 和 <a target="_blank" rel="noopener" href="https://codeql.github.com/docs/ql-language-reference/types/#defining-a-class">Defining a class</a></p>
+<p><strong>From子句</strong></p>
+<p><code>from</code>子句声明查询中要使用的变量，每个声明按照格式：<type> <variable name>，更多内容参考QL语言部分。</p>
+<p><strong>Where子句</strong></p>
+<p><code>where</code>子句定义逻辑条件。</p>
+<p><strong>Select子句</strong></p>
+<p><code>select</code>子句用于显示复合<code>where</code>子句条件的<code>from</code>子句声明的变量。显示的结构由@kind决定。</p>
+<p>如果是<code>@kind problem</code>,由两个字段组成：</p>
 <figure class="highlight n1ql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">element</span>, <span class="keyword">string</span></span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>element: 由查询标识的代码元素，用于定义警报的显示位置</li>
-<li>string： 一条消息，其中还可以包含链接和占位符，解释生成警报的原因。</li>
+<li><code>element</code>: 由查询确定，它就是要查询的内容</li>
+<li><code>string</code>: 一条消息，也可以包含链接和占位符，起解释作用</li>
 </ul>
-<p>可以修改select语句最后一列中定义的警报消息，以使用链接和占位符提供有关查询找到的警报或路径的更多详细信息。</p>
-<p>select子句的路径查询(<code>@kind path-problem</code>)包含告警信息和路径关联图。</p>
-<p>select子句对应诊断查询(<code>@kind diagnostic</code>)和summary metric queries<code>@kind metric</code> and <code>@tags summary</code>) ，有不同的要求</p>
-<p><strong>查看标准CodeQL查询</strong></p>
-<p>开始编写自己的查询的最简单方法之一是修改现有查询。要查看标准的CodeQL查询，或尝试其他示例，请访问GitHub上的<a target="_blank" rel="noopener" href="https://github.com/github/codeql">CodeQL</a>和 <a target="_blank" rel="noopener" href="https://github.com/github/codeql-go">CodeQL for Go</a> 仓库。</p>
-<p>还可以在<a target="_blank" rel="noopener" href="https://securitylab.github.com/research">GitHub Security Lab website</a> 网站和相关仓库中找到为查找开源软件项目中的安全漏洞和漏洞而开发的示例 <a target="_blank" rel="noopener" href="https://github.com/github/securitylab">repository</a>。</p>
-<p><strong>贡献查询语句</strong></p>
-<p> <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/CONTRIBUTING.md">contributing guidelines</a></p>
-<p>如果你贡献了查询给开源仓库，写了一个查询给LGTM，或者自己写了查询用于codeql cli。之后需要添加额外的元数据确保显示结果正确。</p>
-<h2 id="元数据"><a href="#元数据" class="headerlink" title="元数据"></a>元数据</h2><p>元数据（Metadata）作为QLDoc注释的内容包含在每个查询文件的顶部。元数据定义如何处理查询并正确显示其结果。它还向其他用户提供有关查询结果含义的信息。更多信息 <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/query-metadata-style-guide.md">query metadata style guide</a> </p>
-<p><strong>元数据属性</strong></p>
+<p>其他@kind类型在后面将讲到。</p>
+<h2 id="2-Metadata"><a href="#2-Metadata" class="headerlink" title="2. Metadata"></a>2. Metadata</h2><p>Metadata(元数据)告诉用户的重要信息。你必须编写正确的查询元数据来获取结果。</p>
+<h3 id="2-1-关于查询元数据"><a href="#2-1-关于查询元数据" class="headerlink" title="2.1 关于查询元数据"></a>2.1 关于查询元数据</h3><p>Metadata作为QLDodc注释出现在查询文件的顶部。metadata用于定义查询方式、显示方式，以及方便其他用户了解此查询文件的解释。</p>
+<h3 id="2-2-Metadata属性"><a href="#2-2-Metadata属性" class="headerlink" title="2.2 Metadata属性"></a>2.2 Metadata属性</h3><p>下面的属性支持所有的查询文件</p>
 <table>
 <thead>
 <tr>
@@ -337,52 +345,55 @@
 <tbody><tr>
 <td align="left"><code>@description</code></td>
 <td align="left"><code>&lt;text&gt;</code></td>
-<td align="left">A sentence or short paragraph to describe the purpose of the query and <em>why</em> the result is useful or important. The description is written in plain text, and uses single quotes (<code>&#39;</code>) to enclose code elements.</td>
+<td align="left">一条语句或一个段落，用来描述查询的目的和结果的有效性和重要性。用<code>&#39;&#39;</code>包含</td>
 </tr>
 <tr>
 <td align="left"><code>@id</code></td>
 <td align="left"><code>&lt;text&gt;</code></td>
-<td align="left">A sequence of words composed of lowercase letters or digits, delimited by <code>/</code> or <code>-</code>, identifying and classifying the query. Each query must have a <strong>unique</strong> ID. To ensure this, it may be helpful to use a fixed structure for each ID. For example, the standard LGTM queries have the following format: <code>&lt;language&gt;/&lt;brief-description&gt;</code>.</td>
+<td align="left">由小写字母或数字组成的一系列单词，用<code>/</code>或<code>-</code>分割，识别和分类查询，每一个查询必须有唯一的ID。为了确保唯一ID，使用固定结构也许有帮助，比如LGTM的标准查询的格式： <code>&lt;language&gt;/&lt;brief-description&gt;</code></td>
 </tr>
 <tr>
 <td align="left"><code>@kind</code></td>
-<td align="left"><code>problem``path-problem</code></td>
-<td align="left">Identifies the query is an alert (<code>@kind problem</code>) or a path (<code>@kind path-problem</code>). For more information on these query types, see “<a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/about-codeql-queries/">About CodeQL queries</a>.”</td>
+<td align="left"><code>problem</code><br><code>path-problem</code></td>
+<td align="left">确实查询是alert (<code>@kind problem</code>) 或者 path (<code>@kind path-problem</code>)。</td>
 </tr>
 <tr>
 <td align="left"><code>@name</code></td>
 <td align="left"><code>&lt;text&gt;</code></td>
-<td align="left">A statement that defines the label of the query. The name is written in plain text, and uses single quotes (<code>&#39;</code>) to enclose code elements.</td>
+<td align="left">定义查询标签的语句。用<code>&#39;&#39;</code>包含</td>
 </tr>
 <tr>
 <td align="left"><code>@tags</code></td>
 <td align="left"><code>correctness</code><br><code>maintainability</code><br><code>readability</code><br><code>security</code></td>
-<td align="left">These tags group queries together in broad categories to make it easier to search for them and identify them. In addition to the common tags listed here, there are also a number of more specific categories. For more information, see the <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/query-metadata-style-guide.md">Query metadata style guide</a>.</td>
+<td align="left">这些标签将查询按大的类别分组，以便于搜索和识别它们。除了列出的常见标签，还有一些更具体的类别。参考<a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/query-metadata-style-guide.md">Query metadata style guide</a>.</td>
 </tr>
 <tr>
 <td align="left"><code>@precision</code></td>
 <td align="left"><code>low</code><br><code>medium</code><br><code>high</code><br><code>very-high</code></td>
-<td align="left">Indicates the percentage of query results that are true positives (as opposed to false positive results). This, along with the <code>@problem.severity</code> property, determines whether the results are displayed by default on LGTM.</td>
+<td align="left">指示查询结果为正的百分比。这一点，和@problem.severity特性，决定是否在LGTM上默认显示</td>
 </tr>
 <tr>
 <td align="left"><code>@problem.severity</code></td>
 <td align="left"><code>error</code><br><code>warning</code><br><code>recommendation</code></td>
-<td align="left">Defines the level of severity of any alerts generated by a non-security query. This, along with the <code>@precision</code> property, determines whether the results are displayed by default on LGTM.</td>
+<td align="left">定义非安全查询的告警程度。和 <code>@precision</code>一起，决定是否显示结果</td>
 </tr>
 <tr>
 <td align="left"><code>@security-severity</code></td>
 <td align="left"><code>&lt;score&gt;</code></td>
-<td align="left">Defines the level of severity, between 0.0 and 10.0, for queries with <code>@tags security</code>. For more information about calculating <code>@security-severity</code>, see the <a target="_blank" rel="noopener" href="https://github.blog/changelog/2021-07-19-codeql-code-scanning-new-severity-levels-for-security-alerts/">GitHub changelog</a>.</td>
+<td align="left">定义紧急程度，在0.0和10.0之间</td>
 </tr>
 </tbody></table>
-<p><strong>案例</strong></p>
+<h3 id="2-3-filter查询的其他属性"><a href="#2-3-filter查询的其他属性" class="headerlink" title="2.3 filter查询的其他属性"></a>2.3 filter查询的其他属性</h3><p>过滤器查询用于定义其他约束，以限制其他查询返回的结果。一个过滤器查询必须有一样的@kind属性，用来指定结果的过滤。不需要其他元数据属性。</p>
+<h3 id="2-4-用例"><a href="#2-4-用例" class="headerlink" title="2.4 用例"></a>2.4 用例</h3><p>标准的java查询元数据</p>
 <p><img src="https://codeql.github.com/docs/_images/query-metadata.png"></p>
-<h2 id="查询帮助文件"><a href="#查询帮助文件" class="headerlink" title="查询帮助文件"></a>查询帮助文件</h2><p>查询帮助文件告诉用户查询的目的，并建议如何解决查询发现的潜在问题。</p>
-<p>查询帮助文件使用自定义XML格式编写，保存到 <code>.qhelp</code> 后缀的文件，查询帮助文件的基本名称必须与其描述的查询相同，跟查询文件位于同一目录，基本结构如下</p>
+<h2 id="3-查询帮助文件"><a href="#3-查询帮助文件" class="headerlink" title="3. 查询帮助文件"></a>3. 查询帮助文件</h2><p>Query help files（查询帮助文件）告诉用户查询的目的，并建议如何解决查询发现的潜在问题。</p>
+<p>这个部分关于查询帮助文件结构的详细信息。关于如何写一个好的查询帮助文件参考 <a target="_blank" rel="noopener" href="https://github.com/github/codeql/blob/main/docs/query-help-style-guide.md">Query help style guide</a></p>
+<h3 id="3-1-概览"><a href="#3-1-概览" class="headerlink" title="3.1 概览"></a>3.1 概览</h3><p>每个查询帮助文件提供了关于使用一个查询的目的和使用的详细信息。当你编写你自己的查询的时候，我们也建议你也编写一个查询帮助文件以让其他使用者知道这个查询是做什么的已经怎么做的。</p>
+<h3 id="3-2-结构"><a href="#3-2-结构" class="headerlink" title="3.2 结构"></a>3.2 结构</h3><p>查询帮助文档使用自定义的XML格式，存储文件是.qhelp扩展名。查询帮助文件的名字必须根查询文件名称一样，并且在同一目录。基本结果如下：</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">qhelp</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&quot;qhelp.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">qhelp</span>&gt;</span></span><br><span class="line">    CONTAINS one or more section-level elements</span><br><span class="line"><span class="tag">&lt;/<span class="name">qhelp</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<p>标题和qhelp元素都是必需的，查看的时候可以转为markdown格式。</p>
-<p><strong>节点元素</strong></p>
+<p>头和顶级元素是必须要有的，</p>
+<h3 id="3-3-Section-level-elements"><a href="#3-3-Section-level-elements" class="headerlink" title="3.3 Section-level elements"></a>3.3 Section-level elements</h3><p>Section-level 元素被用于在帮助文件中将信息组织成不同的部分。许多sections有heading，被 <code>title</code>属性或者默认值定义。下面的的section-level 元素可以在child 元素中使用。</p>
 <table>
 <thead>
 <tr>
@@ -447,379 +458,10 @@
 <td align="left">Implementation notes about the query. This section is used only for queries that implement a rule defined by a third party. Default heading.</td>
 </tr>
 </tbody></table>
-<p><strong>块元素</strong></p>
-<p>下面的元素是section<code>, </code>example<code>, </code>fragment<code>, </code>recommendation<code>, </code>overview<code>, and </code>semmleNotes` 的子元素</p>
-<table>
-<thead>
-<tr>
-<th align="left">Element</th>
-<th align="left">Attributes</th>
-<th align="left">Children</th>
-<th align="left">Purpose of block</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><code>blockquote</code></td>
-<td align="left">None</td>
-<td align="left">Any block element</td>
-<td align="left">Display a quoted paragraph.</td>
-</tr>
-<tr>
-<td align="left"><code>img</code></td>
-<td align="left"><code>src</code> The image file to include.<code>alt</code> Text for the image’s alt text.<code>height</code> Optional, height of the image.<code>width</code> Optional, the width of the image.</td>
-<td align="left">None</td>
-<td align="left">Display an image. The content of the image is in a separate image file.</td>
-</tr>
-<tr>
-<td align="left"><code>include</code></td>
-<td align="left"><code>src</code> The query help file to include.</td>
-<td align="left">None</td>
-<td align="left">Include a query help file at the location of this element. See <a target="_blank" rel="noopener" href="https://codeql.github.com/docs/writing-codeql-queries/query-help-files/#qhelp-inclusion">Query help inclusion</a> below for more information.</td>
-</tr>
-<tr>
-<td align="left"><code>ol</code></td>
-<td align="left">None</td>
-<td align="left"><code>li</code></td>
-<td align="left">Display an ordered list. See List elements below.</td>
-</tr>
-<tr>
-<td align="left"><code>p</code></td>
-<td align="left">None</td>
-<td align="left">Any inline content</td>
-<td align="left">Display a paragraph, used as in HTML files.</td>
-</tr>
-<tr>
-<td align="left"><code>pre</code></td>
-<td align="left">None</td>
-<td align="left">Text</td>
-<td align="left">Display text in a monospaced font with preformatted whitespace.</td>
-</tr>
-<tr>
-<td align="left"><code>sample</code></td>
-<td align="left"><code>language</code> The language of the in-line code sample.<code>src</code> Optional, the file containing the sample code.</td>
-<td align="left">Text</td>
-<td align="left">Display sample code either defined as nested text in the <code>sample</code> element or defined in the <code>src</code> file specified. When <code>src</code> is specified, the language is inferred from the file extension. If <code>src</code> is omitted, then language must be provided and the sample code provided as nested text.</td>
-</tr>
-<tr>
-<td align="left"><code>table</code></td>
-<td align="left">None</td>
-<td align="left"><code>tbody</code></td>
-<td align="left">Display a table. See Tables below.</td>
-</tr>
-<tr>
-<td align="left"><code>ul</code></td>
-<td align="left">None</td>
-<td align="left"><code>li</code></td>
-<td align="left">Display an unordered list. See List elements below.</td>
-</tr>
-<tr>
-<td align="left"><code>warning</code></td>
-<td align="left">None</td>
-<td align="left">Text</td>
-<td align="left">Display a warning that will be displayed very visibly on the resulting page. Such warnings are sometimes used on queries that are known to have low precision for many code bases; such queries are often disabled by default.</td>
-</tr>
-</tbody></table>
-<p><strong>列元素</strong></p>
-<p> <code>ul</code> and <code>ol</code></p>
-<p><strong>表元素</strong></p>
-<table>
-<thead>
-<tr>
-<th align="left">Element</th>
-<th align="left">Attributes</th>
-<th align="left">Children</th>
-<th align="left">Purpose</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><code>tbody</code></td>
-<td align="left">None</td>
-<td align="left"><code>tr</code></td>
-<td align="left">Defines the top-level element of a table.</td>
-</tr>
-<tr>
-<td align="left"><code>tr</code></td>
-<td align="left">None</td>
-<td align="left"><code>th``td</code></td>
-<td align="left">Defines one row of a table.</td>
-</tr>
-<tr>
-<td align="left"><code>td</code></td>
-<td align="left">None</td>
-<td align="left">Any inline content</td>
-<td align="left">Defines one cell of a table row.</td>
-</tr>
-<tr>
-<td align="left"><code>th</code></td>
-<td align="left">None</td>
-<td align="left">Any inline content</td>
-<td align="left">Defines one header cell of a table row.</td>
-</tr>
-</tbody></table>
-<p><strong>内联元素</strong></p>
-<table>
-<thead>
-<tr>
-<th align="left">Element</th>
-<th align="left">Attributes</th>
-<th align="left">Children</th>
-<th align="left">Purpose</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left"><code>a</code></td>
-<td align="left"><code>href</code> The URL of the link.</td>
-<td align="left">text</td>
-<td align="left">Defines hyperlink. When a user selects the child text, they will be redirected to the given URL.</td>
-</tr>
-<tr>
-<td align="left"><code>b</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be displayed as bold face.</td>
-</tr>
-<tr>
-<td align="left"><code>code</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content representing code. It is typically shown in a monospace font.</td>
-</tr>
-<tr>
-<td align="left"><code>em</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be emphasized, typically by italicizing it.</td>
-</tr>
-<tr>
-<td align="left"><code>i</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be displayed as italics.</td>
-</tr>
-<tr>
-<td align="left"><code>img</code></td>
-<td align="left"><code>src``alt``height``width</code></td>
-<td align="left">None</td>
-<td align="left">Display an image. See the description above in Block elements.</td>
-</tr>
-<tr>
-<td align="left"><code>strong</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be rendered more strongly, typically using bold face.</td>
-</tr>
-<tr>
-<td align="left"><code>sub</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be rendered as subscript.</td>
-</tr>
-<tr>
-<td align="left"><code>sup</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be rendered as superscript.</td>
-</tr>
-<tr>
-<td align="left"><code>tt</code></td>
-<td align="left">None</td>
-<td align="left">Inline content</td>
-<td align="left">Defines content that should be displayed with a monospace font.</td>
-</tr>
-</tbody></table>
-<h2 id="定义查询结果"><a href="#定义查询结果" class="headerlink" title="定义查询结果"></a>定义查询结果</h2><p>可以通过修改源码中的<code>select</code>语句来控制结果的展示。在vscode插件上编写没有限制，但是如果在LGTM或者用codeql cli生成有效的结果，需要按格式编写select语句。</p>
-<p>一般来说，select语句需要包含两个字段：</p>
-<ul>
-<li>Element：元素</li>
-<li>String：自定义字符串</li>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-overview/">https://codeql.github.com/docs/codeql-overview/</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/github/codeql/tree/main/docs">https://github.com/github/codeql/tree/main/docs</a></li>
 </ul>
-<p>基础select语句</p>
-<figure class="highlight fortran"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">external</span>.CodeDuplication</span><br><span class="line"></span><br><span class="line">from <span class="keyword">File</span> f, <span class="keyword">File</span> other, <span class="built_in">int</span> percent</span><br><span class="line"><span class="keyword">where</span> similarFiles(f, other, percent)</span><br><span class="line"><span class="keyword">select</span> f, <span class="string">&quot;This file is similar to another file.&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>包含两个基本的元素</p>
-<p>Elment: f</p>
-<p>String：This file is similar to another file.</p>
-<p><strong>占位符</strong></p>
-<p>占位符：<code>$@</code></p>
-<p>占位符由后面两位替换。</p>
-<p>比如:</p>
-<figure class="highlight gml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">select f, <span class="string">&quot;This file is similar to $@.&quot;</span>, <span class="literal">other</span>, <span class="literal">other</span>.getBaseName()</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="查询语句"><a href="#查询语句" class="headerlink" title="查询语句"></a>查询语句</h2><p>模板</p>
-<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * ...</span></span><br><span class="line"><span class="comment"> * @kind path-problem</span></span><br><span class="line"><span class="comment"> * ...</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> &lt;language&gt;</span><br><span class="line"><span class="comment">// For some languages (Java/C++/Python) you need to explicitly import the data flow library, such as</span></span><br><span class="line"><span class="comment">// import semmle.code.java.dataflow.DataFlow</span></span><br><span class="line"><span class="keyword">import</span> DataFlow::PathGraph</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line">from MyConfiguration config, DataFlow::PathNode source, DataFlow::PathNode sink</span><br><span class="line">where config.<span class="built_in">hasFlowPath</span>(source, sink)</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p><code>DataFlow::Pathgraph</code></p>
-<p>需要导入的标准库</p>
-</li>
-<li><p><code>source</code> and <code>sink</code>都是污点分析必要的</p>
-</li>
-<li><p><code>MyConfiguration</code>是一个包含谓词的类，定义了source和sink之间的数据流</p>
-</li>
-</ul>
-<p><strong>路径查询元数据</strong></p>
-<p>路径查询元数据必须包含@kind path-problem，其他的根据情况而定。</p>
-<p><strong>生成路径解释</strong></p>
-<p>为了生成路径解释，查询需要计算路径传播。这就得定义一个叫<code>edges</code>的断言。这个谓词定义计算的图的边关系。</p>
-<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> DataFlow::PathGraph</span><br></pre></td></tr></table></figure>
-
-<p>这个语句从数据流库（DataFlow.qll）中导入了PathGraph模块，这里面定义了<code>edges</code></p>
-<p><strong>定义自己的edges断言</strong></p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">query predicate edges(PathNode <span class="selector-tag">a</span>, PathNode <span class="selector-tag">b</span>) &#123;</span><br><span class="line"><span class="comment">/** Logical conditions which hold if `(a,b)` is an edge in the data flow graph */</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>声明sources和sinks</strong></p>
-<p>必须提供source 和 sink，在from子句中声明。</p>
-<p><strong>定义流的条件</strong></p>
-<p>where子句中定义逻辑条件。当编写路径查询的时候，通常定义一个在source和sink之间生效的谓词</p>
-<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">where config.has<span class="constructor">FlowPath(<span class="params">source</span>, <span class="params">sink</span>)</span></span><br></pre></td></tr></table></figure>
-
-<p>必须使用 <code>hasFlowPath</code> 断言。</p>
-<p><strong>Select子句</strong></p>
-<p>路径查询包含四个字段。</p>
-<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> element, <span class="keyword">source</span>, sink, <span class="keyword">string</span></span><br></pre></td></tr></table></figure>
-
-<p>元素和字符串列分别表示警报和警报消息的位置</p>
-<h2 id="数据流Debug"><a href="#数据流Debug" class="headerlink" title="数据流Debug"></a>数据流Debug</h2><p>如果一个数据流查询没有看到预期的结果，可以使用“partial flow ”来debug。按照如下方式进行。</p>
-<p>最简单的方式就是使用codeql vscode的quick evaluation。</p>
-<h2 id="Introduction-to-QL"><a href="#Introduction-to-QL" class="headerlink" title="Introduction to QL"></a>Introduction to QL</h2><h3 id="1-第一个用例"><a href="#1-第一个用例" class="headerlink" title="1. 第一个用例"></a>1. 第一个用例</h3><figure class="highlight elm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"></span><br><span class="line"><span class="title">select</span> <span class="string">&quot;hello world&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><img src="../images/pics/codeql/1.jpg"> </p>
-<p>运行结果：</p>
-<p><img src="../images/pics/codeql/2.jpg"> </p>
-<p>增加一下复杂度</p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> <span class="type">int</span> x, <span class="type">int</span> y</span><br><span class="line"><span class="keyword">where</span> x = <span class="number">6</span> <span class="keyword">and</span> y = <span class="number">7</span></span><br><span class="line"><span class="keyword">select</span> x * y</span><br></pre></td></tr></table></figure>
-
-<p>运行结果</p>
-<p><img src="../images/pics/codeql/3.jpg"> </p>
-<h3 id="2-基本的运算"><a href="#2-基本的运算" class="headerlink" title="2. 基本的运算"></a>2. 基本的运算</h3><p><strong>2.1 获取字符串长度</strong></p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> &quot;lgtm&quot;.length()</span><br></pre></td></tr></table></figure>
-
-<p>结果：</p>
-<p><img src="../images/pics/codeql/4.jpg"> </p>
-<p><strong>2.2 多种数学运算符</strong></p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> <span class="type">float</span> x, <span class="type">float</span> y</span><br><span class="line"><span class="keyword">where</span> x = <span class="number">3.</span>pow(<span class="number">5</span>) <span class="keyword">and</span> y = <span class="number">245.6</span></span><br><span class="line"><span class="keyword">select</span> x.minimum(y).sin()</span><br></pre></td></tr></table></figure>
-
-<p>结果：</p>
-<p><img src="../images/pics/codeql/5.jpg">  </p>
-<p><strong>2.3 日期运行</strong></p>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> <span class="type">date</span> <span class="keyword">start</span>, <span class="type">date</span> <span class="keyword">end</span></span><br><span class="line"><span class="keyword">where</span> start = &quot;10/06/2017&quot;.toDate() <span class="keyword">and</span> end = &quot;28/09/2017&quot;.toDate()</span><br><span class="line"><span class="keyword">select</span> <span class="keyword">start</span>.daysTo(<span class="keyword">end</span>)</span><br></pre></td></tr></table></figure>
-
-<p>结果：</p>
-<p><img src="../images/pics/codeql/6.jpg"> </p>
-<h3 id="3-查询多个结果"><a href="#3-查询多个结果" class="headerlink" title="3. 查询多个结果"></a>3. 查询多个结果</h3><figure class="highlight axapta"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> <span class="built_in">int</span> x, <span class="built_in">int</span> y, <span class="built_in">int</span> z</span><br><span class="line"><span class="keyword">where</span> x <span class="keyword">in</span> [<span class="number">1.</span><span class="number">.10</span>] and y <span class="keyword">in</span> [<span class="number">1.</span><span class="number">.10</span>] and z <span class="keyword">in</span> [<span class="number">1.</span><span class="number">.10</span>] and</span><br><span class="line">      x*x + y*y = z*z</span><br><span class="line"><span class="keyword">select</span> x, y, z</span><br></pre></td></tr></table></figure>
-
-<p>结果：</p>
-<p><img src="../images/pics/codeql/7.jpg"> </p>
-<h3 id="4-不同语言的查询"><a href="#4-不同语言的查询" class="headerlink" title="4. 不同语言的查询"></a>4. 不同语言的查询</h3><ul>
-<li>python</li>
-</ul>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> python</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> <span class="keyword">Function</span> f</span><br><span class="line"><span class="keyword">where</span> count(f.getAnArg()) &gt; <span class="number">7</span></span><br><span class="line"><span class="keyword">select</span> f</span><br></pre></td></tr></table></figure>
-
-<p>python，查询超过7个参数的函数</p>
-<p>可以在<a target="_blank" rel="noopener" href="https://lgtm.com/query/2096810474/%E8%BF%90%E8%A1%8C">https://lgtm.com/query/2096810474/运行</a></p>
-<ul>
-<li>javascript</li>
-</ul>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javascript</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> <span class="keyword">Comment</span> c</span><br><span class="line"><span class="keyword">where</span> c.getText().regexpMatch(&quot;(?si).*\\bTODO\\b.*&quot;)</span><br><span class="line"><span class="keyword">select</span> c</span><br></pre></td></tr></table></figure>
-
-<p>获取注释中有TODO</p>
-<ul>
-<li>java</li>
-</ul>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> Parameter p</span><br><span class="line"><span class="keyword">where</span> <span class="keyword">not</span> <span class="keyword">exists</span>(p.getAnAccess())</span><br><span class="line"><span class="keyword">select</span> p</span><br></pre></td></tr></table></figure>
-
-<p>查找未使用的参数</p>
-<h2 id="Find-the-thief"><a href="#Find-the-thief" class="headerlink" title="Find the thief"></a>Find the thief</h2><table>
-<thead>
-<tr>
-<th align="left"></th>
-<th align="left">Question</th>
-<th align="left">Answer</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="left">1</td>
-<td align="left">Is the thief taller than 150 cm?</td>
-<td align="left">yes</td>
-</tr>
-<tr>
-<td align="left">2</td>
-<td align="left">Does the thief have blond hair?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">3</td>
-<td align="left">Is the thief bald?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">4</td>
-<td align="left">Is the thief younger than 30?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">5</td>
-<td align="left">Does the thief live east of the castle?</td>
-<td align="left">yes</td>
-</tr>
-<tr>
-<td align="left">6</td>
-<td align="left">Does the thief have black or brown hair?</td>
-<td align="left">yes</td>
-</tr>
-<tr>
-<td align="left">7</td>
-<td align="left">Is the thief taller than 180cm and shorter than 190cm?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">8</td>
-<td align="left">Is the thief the oldest person in the village?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">9</td>
-<td align="left">Is the thief the tallest person in the village?</td>
-<td align="left">no</td>
-</tr>
-<tr>
-<td align="left">10</td>
-<td align="left">Is the thief shorter than the average villager?</td>
-<td align="left">yes</td>
-</tr>
-<tr>
-<td align="left">11</td>
-<td align="left">Is the thief the oldest person in the eastern part of the village?</td>
-<td align="left">yes</td>
-</tr>
-</tbody></table>
-<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tutorial</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> Person t</span><br><span class="line"><span class="keyword">where</span></span><br><span class="line"> <span class="comment">/* 1 */</span> t.getHeight() &gt; <span class="number">150</span> <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 2 */</span> <span class="keyword">not</span> t.getHairColor() = &quot;blond&quot; <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 3 */</span> <span class="keyword">exists</span> (string c | t.getHairColor() = c) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 4 */</span> <span class="keyword">not</span> t.getAge() &lt; <span class="number">30</span> <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 5 */</span> t.getLocation() = &quot;east&quot; <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 6 */</span> (t.getHairColor() = &quot;black&quot; <span class="keyword">or</span> t.getHairColor() = &quot;brown&quot;) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 7 */</span> <span class="keyword">not</span> (t.getHeight() &gt; <span class="number">180</span> <span class="keyword">and</span> t.getHeight() &lt; <span class="number">190</span>) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 8 */</span> <span class="keyword">exists</span>(Person p | p.getAge() &gt; t.getAge()) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 9 */</span> <span class="keyword">not</span> t = max(Person p | | p <span class="keyword">order</span> <span class="keyword">by</span> p.getHeight()) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 10 */</span> t.getHeight() &lt; avg(<span class="type">float</span> i | <span class="keyword">exists</span>(Person p | p.getHeight() = i) | i) <span class="keyword">and</span></span><br><span class="line"> <span class="comment">/* 11 */</span> t = max(Person p | p.getLocation() = &quot;east&quot; | p <span class="keyword">order</span> <span class="keyword">by</span> p.getAge())</span><br><span class="line"><span class="keyword">select</span> &quot;The thief is &quot; + t + &quot;!&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Catch-the-fire-starter"><a href="#Catch-the-fire-starter" class="headerlink" title="Catch the fire starter"></a>Catch the fire starter</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> tutorial</span><br><span class="line"></span><br><span class="line">predicate isSouthern(<span class="type">Person</span> p) &#123; p.getLocation() = <span class="string">&quot;south&quot;</span> &#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Southerner</span> <span class="keyword">extends</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">  <span class="comment">/* the characteristic predicate */</span></span><br><span class="line">  <span class="type">Southerner</span>() &#123; isSouthern(<span class="keyword">this</span>) &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Child</span> <span class="keyword">extends</span> <span class="title">Person</span> </span>&#123;</span><br><span class="line">  <span class="comment">/* the characteristic predicate */</span></span><br><span class="line">  <span class="type">Child</span>() &#123; <span class="keyword">this</span>.getAge() &lt; <span class="number">10</span> &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/* a member predicate */</span></span><br><span class="line">  <span class="keyword">override</span> predicate isAllowedIn(string region) &#123; region = <span class="keyword">this</span>.getLocation() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">predicate isBald(<span class="type">Person</span> p) &#123; not exists(string c | p.getHairColor() = c) &#125;</span><br><span class="line"></span><br><span class="line">from <span class="type">Southerner</span> s</span><br><span class="line">where s.isAllowedIn(<span class="string">&quot;north&quot;</span>) and isBald(s)</span><br><span class="line">select s</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Crown-the-rightful-heir"><a href="#Crown-the-rightful-heir" class="headerlink" title="Crown the rightful heir"></a>Crown the rightful heir</h2><figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">import tutorial</span><br><span class="line"></span><br><span class="line">Person relative<span class="constructor">Of(Person <span class="params">p</span>)</span> &#123; parentOf*(result) = parentOf*(p) &#125;</span><br><span class="line"></span><br><span class="line">predicate has<span class="constructor">CriminalRecord(Person <span class="params">p</span>)</span> &#123;</span><br><span class="line">  p = <span class="string">&quot;Hester&quot;</span> <span class="keyword">or</span></span><br><span class="line">  p = <span class="string">&quot;Hugh&quot;</span> <span class="keyword">or</span></span><br><span class="line">  p = <span class="string">&quot;Charlie&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">from Person p</span><br><span class="line">where</span><br><span class="line">  not p.is<span class="constructor">Deceased()</span> <span class="keyword">and</span></span><br><span class="line">  p = relative<span class="constructor">Of(<span class="string">&quot;King Basil&quot;</span>)</span> <span class="keyword">and</span></span><br><span class="line">  not has<span class="constructor">CriminalRecord(<span class="params">p</span>)</span></span><br><span class="line">select p</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Cross-the-river"><a href="#Cross-the-river" class="headerlink" title="Cross the river"></a>Cross the river</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * &quot;Typesafe&quot; solution to the river crossing puzzle.</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/** Either the left shore or the right shore. */</span></span><br><span class="line">newtype <span class="type">TShore</span> =</span><br><span class="line">  <span class="type">Left</span>() or</span><br><span class="line">  <span class="type">Right</span>()</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Shore</span> <span class="keyword">extends</span> <span class="title">TShore</span> </span>&#123;</span><br><span class="line">  <span class="type">Shore</span> other() &#123; result != <span class="keyword">this</span> &#125;</span><br><span class="line"></span><br><span class="line">  string toString() &#123;</span><br><span class="line">    <span class="keyword">this</span> = <span class="type">Left</span>() and result = <span class="string">&quot;left&quot;</span></span><br><span class="line">    or</span><br><span class="line">    <span class="keyword">this</span> = <span class="type">Right</span>() and result = <span class="string">&quot;right&quot;</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">newtype <span class="type">TMan</span> = <span class="type">TManOn</span>(<span class="type">Shore</span> s)</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Models the behavior of the man. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Man</span> <span class="keyword">extends</span> <span class="title">TMan</span> </span>&#123;</span><br><span class="line">  <span class="type">Shore</span> s;</span><br><span class="line"></span><br><span class="line">  <span class="type">Man</span>() &#123; <span class="keyword">this</span> = <span class="type">TManOn</span>(s) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/** Holds if the man is on a particular shore. */</span></span><br><span class="line">  predicate isOn(<span class="type">Shore</span> shore) &#123; s = shore &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/** Returns the other shore, after the man crosses the river. */</span></span><br><span class="line">  <span class="type">Man</span> cross() &#123; result.isOn(s.other()) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/** Returns a cargo and its position after being ferried. */</span></span><br><span class="line">  <span class="type">Cargo</span> ferry(<span class="type">Cargo</span> c) &#123;</span><br><span class="line">    result = c.cross() and</span><br><span class="line">    c.isOn(s)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  string toString() &#123; result = <span class="string">&quot;man &quot;</span> + s &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">newtype <span class="type">TCargo</span> =</span><br><span class="line">  <span class="type">TGoat</span>(<span class="type">Shore</span> s) or</span><br><span class="line">  <span class="type">TCabbage</span>(<span class="type">Shore</span> s) or</span><br><span class="line">  <span class="type">TWolf</span>(<span class="type">Shore</span> s)</span><br><span class="line"></span><br><span class="line"><span class="comment">/** One of three possible cargo items, with their position. */</span></span><br><span class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">Cargo</span> <span class="keyword">extends</span> <span class="title">TCargo</span> </span>&#123;</span><br><span class="line">  <span class="type">Shore</span> s;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/** Holds if the cargo is on a particular shore. */</span></span><br><span class="line">  predicate isOn(<span class="type">Shore</span> shore) &#123; s = shore &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/** Returns the other shore, after the cargo crosses the river. */</span></span><br><span class="line">  <span class="keyword">abstract</span> <span class="type">Cargo</span> cross();</span><br><span class="line"></span><br><span class="line">  <span class="keyword">abstract</span> string toString();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Models the position of the goat. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Goat</span> <span class="keyword">extends</span> <span class="title">Cargo</span>, <span class="title">TGoat</span> </span>&#123;</span><br><span class="line">  <span class="type">Goat</span>() &#123; <span class="keyword">this</span> = <span class="type">TGoat</span>(s) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">Cargo</span> cross() &#123; result = <span class="type">TGoat</span>(s.other()) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;goat &quot;</span> + s &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Models the position of the wolf. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Wolf</span> <span class="keyword">extends</span> <span class="title">Cargo</span>, <span class="title">TWolf</span> </span>&#123;</span><br><span class="line">  <span class="type">Wolf</span>() &#123; <span class="keyword">this</span> = <span class="type">TWolf</span>(s) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">Cargo</span> cross() &#123; result = <span class="type">TWolf</span>(s.other()) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;wolf &quot;</span> + s &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** Models the position of the cabbage. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Cabbage</span> <span class="keyword">extends</span> <span class="title">Cargo</span>, <span class="title">TCabbage</span> </span>&#123;</span><br><span class="line">  <span class="type">Cabbage</span>() &#123; <span class="keyword">this</span> = <span class="type">TCabbage</span>(s) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">Cargo</span> cross() &#123; result = <span class="type">TCabbage</span>(s.other()) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;cabbage &quot;</span> + s &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">newtype <span class="type">TState</span> = <span class="type">Currently</span>(<span class="type">Man</span> man, <span class="type">Goat</span> goat, <span class="type">Cabbage</span> cabbage, <span class="type">Wolf</span> wolf)</span><br><span class="line"></span><br><span class="line"><span class="comment">/** A record of where everything is. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">State</span> <span class="keyword">extends</span> <span class="title">TState</span> </span>&#123;</span><br><span class="line">  <span class="type">Man</span> man;</span><br><span class="line"></span><br><span class="line">  <span class="type">Goat</span> goat;</span><br><span class="line"></span><br><span class="line">  <span class="type">Cabbage</span> cabbage;</span><br><span class="line"></span><br><span class="line">  <span class="type">Wolf</span> wolf;</span><br><span class="line"></span><br><span class="line">  <span class="type">State</span>() &#123; <span class="keyword">this</span> = <span class="type">Currently</span>(man, goat, cabbage, wolf) &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Returns the possible states that you can transition to</span></span><br><span class="line"><span class="comment">   * by ferrying one or zero cargo items.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="type">State</span> transition() &#123;</span><br><span class="line">    result = <span class="type">Currently</span>(man.cross(), man.ferry(goat), cabbage, wolf) or</span><br><span class="line">    result = <span class="type">Currently</span>(man.cross(), goat, man.ferry(cabbage), wolf) or</span><br><span class="line">    result = <span class="type">Currently</span>(man.cross(), goat, cabbage, man.ferry(wolf)) or</span><br><span class="line">    result = <span class="type">Currently</span>(man.cross(), goat, cabbage, wolf)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="comment">/**</span></span><br><span class="line"><span class="comment">   * Returns all states that are reachable via a transition</span></span><br><span class="line"><span class="comment">   * and have not yet been visited.</span></span><br><span class="line"><span class="comment">   * `path` keeps track of how it is achieved.</span></span><br><span class="line"><span class="comment">   */</span></span><br><span class="line">  <span class="type">State</span> reachesVia(string path) &#123;</span><br><span class="line">    exists(string pathSoFar |</span><br><span class="line">      result = <span class="keyword">this</span>.reachesVia(pathSoFar).transition() and</span><br><span class="line">      not exists(int i | i = pathSoFar.indexOf(result.toString())) and</span><br><span class="line">      path = pathSoFar + <span class="string">&quot;\n&quot;</span> + result</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  string toString() &#123; result = man + <span class="string">&quot;/&quot;</span> + goat + <span class="string">&quot;/&quot;</span> + cabbage + <span class="string">&quot;/&quot;</span> + wolf &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** The initial state, where everything is on the left shore. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">InitialState</span> <span class="keyword">extends</span> <span class="title">State</span> </span>&#123;</span><br><span class="line">  <span class="type">InitialState</span>() &#123;</span><br><span class="line">    man.isOn(<span class="type">Left</span>()) and goat.isOn(<span class="type">Left</span>()) and cabbage.isOn(<span class="type">Left</span>()) and wolf.isOn(<span class="type">Left</span>())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">State</span> reachesVia(string path) &#123;</span><br><span class="line">    path = <span class="keyword">this</span> + <span class="string">&quot;\n&quot;</span> + result and result = transition()</span><br><span class="line">    or</span><br><span class="line">    result = <span class="keyword">super</span>.reachesVia(path)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;Initial: &quot;</span> + <span class="keyword">super</span>.toString() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** The goal state, where everything is on the right shore. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">GoalState</span> <span class="keyword">extends</span> <span class="title">State</span> </span>&#123;</span><br><span class="line">  <span class="type">GoalState</span>() &#123;</span><br><span class="line">    man.isOn(<span class="type">Right</span>()) and goat.isOn(<span class="type">Right</span>()) and cabbage.isOn(<span class="type">Right</span>()) and wolf.isOn(<span class="type">Right</span>())</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">State</span> transition() &#123; none() &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;Goal: &quot;</span> + <span class="keyword">super</span>.toString() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/** An unsafe state, where something gets eaten. */</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">IllegalState</span> <span class="keyword">extends</span> <span class="title">State</span> </span>&#123;</span><br><span class="line">  <span class="type">IllegalState</span>() &#123;</span><br><span class="line">    exists(<span class="type">Shore</span> s |</span><br><span class="line">      goat.isOn(s) and cabbage.isOn(s) and not man.isOn(s)</span><br><span class="line">      or</span><br><span class="line">      wolf.isOn(s) and goat.isOn(s) and not man.isOn(s)</span><br><span class="line">    )</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> <span class="type">State</span> transition() &#123; none() &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">override</span> string toString() &#123; result = <span class="string">&quot;ILLEGAL: &quot;</span> + <span class="keyword">super</span>.toString() &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">from string path</span><br><span class="line">where any(<span class="type">InitialState</span> i).reachesVia(path) = any(<span class="type">GoalState</span> g)</span><br><span class="line">select path</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-
-
-
-
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-overview/">https://codeql.github.com/docs/codeql-overview/</a></p>
 
     </div>
 
@@ -901,7 +543,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A6%82%E8%BF%B0"><span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">元数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">查询帮助文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9A%E4%B9%89%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">定义查询结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9F%A5%E8%AF%A2%E8%AF%AD%E5%8F%A5"><span class="nav-text">查询语句</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81Debug"><span class="nav-text">数据流Debug</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Introduction-to-QL"><span class="nav-text">Introduction to QL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E7%AC%AC%E4%B8%80%E4%B8%AA%E7%94%A8%E4%BE%8B"><span class="nav-text">1. 第一个用例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%9F%BA%E6%9C%AC%E7%9A%84%E8%BF%90%E7%AE%97"><span class="nav-text">2. 基本的运算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%A4%9A%E4%B8%AA%E7%BB%93%E6%9E%9C"><span class="nav-text">3. 查询多个结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%8D%E5%90%8C%E8%AF%AD%E8%A8%80%E7%9A%84%E6%9F%A5%E8%AF%A2"><span class="nav-text">4. 不同语言的查询</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Find-the-thief"><span class="nav-text">Find the thief</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Catch-the-fire-starter"><span class="nav-text">Catch the fire starter</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Crown-the-rightful-heir"><span class="nav-text">Crown the rightful heir</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cross-the-river"><span class="nav-text">Cross the river</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8ECodeQL%E6%9F%A5%E8%AF%A2"><span class="nav-text">1. 关于CodeQL查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%9F%BA%E6%9C%AC%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%84"><span class="nav-text">1.2 基本查询结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Metadata"><span class="nav-text">2. Metadata</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">2.1 关于查询元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Metadata%E5%B1%9E%E6%80%A7"><span class="nav-text">2.2 Metadata属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-filter%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="nav-text">2.3 filter查询的其他属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%94%A8%E4%BE%8B"><span class="nav-text">2.4 用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">3. 查询帮助文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%A6%82%E8%A7%88"><span class="nav-text">3.1 概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Section-level-elements"><span class="nav-text">3.3 Section-level elements</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
