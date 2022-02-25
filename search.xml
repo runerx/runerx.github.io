@@ -1,74 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>CodeQL学习</title>
-    <url>/CodeQL%E5%AD%A6%E4%B9%A01/</url>
-    <content><![CDATA[<blockquote>
-<p>知其白，守其黑，为天下式。</p>
-</blockquote>
-<p>CodeQL入门学习</p>
-<span id="more"></span>
-
-<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>QL是一种查询语言，支持对C++，C#，Java，JavaScript，Python，go等多种语言进行分析，可用于分析代码，查找代码中控制流等信息。</p>
-<p>CodeQL 的整体思路是把源代码转化成一个可查询的数据库，通过 Extractor 模块对源代码工程进行关键信息分析提取，构成一个关系型数据库。CodeQL 的数据库并没有使用现有的数据库技术，而是一套自己实现的文件系统数据库。</p>
-<p>对于编译型语言，Extractor 会监控编译过程，编译器每处理一个源代码文件，它都会收集源代码的相关信息，如：语法信息（AST 抽象语法树）、语意信息（名称绑定、类型信息、运算操作等），控制流、数据流等，同时也会复制一份源代码文件。而对于解释性语言，Extractor 则直接分析源代码，得到类似的相关信息。</p>
-<p>关键信息提取完成后，所有分析所需的数据都会导入一个文件夹，这个就是 CodeQL database, 其中包括了源代码文件、关系数据、语言相关的 database schema（schema 定义了数据之间的相互关系）。</p>
-<p><img src="../images/pic/codeql1.png"></p>
-<p>CodeQL 自己定义实现了一套名为 QL 的查询语言，并提供了相应的支持库和运行环境。</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>分析程序支持主流的操作系统,Windows,Mac,Linux</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">mkdir codeql-home</span><br><span class="line">cd codeql</span><br><span class="line">mkdir codeql-cli</span><br><span class="line">cd codeql-cli</span><br><span class="line"></span><br><span class="line"><span class="comment">#https://github.com/github/codeql-cli-binaries</span></span><br><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/github/</span>codeql-cli-binaries<span class="regexp">/releases/</span>download<span class="regexp">/v2.7.5/</span>codeql-osx64.zip</span><br></pre></td></tr></table></figure>
-
-<p>解压之后添加到环境变量</p>
-<p>然后下载lib</p>
-<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="comment">#切换到codeql-home</span></span><br><span class="line">mkdir codeql-lib</span><br><span class="line">cd codeql-lib</span><br><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/github/</span>codeql.git</span><br></pre></td></tr></table></figure>
-
-<p><strong>下载vscode扩展</strong></p>
-<img src="../images/pic/codeql.jpg" style="zoom:50%;" /> 
-
-<p>修改同时扫描的最大查询规则数量</p>
-<img src="../images/pic/codeql2.jpg" style="zoom:50%;" /> 
-
-<img src="../images/pic/codeql3.jpg" style="zoom:50%;" /> 
-
-
-
-<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>以java-sec-code为例</p>
-<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">[shadowflow@ShadowOS query]$ git clone htt<span class="symbol">ps:</span>//github.com/JoyChou93/java-<span class="built_in">sec</span>-code.git</span><br><span class="line">[shadowflow@ShadowOS query]$ cd java-<span class="built_in">sec</span>-<span class="built_in">code</span></span><br><span class="line">[shadowflow@ShadowOS java-<span class="built_in">sec</span>-<span class="built_in">code</span>]$ mkdir java-<span class="built_in">sec</span>-<span class="built_in">code</span>-qldb</span><br><span class="line">[shadowflow@ShadowOS java-<span class="built_in">sec</span>-<span class="built_in">code</span>]$ codeql database create java-<span class="built_in">sec</span>-<span class="built_in">code</span>-qldb -l java</span><br></pre></td></tr></table></figure>
-
-<p>打开codeql扩展，添加生成的db</p>
-<img src="../images/pic/codeql4.jpg" style="zoom:50%;" /> 
-
-<p>选择如下目录，使用所有的java漏洞规则进行扫描</p>
-<blockquote>
-<ul>
-<li>codeql-lib<ul>
-<li>java<ul>
-<li>ql<ul>
-<li>src<ul>
-<li>security</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</blockquote>
-<img src="../images/pic/codeql5.jpg" style="zoom: 67%;" /> 
-
-<p>扫描完成我们可以查看结果，并且选择其他目录里的规则进行扫描。</p>
-]]></content>
-      <categories>
-        <category>代码安全</category>
-      </categories>
-      <tags>
-        <tag>CodeQL</tag>
-        <tag>代码安全</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Commons-Collections-1</title>
     <url>/Commons-Collections-1/</url>
     <content><![CDATA[<blockquote>
@@ -4481,8 +4413,76 @@ Any-Header: burpcollaborator.net</pre>
       </tags>
   </entry>
   <entry>
+    <title>CodeQL学习</title>
+    <url>/CodeQL1-%E4%BA%86%E8%A7%A3/</url>
+    <content><![CDATA[<blockquote>
+<p>知其白，守其黑，为天下式。</p>
+</blockquote>
+<p>CodeQL入门学习</p>
+<span id="more"></span>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>QL是一种查询语言，支持对C++，C#，Java，JavaScript，Python，go等多种语言进行分析，可用于分析代码，查找代码中控制流等信息。</p>
+<p>CodeQL 的整体思路是把源代码转化成一个可查询的数据库，通过 Extractor 模块对源代码工程进行关键信息分析提取，构成一个关系型数据库。CodeQL 的数据库并没有使用现有的数据库技术，而是一套自己实现的文件系统数据库。</p>
+<p>对于编译型语言，Extractor 会监控编译过程，编译器每处理一个源代码文件，它都会收集源代码的相关信息，如：语法信息（AST 抽象语法树）、语意信息（名称绑定、类型信息、运算操作等），控制流、数据流等，同时也会复制一份源代码文件。而对于解释性语言，Extractor 则直接分析源代码，得到类似的相关信息。</p>
+<p>关键信息提取完成后，所有分析所需的数据都会导入一个文件夹，这个就是 CodeQL database, 其中包括了源代码文件、关系数据、语言相关的 database schema（schema 定义了数据之间的相互关系）。</p>
+<p><img src="../images/pic/codeql1.png"></p>
+<p>CodeQL 自己定义实现了一套名为 QL 的查询语言，并提供了相应的支持库和运行环境。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>分析程序支持主流的操作系统,Windows,Mac,Linux</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line">mkdir codeql-home</span><br><span class="line">cd codeql</span><br><span class="line">mkdir codeql-cli</span><br><span class="line">cd codeql-cli</span><br><span class="line"></span><br><span class="line"><span class="comment">#https://github.com/github/codeql-cli-binaries</span></span><br><span class="line">wget https:<span class="regexp">//gi</span>thub.com<span class="regexp">/github/</span>codeql-cli-binaries<span class="regexp">/releases/</span>download<span class="regexp">/v2.7.5/</span>codeql-osx64.zip</span><br></pre></td></tr></table></figure>
+
+<p>解压之后添加到环境变量</p>
+<p>然后下载lib</p>
+<figure class="highlight awk"><table><tr><td class="code"><pre><span class="line"><span class="comment">#切换到codeql-home</span></span><br><span class="line">mkdir codeql-lib</span><br><span class="line">cd codeql-lib</span><br><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/github/</span>codeql.git</span><br></pre></td></tr></table></figure>
+
+<p><strong>下载vscode扩展</strong></p>
+<img src="../images/pic/codeql.jpg" style="zoom:50%;" /> 
+
+<p>修改同时扫描的最大查询规则数量</p>
+<img src="../images/pic/codeql2.jpg" style="zoom:50%;" /> 
+
+<img src="../images/pic/codeql3.jpg" style="zoom:50%;" /> 
+
+
+
+<h2 id="测试用例"><a href="#测试用例" class="headerlink" title="测试用例"></a>测试用例</h2><p>以java-sec-code为例</p>
+<figure class="highlight excel"><table><tr><td class="code"><pre><span class="line">[shadowflow@ShadowOS query]$ git clone htt<span class="symbol">ps:</span>//github.com/JoyChou93/java-<span class="built_in">sec</span>-code.git</span><br><span class="line">[shadowflow@ShadowOS query]$ cd java-<span class="built_in">sec</span>-<span class="built_in">code</span></span><br><span class="line">[shadowflow@ShadowOS java-<span class="built_in">sec</span>-<span class="built_in">code</span>]$ mkdir java-<span class="built_in">sec</span>-<span class="built_in">code</span>-qldb</span><br><span class="line">[shadowflow@ShadowOS java-<span class="built_in">sec</span>-<span class="built_in">code</span>]$ codeql database create java-<span class="built_in">sec</span>-<span class="built_in">code</span>-qldb -l java</span><br></pre></td></tr></table></figure>
+
+<p>打开codeql扩展，添加生成的db</p>
+<img src="../images/pic/codeql4.jpg" style="zoom:50%;" /> 
+
+<p>选择如下目录，使用所有的java漏洞规则进行扫描</p>
+<blockquote>
+<ul>
+<li>codeql-lib<ul>
+<li>java<ul>
+<li>ql<ul>
+<li>src<ul>
+<li>security</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+<img src="../images/pic/codeql5.jpg" style="zoom: 67%;" /> 
+
+<p>扫描完成我们可以查看结果，并且选择其他目录里的规则进行扫描。</p>
+]]></content>
+      <categories>
+        <category>代码安全</category>
+      </categories>
+      <tags>
+        <tag>CodeQL</tag>
+        <tag>代码安全</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CodeQL学习2</title>
-    <url>/CodeQL%E5%AD%A6%E4%B9%A02/</url>
+    <url>/CodeQL2-%E7%BC%96%E5%86%99%E6%9F%A5%E8%AF%A2/</url>
     <content><![CDATA[<p><font style="color:Gray; float:left">南有乔木，不可休思；汉有游女，不可求思。</font><br></p>
 <p><font style="color:Gray; float:right">——《诗经.汉广》</font></p>
 <br>
@@ -4871,7 +4871,43 @@ Any-Header: burpcollaborator.net</pre>
 
 
 <h2 id="4-控制查询结果"><a href="#4-控制查询结果" class="headerlink" title="4. 控制查询结果"></a>4. 控制查询结果</h2><p>可以通过select语句控制显示结果</p>
-<h3 id="4-1-关于查询结果"><a href="#4-1-关于查询结果" class="headerlink" title="4.1 关于查询结果"></a>4.1 关于查询结果</h3><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<h3 id="4-1-关于查询结果"><a href="#4-1-关于查询结果" class="headerlink" title="4.1 关于查询结果"></a>4.1 关于查询结果</h3><p>结果里的信息由<code>select</code>语句控制，<code>select</code>语句必须有两个字段</p>
+<ul>
+<li>Element——告警的变量，也就是要查询的代码</li>
+<li>String——自定义字符串消息</li>
+</ul>
+<p>在有些查询中，我们可以看见除上面外的其他内容，使用 <code>$@</code> 做占位符。如下</p>
+<figure class="highlight stylus"><table><tr><td class="code"><pre><span class="line">select access, <span class="string">&quot;Variable $@ may be null here &quot;</span> + msg + <span class="string">&quot;.&quot;</span>, <span class="selector-tag">var</span><span class="selector-class">.getVariable</span>(),</span><br><span class="line">  <span class="selector-tag">var</span><span class="selector-class">.getVariable</span>()<span class="selector-class">.getName</span>(), reason, <span class="string">&quot;this&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>后门的内容都会放在 <code>$@</code> 的位置。</p>
+<h3 id="4-2-编写select语句案例"><a href="#4-2-编写select语句案例" class="headerlink" title="4.2 编写select语句案例"></a>4.2 编写select语句案例</h3><p><code>CodeDuplication.qll</code>是比较文件相似度的库。我们将在案例中使用这个库来辨析示例。</p>
+<p><strong>基本的select语句</strong></p>
+<figure class="highlight fortran"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> java</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">external</span>.CodeDuplication</span><br><span class="line"></span><br><span class="line">from <span class="keyword">File</span> f, <span class="keyword">File</span> other, <span class="built_in">int</span> percent</span><br><span class="line"><span class="keyword">where</span> similarFiles(f, other, percent)</span><br><span class="line"><span class="keyword">select</span> f, <span class="string">&quot;This file is similar to another file.&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个基本查询语句的select语句有两个部分，</p>
+<ul>
+<li><code>f</code>对应要对比的文件</li>
+<li>“This file is similar to another file.”是字符串消息。</li>
+</ul>
+<p><strong>在查询语句中显示其他文件信息</strong></p>
+<p>上面的案例没有与其相似的文件信息，下面我们要打印出其他文件信息。</p>
+<figure class="highlight ada"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> f, <span class="string">&quot;This file is similar to &quot;</span> + other.getBaseName()</span><br></pre></td></tr></table></figure>
+
+<p>这条语句可以将其他文件打印出来</p>
+<p><strong>加入占位符</strong></p>
+<figure class="highlight gml"><table><tr><td class="code"><pre><span class="line">select f, <span class="string">&quot;This file is similar to $@.&quot;</span>, <span class="literal">other</span>, <span class="literal">other</span>.getBaseName()</span><br></pre></td></tr></table></figure>
+
+<p>显示的时候other<code>, </code>other.getBaseName()<code>会替换</code>$@`的位置。</p>
+<p>如果有多个占位符，原文如下，这里不深究</p>
+<blockquote>
+<p>If you use the <code>$@</code> placeholder marker multiple times in the description text, then the <code>N</code>th use is replaced by a link formed from columns <code>2N+2</code> and <code>2N+3</code>. If there are more pairs of additional columns than there are placeholder markers, then the trailing columns are ignored. Conversely, if there are fewer pairs of additional columns than there are placeholder markers, then the trailing markers are treated as normal text rather than placeholder markers.</p>
+</blockquote>
+<p><strong>加入相似度信息</strong></p>
+<figure class="highlight gml"><table><tr><td class="code"><pre><span class="line">select f, percent + <span class="string">&quot;% of the lines in &quot;</span> + f.getBaseName() + <span class="string">&quot; are similar to lines in $@.&quot;</span>, <span class="literal">other</span>, <span class="literal">other</span>.getBaseName()</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a href="https://codeql.github.com/docs/codeql-overview/">https://codeql.github.com/docs/codeql-overview/</a></li>
 <li><a href="https://github.com/github/codeql/tree/main/docs">https://github.com/github/codeql/tree/main/docs</a></li>
 </ul>
