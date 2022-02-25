@@ -31,7 +31,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://codeql.github.com/docs/_images/query-metadata.png">
 <meta property="article:published_time" content="2022-02-22T07:17:31.000Z">
-<meta property="article:modified_time" content="2022-02-25T01:30:03.763Z">
+<meta property="article:modified_time" content="2022-02-25T03:20:09.266Z">
 <meta property="article:author" content="ShadowFl0w">
 <meta property="article:tag" content="CodeQL">
 <meta property="article:tag" content="代码安全">
@@ -230,7 +230,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2022-02-25 09:30:03" itemprop="dateModified" datetime="2022-02-25T09:30:03+08:00">2022-02-25</time>
+                <time title="修改时间：2022-02-25 11:20:09" itemprop="dateModified" datetime="2022-02-25T11:20:09+08:00">2022-02-25</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -684,7 +684,37 @@
 
 
 
-<h2 id=""><a href="#" class="headerlink" title=""></a></h2><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<h2 id="5-元素位置信息"><a href="#5-元素位置信息" class="headerlink" title="5. 元素位置信息"></a>5. 元素位置信息</h2><p>CodeQL提供了在代码数据库里获取元素位置信息的机制。使用这个机制可以为用户提供更多的信息。</p>
+<h3 id="5-1-关于元素位置"><a href="#5-1-关于元素位置" class="headerlink" title="5.1 关于元素位置"></a>5.1 关于元素位置</h3><p>当显示给用户信息的时候，LGTM需要能够从查询结果中提取位置信息，为此，所有的QL 类提供位置信息需要使用如下机制之一</p>
+<ul>
+<li>提供URLS</li>
+<li>提供位置信息</li>
+<li>使用提取的位置信息</li>
+</ul>
+<p>上诉按优先级排列，以便使用第一个可用的机制。</p>
+<blockquote>
+<p>因为QL是一种关系型语言，每一个QL类的实例都精确的映射到一个位置。这是库设计者的责任。如果实例没有位置信息，就不能点击结果跳转到源代码。如果有多个位置，结果就会重复。</p>
+</blockquote>
+<h3 id="5-2-提供URLS"><a href="#5-2-提供URLS" class="headerlink" title="5.2 提供URLS"></a>5.2 提供URLS</h3><p>一个自定义的URL可以写在一个没有参数的(注意大小写)的断言getURL里，如下</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JiraIssue</span> <span class="keyword">extends</span> <span class="title">ExternalData</span> </span>&#123;</span><br><span class="line">    <span class="type">JiraIssue</span>() &#123;</span><br><span class="line">        getDataPath() = <span class="string">&quot;JiraIssues.csv&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    string getKey() &#123;</span><br><span class="line">        result = getField(<span class="number">0</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    string getURL() &#123;</span><br><span class="line">        result = <span class="string">&quot;http://mycompany.com/jira/&quot;</span> + getKey()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>文件 URLs</strong></p>
+<p><code>file://</code>跟一个绝对路径，后面再跟四个冒号分隔的数字。数字表示开始行、开始列、结束行和结束列。</p>
+<ul>
+<li><code>file://opt/src/my/file.java:0:0:0:0</code> 表示使用这个文件</li>
+<li><code>file:///opt/src/my/file.java:1:1:2:1</code> 从文件开始到第二行的第一个字符。</li>
+<li><code>file:///opt/src/my/file.java:1:0:1:0</code> 表示文件的第一行</li>
+</ul>
+<p>按照惯例，整个文件也可以用 <code>file://</code> 表示，后面不跟数字。或者使用三个数字来表示起始行的位置、长度、字符偏移量。LGTM不会显示这个类型的结果</p>
+<p><strong>其他类型的URL</strong></p>
+<p>以下不太常见的URL类型是有效的，但LGTM不支持，并且将从任何结果中忽略</p>
+<ul>
+<li><code>HTTP URLs</code> 某些客户端应用支持。</li>
+<li><code>Folder URLs</code> 用法： <code>folder://</code>,后面不跟数字，例如 <code>folder:///opt/src</code></li>
+<li><code>Relative file URLs</code> 像正常的文件URLs, 但是以 <code>relative://</code>开始。它们通常的意义是代码数据库的上下文。由于相对位置不变，导入外部信息的时候通常使Relative file URLs。</li>
+</ul>
+<h3 id="5-3-提供位置信息"><a href="#5-3-提供位置信息" class="headerlink" title="5.3 提供位置信息"></a>5.3 提供位置信息</h3><p>如果没有定义getURL断言，</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://codeql.github.com/docs/codeql-overview/">https://codeql.github.com/docs/codeql-overview/</a></li>
 <li><a target="_blank" rel="noopener" href="https://github.com/github/codeql/tree/main/docs">https://github.com/github/codeql/tree/main/docs</a></li>
 </ul>
@@ -769,7 +799,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8ECodeQL%E6%9F%A5%E8%AF%A2"><span class="nav-text">1. 关于CodeQL查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%9F%BA%E6%9C%AC%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%84"><span class="nav-text">1.2 基本查询结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Metadata"><span class="nav-text">2. Metadata</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">2.1 关于查询元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Metadata%E5%B1%9E%E6%80%A7"><span class="nav-text">2.2 Metadata属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-filter%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="nav-text">2.3 filter查询的其他属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%94%A8%E4%BE%8B"><span class="nav-text">2.4 用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">3. 查询帮助文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%A6%82%E8%A7%88"><span class="nav-text">3.1 概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Section-level-elements"><span class="nav-text">3.3 Section-level elements</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%9D%97%E5%85%83%E7%B4%A0"><span class="nav-text">3.4 块元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-List-%E5%85%83%E7%B4%A0"><span class="nav-text">3.5 List 元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E8%A1%A8%E5%85%83%E7%B4%A0"><span class="nav-text">3.6 表元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-%E5%86%85%E8%81%94%E5%86%85%E5%AE%B9"><span class="nav-text">3.7 内联内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-%E5%8C%85%E5%90%AB"><span class="nav-text">3.8 包含</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%8E%A7%E5%88%B6%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4. 控制查询结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4.1 关于查询结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E7%BC%96%E5%86%99select%E8%AF%AD%E5%8F%A5%E6%A1%88%E4%BE%8B"><span class="nav-text">4.2 编写select语句案例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link"><span class="nav-text"></span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%B3%E4%BA%8ECodeQL%E6%9F%A5%E8%AF%A2"><span class="nav-text">1. 关于CodeQL查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%A6%82%E8%BF%B0"><span class="nav-text">1.1 概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E5%9F%BA%E6%9C%AC%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%84"><span class="nav-text">1.2 基本查询结构</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Metadata"><span class="nav-text">2. Metadata</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E5%85%83%E6%95%B0%E6%8D%AE"><span class="nav-text">2.1 关于查询元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Metadata%E5%B1%9E%E6%80%A7"><span class="nav-text">2.2 Metadata属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-filter%E6%9F%A5%E8%AF%A2%E7%9A%84%E5%85%B6%E4%BB%96%E5%B1%9E%E6%80%A7"><span class="nav-text">2.3 filter查询的其他属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-%E7%94%A8%E4%BE%8B"><span class="nav-text">2.4 用例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%9F%A5%E8%AF%A2%E5%B8%AE%E5%8A%A9%E6%96%87%E4%BB%B6"><span class="nav-text">3. 查询帮助文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E6%A6%82%E8%A7%88"><span class="nav-text">3.1 概览</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E7%BB%93%E6%9E%84"><span class="nav-text">3.2 结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-Section-level-elements"><span class="nav-text">3.3 Section-level elements</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-%E5%9D%97%E5%85%83%E7%B4%A0"><span class="nav-text">3.4 块元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-List-%E5%85%83%E7%B4%A0"><span class="nav-text">3.5 List 元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E8%A1%A8%E5%85%83%E7%B4%A0"><span class="nav-text">3.6 表元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-%E5%86%85%E8%81%94%E5%86%85%E5%AE%B9"><span class="nav-text">3.7 内联内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-%E5%8C%85%E5%90%AB"><span class="nav-text">3.8 包含</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%8E%A7%E5%88%B6%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4. 控制查询结果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%85%B3%E4%BA%8E%E6%9F%A5%E8%AF%A2%E7%BB%93%E6%9E%9C"><span class="nav-text">4.1 关于查询结果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E7%BC%96%E5%86%99select%E8%AF%AD%E5%8F%A5%E6%A1%88%E4%BE%8B"><span class="nav-text">4.2 编写select语句案例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%85%83%E7%B4%A0%E4%BD%8D%E7%BD%AE%E4%BF%A1%E6%81%AF"><span class="nav-text">5. 元素位置信息</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%85%B3%E4%BA%8E%E5%85%83%E7%B4%A0%E4%BD%8D%E7%BD%AE"><span class="nav-text">5.1 关于元素位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E6%8F%90%E4%BE%9BURLS"><span class="nav-text">5.2 提供URLS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E6%8F%90%E4%BE%9B%E4%BD%8D%E7%BD%AE%E4%BF%A1%E6%81%AF"><span class="nav-text">5.3 提供位置信息</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
