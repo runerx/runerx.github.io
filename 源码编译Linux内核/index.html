@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="编译Linux源码及文件系统">
+<meta property="og:type" content="article">
+<meta property="og:title" content="源码编译Linux内核">
+<meta property="og:url" content="http://example.com/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91Linux%E5%86%85%E6%A0%B8/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="编译Linux源码及文件系统">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/8.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/9.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/10.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/11.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/12.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/13.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/14.jpg">
+<meta property="og:image" content="http://example.com/images/pics/计算机底层/15.jpg">
+<meta property="article:published_time" content="2022-08-24T15:08:58.000Z">
+<meta property="article:modified_time" content="2022-08-24T15:10:55.417Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="Linux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/pics/计算机底层/8.jpg">
+
+<link rel="canonical" href="http://example.com/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91Linux%E5%86%85%E6%A0%B8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>源码编译Linux内核 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/%E6%BA%90%E7%A0%81%E7%BC%96%E8%AF%91Linux%E5%86%85%E6%A0%B8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          源码编译Linux内核
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2022-08-24 23:08:58 / 修改时间：23:10:55" itemprop="dateCreated datePublished" datetime="2022-08-24T23:08:58+08:00">2022-08-24</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">计算机系统</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>编译Linux源码及文件系统</p>
+<span id="more"></span>
+
+
+
+<h2 id="1-下载linux内核源码"><a href="#1-下载linux内核源码" class="headerlink" title="1. 下载linux内核源码"></a>1. 下载linux内核源码</h2><p>访问：<a target="_blank" rel="noopener" href="https://www.kernel.org/">https://www.kernel.org/</a></p>
+<p>点击如下</p>
+<img src="../images/pics/计算机底层/8.jpg" style="zoom:50%;" />
+
+<p>点击linux</p>
+<img src="../images/pics/计算机底层/9.jpg" style="zoom:50%;" /> 
+
+<p>点击kernel</p>
+<img src="../images/pics/计算机底层/10.jpg" style="zoom:50%;" /> 
+
+<p>我们下载4.x的版本</p>
+<img src="../images/pics/计算机底层/11.jpg" style="zoom:50%;" /> 
+
+<p>下载4.9.229版本</p>
+<img src="../images/pics/计算机底层/12.jpg" style="zoom:50%;" /> 
+
+<p>复制连接地址，使用如下命令下载</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget -c https:<span class="regexp">//mi</span>rrors.edge.kernel.org<span class="regexp">/pub/</span>linux<span class="regexp">/kernel/</span>v4.x/linux-<span class="number">4.9</span>.<span class="number">229</span>.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>-c参数指的是断点续传，取消后可以接着传</p>
+<h2 id="2-linux内核源码目录介绍"><a href="#2-linux内核源码目录介绍" class="headerlink" title="2. linux内核源码目录介绍"></a>2. linux内核源码目录介绍</h2><p>下载完后我们可以进入目录</p>
+<p><strong>arch目录</strong></p>
+<p>arch目录是CPU体系相关的代码，有arm架构、x86架构等等。</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@debian <span class="keyword">arch</span>]# <span class="keyword">ls</span></span><br><span class="line"><span class="keyword">alpha</span>  arm64     c6x   h8300    Kconfig  metag       mn10300   parisc   <span class="keyword">score</span>  tile       x86</span><br><span class="line">arc    avr32     cris  hexagon  m32r     microblaze  nios2     powerpc  <span class="keyword">sh</span>     um         xtensa</span><br><span class="line">arm    blackfin  frv   ia64     m68k     mips        openrisc  s390     sparc  unicore32</span><br></pre></td></tr></table></figure>
+
+<p>每个架构下面还有内核相关代码</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">[<span class="identifier">root</span>@<span class="identifier">debian</span> <span class="identifier">arch</span>]</span># cd x86</span><br><span class="line"><span class="literal">[<span class="identifier">root</span>@<span class="identifier">debian</span> <span class="identifier">x86</span>]</span># ls</span><br><span class="line">boot     events   Kconfig        kvm       <span class="module-access"><span class="module"><span class="identifier">Makefile_32</span>.</span></span>cpu  net       power      tools</span><br><span class="line">configs  ia32     <span class="module-access"><span class="module"><span class="identifier">Kconfig</span>.</span></span>cpu    lguest    <span class="module-access"><span class="module"><span class="identifier">Makefile</span>.</span></span>um      oprofile  purgatory  um</span><br><span class="line">crypto   <span class="keyword">include</span>  <span class="module-access"><span class="module"><span class="identifier">Kconfig</span>.</span></span>debug  lib       math-emu         pci       ras        video</span><br><span class="line">entry    Kbuild   kernel         Makefile  mm               platform  realmode   xen</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>Documentation</strong></p>
+<p>内核里的技术文档，关于内核参数、配置、特性等都有</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> linux<span class="number">-4.9</span><span class="number">.229</span>]<span class="meta"># cd Documentation</span></span><br><span class="line">[root<span class="symbol">@debian</span> Documentation]<span class="meta"># ls</span></span><br><span class="line"><span class="number">00</span>-INDEX                    gpu                          parisc</span><br><span class="line"><span class="number">80211</span>                       hid                          parport-lowlevel.txt</span><br><span class="line">ABI                         highuid.txt                  parport.txt</span><br><span class="line">accounting                  HOWTO                        PCI</span><br><span class="line">acpi                        hwmon                        pcmcia</span><br><span class="line">.......</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>firmware</strong></p>
+<p>固件相关代码</p>
+<p><strong>init</strong></p>
+<p>init是内核启动相关的代码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="title">@debian</span> linux<span class="number">-4.9</span>.<span class="number">229</span>]# cd init</span><br><span class="line">[root<span class="title">@debian</span> init]# ls</span><br><span class="line">calibrate.<span class="keyword">c</span>  do_mounts.h         do_mounts_md.<span class="keyword">c</span>  initramfs.<span class="keyword">c</span>  Kconfig  Makefile       version.<span class="keyword">c</span></span><br><span class="line">do_mounts.<span class="keyword">c</span>  do_mounts_initrd.<span class="keyword">c</span>  do_mounts_rd.<span class="keyword">c</span>  init_task.<span class="keyword">c</span>  main.<span class="keyword">c</span>   noinitramfs.<span class="keyword">c</span></span><br></pre></td></tr></table></figure>
+
+<p>main.c里面有一个start_kernel函数，这是开始执行C代码的位置，在此之前都是汇编代码。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">asmlinkage __visible <span class="keyword">void</span> __init <span class="title">start_kernel</span><span class="params">(<span class="keyword">void</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">        <span class="keyword">char</span> *command_line;</span><br><span class="line">        <span class="keyword">char</span> *after_dashes;</span><br><span class="line"></span><br><span class="line">        set_task_stack_end_magic(&amp;init_task);</span><br><span class="line">        smp_setup_processor_id();</span><br><span class="line">        debug_objects_early_init();</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * Set up the the initia</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>block</strong></p>
+<p>block是块设备相关代码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="title">@debian</span> linux<span class="number">-4.9</span>.<span class="number">229</span>]# cd block</span><br><span class="line">[root<span class="title">@debian</span> block]# ls</span><br><span class="line">badblocks.<span class="keyword">c</span>      blk-ioc.<span class="keyword">c</span>        blk-mq-tag.<span class="keyword">c</span>    bsg.<span class="keyword">c</span>               ioprio.<span class="keyword">c</span></span><br><span class="line">bio.<span class="keyword">c</span>            blk-lib.<span class="keyword">c</span>        blk-mq-tag.h    bsg-lib.<span class="keyword">c</span>           Kconfig</span><br><span class="line">bio-integrity.<span class="keyword">c</span>  blk-map.<span class="keyword">c</span>        blk-settings.<span class="keyword">c</span>  cfq-iosched.<span class="keyword">c</span>       Kconfig.iosched</span><br><span class="line">blk-cgroup.<span class="keyword">c</span>     blk-merge.<span class="keyword">c</span>      blk-softirq.<span class="keyword">c</span>   cmdline-parser.<span class="keyword">c</span>    Makefile</span><br><span class="line">blk-core.<span class="keyword">c</span>       blk-mq.<span class="keyword">c</span>         blk-sysfs.<span class="keyword">c</span>     compat_ioctl.<span class="keyword">c</span>      noop-iosched.<span class="keyword">c</span></span><br><span class="line">blk-exec.<span class="keyword">c</span>       blk-mq-cpumap.<span class="keyword">c</span>  blk-tag.<span class="keyword">c</span>       deadline-iosched.<span class="keyword">c</span>  partition-generic.<span class="keyword">c</span></span><br><span class="line">blk-flush.<span class="keyword">c</span>      blk-mq.h         blk-throttle.<span class="keyword">c</span>  elevator.<span class="keyword">c</span>          partitions</span><br><span class="line">blk.h            blk-mq-pci.<span class="keyword">c</span>     blk-timeout.<span class="keyword">c</span>   genhd.<span class="keyword">c</span>             scsi_ioctl.<span class="keyword">c</span></span><br><span class="line">blk-integrity.<span class="keyword">c</span>  blk-mq-sysfs.<span class="keyword">c</span>   bounce.<span class="keyword">c</span>        ioctl.<span class="keyword">c</span>             t<span class="number">10</span>-pi.<span class="keyword">c</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>drivers</strong></p>
+<p>drivers代码量很大，外设特别多，所以需要更多的驱动支持。</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-<span class="number">4.9</span>.<span class="number">229</span>]# <span class="keyword">cd</span> drivers</span><br><span class="line">[root@debian drivers]# <span class="keyword">ls</span></span><br><span class="line">accessibility  cpufreq   gpu         Kconfig    net       pnp         sfi          vhost</span><br><span class="line">acpi           cpuidle   <span class="keyword">hid</span>         leds       nfc       power       <span class="keyword">sh</span>           video</span><br><span class="line">amba           crypto    hsi         lguest     ntb       powercap    <span class="keyword">sn</span>           virt</span><br><span class="line">android        dax       hv          lightnvm   nubus     pps         soc          virtio</span><br><span class="line">ata            dca       hwmon       macintosh  nvdimm    ps3         spi          vlyn</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>ipc</strong></p>
+<p>ipc是进程通讯相关代码</p>
+<p><strong>security</strong></p>
+<p>安全相关代码</p>
+<p><strong>net</strong></p>
+<p>协议栈相关代码</p>
+<p><strong>sound</strong></p>
+<p>声音相关代码</p>
+<p><strong>fs</strong></p>
+<p>文件系统相关代码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="title">@debian</span> linux<span class="number">-4.9</span>.<span class="number">229</span>]# cd fs/</span><br><span class="line">[root<span class="title">@debian</span> fs]# ls</span><br><span class="line"><span class="number">9</span>p                  cifs                 exportfs        ioctl.<span class="keyword">c</span>         nilfs<span class="number">2</span>            read_write.<span class="keyword">c</span></span><br><span class="line">adfs                coda                 ext<span class="number">2</span>            iomap.<span class="keyword">c</span>         nls               reiserfs</span><br><span class="line">affs                compat_binfmt_elf.<span class="keyword">c</span>  ext<span class="number">4</span>            isofs           no-block.<span class="keyword">c</span>        romfs</span><br><span class="line">afs                 compat.<span class="keyword">c</span>             f<span class="number">2</span>fs            jbd<span class="number">2</span>            notify</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+
+<p><strong>kernel</strong></p>
+<p>kernel是内核核心相关代码，进程管理、进程调度等内核核心代码</p>
+<p><strong>include</strong></p>
+<p>头文件代码</p>
+<p><strong>mm</strong></p>
+<p>内存管理相关代码</p>
+<h2 id="3-linux内核编译"><a href="#3-linux内核编译" class="headerlink" title="3. linux内核编译"></a>3. linux内核编译</h2><p><strong>1. 指定硬件体系架构</strong></p>
+<p>我这里选择x86</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-4.9.229]# <span class="builtin-name">export</span> <span class="attribute">ARCH</span>=x86</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>2. 配置board config</strong></p>
+<p>此处为x86_64_deconfig</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-<span class="number">4.9</span>.<span class="number">229</span>]<span class="comment"># make x86_64_defconfig</span></span><br><span class="line">  HOSTCC  scripts<span class="regexp">/basic/</span>fixdep</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>conf.o</span><br><span class="line">  SHIPPED scripts<span class="regexp">/kconfig/</span>zconf.tab.c</span><br><span class="line">  SHIPPED scripts<span class="regexp">/kconfig/</span>zconf.lex.c</span><br><span class="line">  SHIPPED scripts<span class="regexp">/kconfig/</span>zconf.hash.c</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>zconf.tab.o</span><br><span class="line">  HOSTLD  scripts<span class="regexp">/kconfig/</span>conf</span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment"># configuration written to .config</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>3. 配置内核</strong></p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-<span class="number">4.9</span>.<span class="number">229</span>]<span class="comment"># make menuconfig</span></span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/m</span>conf.o</span><br><span class="line">&lt;command-line&gt;: fatal error: curses.h: 没有那个文件或目录</span><br><span class="line">compilation terminated.</span><br><span class="line">make[<span class="number">1</span>]: *** [scripts<span class="regexp">/Makefile.host:118：scripts/</span>kconfig/mconf.o] 错误 <span class="number">1</span></span><br><span class="line">make: *** [Makefile:<span class="number">553</span>：menuconfig] 错误 <span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>这里执行会报错，需要安装<code>apt install libncurses5-dev</code></p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> linux<span class="number">-4.9</span><span class="number">.229</span>]<span class="meta"># apt install libncurses5-dev</span></span><br></pre></td></tr></table></figure>
+
+<p>再次执行，就会弹出配置界面</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-<span class="number">4.9</span>.<span class="number">229</span>]<span class="comment"># make menuconfig</span></span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/m</span>conf.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>zconf.tab.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/checklist.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/util.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/inputbox.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/textbox.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/yesno.o</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/kconfig/</span>lxdialog/menubox.o</span><br><span class="line">  HOSTLD  scripts<span class="regexp">/kconfig/m</span>conf</span><br><span class="line">scripts<span class="regexp">/kconfig/m</span>conf  Kconfig</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">*** End of the configuration.</span><br><span class="line">*** Execute <span class="string">&#x27;make&#x27;</span> to start the build or try <span class="string">&#x27;make help&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>需要支持支持ramdisk驱动，如下操作</p>
+<p>选择General setup回车</p>
+<img src="../images/pics/计算机底层/13.jpg"/> 
+
+<p>确保Initial RAM 有*号，被选中。</p>
+<img src="../images/pics/计算机底层/14.jpg"/> 
+
+<p>然后选择Exit，退到上一级目录。</p>
+<p>进入Device Drivers, 再进入Block devices。给<code>RAM block device support</code>打上*。同时把<code>Default RAM disk size</code>调大一点到65536。</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">G<span class="function"><span class="title">eneral</span> setup  ---&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    D<span class="function"><span class="title">evice</span> Drivers  ---&gt;</span></span><br><span class="line"></span><br><span class="line">       [*] B<span class="function"><span class="title">lock</span> devices  ---&gt;</span></span><br><span class="line"></span><br><span class="line">               &lt;*&gt;   RAM <span class="keyword">block</span> device support</span><br><span class="line"></span><br><span class="line">               (<span class="number">65536</span>) Default RAM disk size (kbytes)</span><br></pre></td></tr></table></figure>
+
+<p>M表示编程驱动</p>
+<p>*表示把驱动编到内核里面</p>
+<p>配置好后选择<code>Save</code>,再选择<code>Exit</code>退出，</p>
+<p><strong>4. 编译</strong></p>
+<p>执行make进行编译。编译好后在</p>
+<figure class="highlight stata"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@debian linux-4.9.229]# <span class="keyword">ls</span> -<span class="keyword">l</span> <span class="keyword">arch</span>/x86/<span class="keyword">boot</span>/bzImage</span><br><span class="line">-rw-r--r-- 1 root root 6795248 8月  24 21:24 <span class="keyword">arch</span>/x86/<span class="keyword">boot</span>/bzImage</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="4-编译文件系统"><a href="#4-编译文件系统" class="headerlink" title="4. 编译文件系统"></a>4. 编译文件系统</h2><h3 id="4-1-下载"><a href="#4-1-下载" class="headerlink" title="4.1 下载"></a>4.1 下载</h3><p>访问 busybox.net</p>
+<p>这里找到1.30.1进行下载</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">wget</span> -c https://busybox.net/downloads/busybox-<span class="number">1</span>.<span class="number">30</span>.<span class="number">1</span>.tar.bz<span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<p>解压</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">tar</span> -jxvf busybox-<span class="number">1</span>.<span class="number">30</span>.<span class="number">1</span>.tar.bz<span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-2-设置静态链接库"><a href="#4-2-设置静态链接库" class="headerlink" title="4.2 设置静态链接库"></a>4.2 设置静态链接库</h3><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@debian busybox-<span class="number">1.30</span>.<span class="number">1</span>]<span class="comment"># make menuconfig</span></span><br><span class="line">  HOSTCC  scripts<span class="regexp">/basic/</span>fixdep</span><br><span class="line">  HOSTCC  scripts<span class="regexp">/basic/</span>split-include</span><br></pre></td></tr></table></figure>
+
+<p>进入Settings，设置如下</p>
+<img src="../images/pics/计算机底层/15.jpg"/>
+
+
+
+<h3 id="4-3-编译"><a href="#4-3-编译" class="headerlink" title="4.3 编译"></a>4.3 编译</h3><figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@debian</span> busybox<span class="number">-1.30</span>.<span class="number">1</span>]<span class="comment"># make &amp;&amp; make install</span></span><br><span class="line">  SPLIT   <span class="keyword">include</span>/autoconf.h -&gt; <span class="keyword">include</span>/config/*</span><br><span class="line">  GEN     <span class="keyword">include</span>/bbconfigopts.h</span><br></pre></td></tr></table></figure>
+
+<p>make会编译busybox, make install 会将工具busybox及工具安装到源码下install目录</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># cd _install/</span></span><br><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># ls</span></span><br><span class="line">bin  linuxrc  sbin  usr</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-4-完善busybox文件系统"><a href="#4-4-完善busybox文件系统" class="headerlink" title="4.4 完善busybox文件系统"></a>4.4 完善busybox文件系统</h3><figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># mkdir -p etc dev mnt</span></span><br><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># mkdir -p proc sys tmp</span></span><br><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># mkdir -p etc/init.d</span></span><br></pre></td></tr></table></figure>
+
+<p>配置挂载目录</p>
+<p>vim etc/fstab</p>
+<figure class="highlight tcl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">proc</span>        /<span class="keyword">proc</span><span class="title">           proc</span> <span class="title">        defaults</span>        0        0<span class="title"></span></span><br><span class="line"><span class="title">tmpfs</span>       /tmp<span class="title">            tmpfs</span>    　　defaults        0        0<span class="title"></span></span><br><span class="line"><span class="title">sysfs</span>       /sys<span class="title">            sysfs</span> <span class="title">       defaults</span>        0        0</span><br></pre></td></tr></table></figure>
+
+
+
+<p>配置busybox启动时候的代码</p>
+<p>vim etc/init.d/rcS</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">echo -e <span class="string">&quot;Welcome to tinyLinux&quot;</span></span><br><span class="line"><span class="regexp">/bin/m</span>ount -a</span><br><span class="line">echo -e <span class="string">&quot;Remounting the root filesystem&quot;</span></span><br><span class="line">mount  -o  remount,rw  /</span><br><span class="line">mkdir -p <span class="regexp">/dev/</span>pts</span><br><span class="line">mount -t devpts devpts <span class="regexp">/dev/</span>pts</span><br><span class="line">echo <span class="regexp">/sbin/m</span>dev &gt; <span class="regexp">/proc/</span>sys<span class="regexp">/kernel/</span>hotplug</span><br><span class="line">mdev -s</span><br></pre></td></tr></table></figure>
+
+<p>给予可执行权限</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># chmod 755 etc/init.d/rcS</span></span><br><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>busybox启动</p>
+<p>[root@debian _install]# vim etc/inittab</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">::sysinit:/etc/init.d/rcS</span></span><br><span class="line"><span class="meta">::respawn:-/bin/sh</span></span><br><span class="line"><span class="meta">::askfirst:-/bin/sh</span></span><br><span class="line"><span class="meta">::ctrlaltdel:/bin/umount</span> -a -r</span><br></pre></td></tr></table></figure>
+
+<p>赋予可执行权限</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># chmod 755 etc/inittab</span></span><br><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> _install]<span class="meta"># cd dev</span></span><br><span class="line">[root<span class="symbol">@debian</span> dev]<span class="meta"># mknod console c 5 1</span></span><br><span class="line">[root<span class="symbol">@debian</span> dev]<span class="meta"># mknod null c 1 3</span></span><br><span class="line">[root<span class="symbol">@debian</span> dev]<span class="meta"># mknod tty1 c 4</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="4-5-制作根文件系统镜像文件"><a href="#4-5-制作根文件系统镜像文件" class="headerlink" title="4.5 制作根文件系统镜像文件"></a>4.5 制作根文件系统镜像文件</h3><p>切换到_install的父级目录</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># rm -rf rootfs.ext3</span></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># rm -rf fs</span></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># dd if=/dev/zero of=./rootfs.ext3 bs=1M count=32</span></span><br><span class="line">记录了<span class="number">32</span>+<span class="number">0</span> 的读入</span><br><span class="line">记录了<span class="number">32</span>+<span class="number">0</span> 的写出</span><br><span class="line"><span class="number">33554432</span> bytes (<span class="number">34</span> MB, <span class="number">32</span> MiB) copied, <span class="number">0.0537795</span> s, <span class="number">624</span> MB/s</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># mkfs.ext3 rootfs.ext3</span></span><br><span class="line">mke2fs <span class="number">1.44</span><span class="number">.5</span> (<span class="number">15</span>-<span class="built_in">Dec</span><span class="number">-2018</span>)</span><br><span class="line">Discarding device blocks: done</span><br><span class="line">Creating filesystem <span class="keyword">with</span> <span class="number">32768</span> <span class="number">1</span>k blocks <span class="literal">and</span> <span class="number">8192</span> inodes</span><br><span class="line">Filesystem UUID: <span class="number">85</span>ccc327<span class="number">-919</span>a<span class="number">-4246</span>-ae60-a085a09d6cdb</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># mkdir fs</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># mount -o loop rootfs.ext3 ./fs</span></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># cp -rf ./_install/* ./fs</span></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># umount ./fs</span></span><br><span class="line"></span><br><span class="line">[root<span class="symbol">@debian</span> busybox<span class="number">-1.30</span><span class="number">.1</span>]<span class="meta"># gzip --best -c rootfs.ext3 &gt; rootfs.img.gz</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="4-6-启动内核"><a href="#4-6-启动内核" class="headerlink" title="4.6 启动内核"></a>4.6 启动内核</h3><p>通过qemu模拟器启动我们自己编译的内核</p>
+<figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt-<span class="built_in">get</span> install qemu-<span class="keyword">system</span>-x86</span><br></pre></td></tr></table></figure>
+
+
+
+<p>启动自己编译的linux</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">qemu-system-x86_64 \</span><br><span class="line">  -kernel .<span class="regexp">/linux-4.9.229/</span>arch<span class="regexp">/x86_64/</span>boot/bzImage  \</span><br><span class="line">  -initrd .<span class="regexp">/busybox-1.30.1/</span>rootfs.img.gz   \</span><br><span class="line">  -<span class="keyword">append</span> <span class="string">&quot;root=/dev/ram init=/linuxrc console=ttyS0&quot;</span>  \</span><br><span class="line">  -nographic \</span><br><span class="line">  -serial mon:stdio</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight livescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Please press Enter <span class="keyword">to</span> activate <span class="built_in">this</span> <span class="built_in">console</span>.</span><br><span class="line">/ <span class="comment"># uname -a</span></span><br><span class="line">Linux (none) <span class="number">4.9</span>.<span class="number">229</span> <span class="comment">#1 SMP Wed Aug 24 21:23:59 CST 2022 x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>退出</strong></p>
+<p>exit</p>
+<p>control + a </p>
+<p>x</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux/" rel="tag"># Linux</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/blog%E9%97%AE%E9%A2%98/" rel="prev" title="blog问题">
+      <i class="fa fa-chevron-left"></i> blog问题
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E5%AD%97%E7%AC%A6%E8%AE%BE%E5%A4%87%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91%E5%B0%9D%E8%AF%95/" rel="next" title="字符设备驱动开发尝试">
+      字符设备驱动开发尝试 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%8B%E8%BD%BDlinux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81"><span class="nav-text">1. 下载linux内核源码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-linux%E5%86%85%E6%A0%B8%E6%BA%90%E7%A0%81%E7%9B%AE%E5%BD%95%E4%BB%8B%E7%BB%8D"><span class="nav-text">2. linux内核源码目录介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-linux%E5%86%85%E6%A0%B8%E7%BC%96%E8%AF%91"><span class="nav-text">3. linux内核编译</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%BC%96%E8%AF%91%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text">4. 编译文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%B8%8B%E8%BD%BD"><span class="nav-text">4.1 下载</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E8%AE%BE%E7%BD%AE%E9%9D%99%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93"><span class="nav-text">4.2 设置静态链接库</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E7%BC%96%E8%AF%91"><span class="nav-text">4.3 编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%AE%8C%E5%96%84busybox%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F"><span class="nav-text">4.4 完善busybox文件系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E5%88%B6%E4%BD%9C%E6%A0%B9%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F%E9%95%9C%E5%83%8F%E6%96%87%E4%BB%B6"><span class="nav-text">4.5 制作根文件系统镜像文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-6-%E5%90%AF%E5%8A%A8%E5%86%85%E6%A0%B8"><span class="nav-text">4.6 启动内核</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

