@@ -9537,7 +9537,7 @@ Any-Header: burpcollaborator.net</pre>
   <entry>
     <title>Elastic7.17文档</title>
     <url>/Elastic7-17%E6%96%87%E6%A1%A3/</url>
-    <content><![CDATA[<p>Elastic7.17官方文档随意翻译，自己看。文档连接：<a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.17/elasticsearch-intro.html">https://www.elastic.co/guide/en/elasticsearch/reference/7.17/elasticsearch-intro.html</a></p>
+    <content><![CDATA[<p>Elastic7.17官方文档随意翻译，自己看。<a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.17/elasticsearch-intro.html">文档链接</a></p>
 <span id="more"></span>
 
 <h2 id="什么是Elasticsearch"><a href="#什么是Elasticsearch" class="headerlink" title="什么是Elasticsearch"></a>什么是Elasticsearch</h2><p>Elasticsearch是Elastic Stack核心的分布式搜索和分析引擎。Logstash和Beats帮助您收集、聚合和丰富数据，并将其存储在Elasticsearch中。Kibana使您能够交互式地探索、可视化和分享你对数据的洞察，并管理和监控整个堆栈。Elasticsearch是索引、搜索和分析的魔力所在。</p>
