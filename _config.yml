@@ -3,11 +3,11 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: 'Vinci'
+title: 'runer.io'
 subtitle: 'Nothing'
 description: ''
 keywords:
-author: Vinci
+author: Rune
 language: zh-CN
 timezone: ''
 
@@ -111,7 +111,7 @@ theme: next
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: git
-  repo: git@vinci-3000.github.com:vinci-3000/vinci-3000.github.io.git
+  repo: git@runerx.github.com:runerx/runerx.github.io.git
   branch: master
 
 search:
