@@ -1,9 +1,12 @@
 ---
 title: 使用cloudflare的worker功能进行http日志收集
+tags:
+  - 安全建设
+  - code
 categories: 安全建设
-tags: 
-- 安全建设
+date: 2024-02-21 16:32:08
 ---
+
 
 cloudflare的log push必须要企业版，每个月至少4000刀以上，可以用worker进行替代
 
